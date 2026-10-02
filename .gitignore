@@ -34,3 +34,11 @@ yarn-error.log*
 *.tsbuildinfo
 node_modules
 /.cache/
+
+# opennext / wrangler
+/.open-next/
+/.wrangler/
+.dev.vars
+
+# relatórios locais do Lighthouse CI
+/.lighthouseci/

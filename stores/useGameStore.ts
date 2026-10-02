@@ -5,8 +5,9 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
-import { loadCatalog } from '@/lib/catalog';
-import { SEED_GAMES } from '@/lib/games';
+import { remapProgress } from '@/lib/aliases';
+import { CATALOG_CONSOLE_IDS, consoleIdOf, fetchConsoleGames, fetchTopGames } from '@/lib/catalog';
+import { SEED_GAMES, countByStatus } from '@/lib/games';
 import type {
   BackupPayload,
   Game,
@@ -42,8 +43,13 @@ interface GameStore extends PersistedState {
   status: StatusFilter;
   brazilOnly: boolean;
   sort: SortMode;
-  /** Catálogo completo (public/catalog), carregado sob demanda. */
+  /**
+   * Catálogo visível: os mais populares (top.json) + os consoles já baixados.
+   * Nada é baixado antes de ser preciso (ver `ensureConsoles`).
+   */
   catalog: Game[];
+  catalogTop: Game[];
+  catalogConsoles: Record<string, Game[]>;
   catalogStatus: CatalogStatus;
   selectedGameId: string | null;
   statsOpen: boolean;
@@ -78,6 +84,8 @@ interface GameStore extends PersistedState {
 
   /* ---- catálogo ---- */
   loadCatalog: () => void;
+  /** Baixa (uma vez) o catálogo destes consoles. 'all' = todos. */
+  ensureConsoles: (ids: string[] | 'all') => void;
   addCustomGames: (games: Game[]) => number;
   removeCustomGame: (gameId: string) => void;
 
@@ -110,8 +118,11 @@ function mergeProgress(
     completedYear: patch.completedYear !== undefined ? patch.completedYear : current?.completedYear,
     rating: patch.rating !== undefined ? patch.rating : current?.rating,
     notes: patch.notes !== undefined ? patch.notes : current?.notes,
+    // Guardar o console permite baixar só o arquivo dele ao reabrir o app.
+    consoleId: current?.consoleId ?? consoleIdOf(gameId),
     updatedAt: now(),
   };
+  if (!next.consoleId) delete next.consoleId;
   if (next.completedYear === undefined) delete next.completedYear;
   if (next.rating === undefined || next.rating === 0) delete next.rating;
   if (!next.notes) delete next.notes;
@@ -151,9 +162,76 @@ function sanitizeProgress(raw: unknown): Record<string, UserGameProgress> {
       entry.rating = Math.round(item.rating);
     }
     if (typeof item.notes === 'string' && item.notes.trim()) entry.notes = item.notes;
+    if (typeof item.consoleId === 'string' && /^[a-z0-9-]{1,32}$/.test(item.consoleId)) entry.consoleId = item.consoleId;
     out[gameId] = entry;
   }
   return out;
+}
+
+/* ---- carregamento do catálogo (fora do estado: não precisa re-renderizar) ---- */
+
+const TOP = '__top__';
+/** O que já foi pedido (ou chegou): cada arquivo é baixado uma vez só. */
+const catalogRequested = new Set<string>();
+let inFlight = 0;
+let failures = 0;
+
+/** Populares de consoles ainda não baixados + os consoles baixados (sem repetir). */
+function mergeCatalog(top: Game[], consoles: Record<string, Game[]>): Game[] {
+  const loaded = Object.values(consoles);
+  const topRest = top.filter((game) => !consoles[consoleIdOf(game.id) ?? '']);
+  return loaded.length ? topRest.concat(...loaded) : topRest;
+}
+
+function trackLoad(promise: Promise<unknown>) {
+  inFlight += 1;
+  useGameStore.setState({ catalogStatus: 'loading' });
+  void promise
+    .catch(() => {
+      failures += 1;
+    })
+    .finally(() => {
+      inFlight -= 1;
+      if (inFlight === 0) {
+        flushConsoles();
+        useGameStore.setState({ catalogStatus: failures ? 'error' : 'ready' });
+        failures = 0;
+      }
+    });
+}
+
+/*
+ * Cada lote novo refaz índice e ordenação de dezenas de milhares de jogos: os
+ * consoles que chegam juntos entram de uma vez só.
+ */
+let pendingConsoles: Record<string, Game[]> = {};
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function queueConsole(id: string, games: Game[]) {
+  pendingConsoles[id] = games;
+  flushTimer ??= setTimeout(flushConsoles, 200);
+}
+
+function flushConsoles() {
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = null;
+  if (!Object.keys(pendingConsoles).length) return;
+  const batch = pendingConsoles;
+  pendingConsoles = {};
+  useGameStore.setState((s) => {
+    const catalogConsoles = { ...s.catalogConsoles, ...batch };
+    return { catalogConsoles, catalog: mergeCatalog(s.catalogTop, catalogConsoles) };
+  });
+}
+
+/** Consoles onde o usuário tem jogos marcados (precisam estar baixados). */
+export function progressConsoleIds(progress: Record<string, UserGameProgress>): string[] {
+  const ids = new Set<string>();
+  for (const [gameId, entry] of Object.entries(progress)) {
+    const id = entry.consoleId ?? consoleIdOf(gameId);
+    if (id) ids.add(id);
+  }
+  return [...ids].sort();
 }
 
 export const useGameStore = create<GameStore>()(
@@ -163,6 +241,8 @@ export const useGameStore = create<GameStore>()(
       customGames: [],
       ...FILTER_DEFAULTS,
       catalog: [],
+      catalogTop: [],
+      catalogConsoles: {},
       catalogStatus: 'idle',
       selectedGameId: null,
       statsOpen: false,
@@ -243,27 +323,30 @@ export const useGameStore = create<GameStore>()(
 
       /* catálogo */
       loadCatalog: () => {
-        if (get().catalogStatus !== 'idle') return;
-        set({ catalogStatus: 'loading' });
-        // Cada lote novo refaz índice e ordenação de dezenas de milhares de jogos:
-        // os consoles que chegam juntos entram de uma vez só.
-        let pending: Game[] = [];
-        let timer: ReturnType<typeof setTimeout> | null = null;
-        const flush = () => {
-          timer = null;
-          if (!pending.length) return;
-          const batch = pending;
-          pending = [];
-          set((s) => ({ catalog: s.catalog.concat(batch) }));
-        };
-        void loadCatalog((games) => {
-          pending = pending.concat(games);
-          timer ??= setTimeout(flush, 300);
-        }).then((failed) => {
-          if (timer) clearTimeout(timer);
-          flush();
-          set({ catalogStatus: failed > 0 ? 'error' : 'ready' });
-        });
+        if (catalogRequested.has(TOP)) return;
+        catalogRequested.add(TOP);
+        trackLoad(
+          fetchTopGames().then((games) => {
+            set((s) => ({ catalogTop: games, catalog: mergeCatalog(games, s.catalogConsoles) }));
+          }),
+        );
+      },
+
+      ensureConsoles: (ids) => {
+        const wanted = (ids === 'all' ? CATALOG_CONSOLE_IDS : ids).filter((id) => !catalogRequested.has(id));
+        if (!wanted.length) return;
+        for (const id of wanted) catalogRequested.add(id);
+        for (const id of wanted) {
+          trackLoad(
+            fetchConsoleGames(id).then(
+              (games) => queueConsole(id, games),
+              (error: unknown) => {
+                catalogRequested.delete(id); // permite tentar de novo
+                throw error;
+              },
+            ),
+          );
+        }
       },
 
       addCustomGames: (games) => {
@@ -298,7 +381,8 @@ export const useGameStore = create<GameStore>()(
       },
 
       importBackup: (payload, mode) => {
-        const incoming = sanitizeProgress(payload?.progress);
+        // Backups antigos podem trazer IDs que viraram alias: reaponta antes de mesclar.
+        const incoming = remapProgress(sanitizeProgress(payload?.progress));
         const incomingCount = Object.keys(incoming).length;
         const incomingGames = Array.isArray(payload?.customGames) ? payload.customGames : [];
 
@@ -370,6 +454,16 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'zerei-app-storage',
       version: 1,
+      // Toda leitura do LocalStorage passa pelos aliases de ID (ADR 0002): se o
+      // catálogo fundiu ou renomeou um jogo, o progresso salvo segue o jogo.
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<PersistedState>;
+        return {
+          ...current,
+          ...saved,
+          progress: remapProgress(saved.progress ?? current.progress),
+        };
+      },
       storage: createJSONStorage(() => localStorage),
       partialize: (state): PersistedState => ({
         progress: state.progress,
@@ -430,11 +524,7 @@ export const useGameProgress = (gameId: string | null) =>
 export const useBeatenCount = () => {
   const games = useAllGames();
   const progress = useGameStore((s) => s.progress);
-  return useMemo(() => {
-    let count = 0;
-    for (const game of games) if (progress[game.id]?.status === 'beaten') count += 1;
-    return count;
-  }, [games, progress]);
+  return useMemo(() => countByStatus(games, progress).beaten, [games, progress]);
 };
 
 export interface FilterState {

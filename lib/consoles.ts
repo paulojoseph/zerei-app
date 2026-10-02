@@ -18,6 +18,10 @@ export interface ConsoleMeta {
   /** Pasta no acervo de box art do libretro (null = lista vem do Wikidata). */
   libretro: string | null;
   wikidata: string[];
+  /** Plataformas da IGDB que formam este console (NES = NES + Famicom). */
+  igdb: number[];
+  /** Filtro extra na consulta à IGDB (PC: só jogos com avaliação). */
+  igdbWhere?: string;
 }
 
 export const CONSOLES = consolesData as ConsoleMeta[];

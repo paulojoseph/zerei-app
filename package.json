@@ -12,28 +12,35 @@
     "covers": "node scripts/fetch-covers.mjs && node scripts/download-covers.mjs",
     "covers:all": "node scripts/fetch-covers.mjs --all && node scripts/download-covers.mjs",
     "covers:download": "node scripts/download-covers.mjs",
-    "catalog": "node scripts/build-catalog.mjs",
-    "icons": "node scripts/gen-icons.mjs"
+    "catalog": "node pipeline/build.mts",
+    "icons": "node scripts/gen-icons.mjs",
+    "preview": "opennextjs-cloudflare build && wrangler dev",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "test": "vitest run"
   },
   "dependencies": {
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "lucide-react": "1.38.0",
-    "next": "16.3.3",
+    "next": "^16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "3.6.0",
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.7",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "^24.10.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
+    "esbuild": "^0.27.7",
     "eslint": "^9.39.0",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "^16.3.8",
     "sharp": "^0.34.5",
     "tailwindcss": "4.3.3",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^5.0.3",
+    "wrangler": "^4.146.0"
   }
 }

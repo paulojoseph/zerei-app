@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Um push novo no mesmo PR cancela a execução anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    name: Tipos, lint e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      # Inclui o teste de desempenho do clique em "Zerei!" com o catálogo completo.
+      - run: npm test
+
+  worker:
+    name: Build do Worker (OpenNext) e limite de tamanho
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx opennextjs-cloudflare build
+      - name: Worker cabe no plano gratuito (3 MB gzip)
+        run: |
+          npx wrangler deploy --dry-run --outdir /tmp/worker | tee /tmp/dry-run.log
+          gzip_kib=$(grep -oP 'gzip: \K[0-9.]+' /tmp/dry-run.log | tail -1)
+          echo "Worker: ${gzip_kib} KiB gzip"
+          echo "### Worker: ${gzip_kib} KiB gzip (limite 3072)" >> "$GITHUB_STEP_SUMMARY"
+          awk -v s="$gzip_kib" 'BEGIN { exit (s > 3072) }'
+
+  lighthouse:
+    name: Orçamento de performance (Lighthouse)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # Catraca: os limites em lighthouserc.json partem da linha de base medida
+      # (docs/adr/0003) e só sobem. Nenhum PR pode piorar.
+      - run: npx -y @lhci/cli@0.15 autorun

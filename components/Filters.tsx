@@ -4,7 +4,7 @@ import { ArrowUpDown, ChevronDown, Flame, RotateCcw } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { SEED_GAMES, SORT_OPTIONS, statusOf } from '@/lib/games';
+import { SEED_GAMES, SORT_OPTIONS, countByStatus } from '@/lib/games';
 import {
   CATALOG_COUNTS,
   CONSOLES,
@@ -222,23 +222,14 @@ export function Filters() {
   ];
 
   /*
-   * Contadores dos chips de status: também uma passada só. Para cada jogo
-   * pegamos o status atual (sem registro no progresso = "não joguei") e
-   * incrementamos o balde correspondente. "Todos" é o tamanho do catálogo.
+   * Contadores dos chips de status. `countByStatus` percorre só o progresso do
+   * usuário (centenas de registros), não o catálogo: roda a cada clique.
    */
   const statusCount = useMemo<Record<StatusFilter, number>>(() => {
-    const counts: Record<StatusFilter, number> = {
-      // O índice já sabe o tamanho do catálogo antes de ele terminar de baixar.
-      all: Math.max(games.length, total),
-      beaten: 0,
-      playing: 0,
-      backlog: 0,
-      unplayed: 0,
-    };
-    for (const game of games) {
-      counts[statusOf(progress, game.id)] += 1;
-    }
-    return counts;
+    const counts = countByStatus(games, progress);
+    // Antes de o catálogo completo chegar, "Não joguei" usa o tamanho do índice.
+    const pending = Math.max(0, total - games.length);
+    return { ...counts, unplayed: counts.unplayed + pending, all: games.length + pending };
   }, [games, progress, total]);
 
   return (
@@ -419,7 +410,9 @@ function FilterChip({
     <button
       type="button"
       aria-pressed={active}
-      aria-label={`${chip.hint} — ${pluralize(chip.count, 'jogo')}`}
+      // O nome acessível começa pelo texto visível ("SNES"): quem usa comando
+      // de voz diz o que vê ("clicar em SNES") e o leitor de tela continua.
+      aria-label={chip.hint === chip.label ? `${chip.label} — ${pluralize(chip.count, 'jogo')}` : `${chip.label} (${chip.hint}) — ${pluralize(chip.count, 'jogo')}`}
       title={chip.hint}
       onClick={onClick}
       style={
@@ -427,7 +420,9 @@ function FilterChip({
           ? {
               color: chip.color,
               borderColor: chip.color,
-              backgroundColor: `color-mix(in oklab, ${chip.color} 14%, transparent)`,
+              // Fundo opaco: com transparência sobre o blur da barra, o contraste
+              // do texto não é garantido (nem verificável pelas ferramentas).
+              backgroundColor: `color-mix(in oklab, ${chip.color} 14%, var(--color-bg))`,
               boxShadow: `0 0 18px -10px ${chip.color}`,
             }
           : partial
