@@ -1,0 +1,237 @@
+@import "tailwindcss";
+
+@source "../app";
+@source "../components";
+@source "../lib";
+
+/* ==========================================================================
+   Zerei.app — Design System
+   Dark-first. Fundo #09090b, painéis slate/zinc, acentos verde neon + ciano.
+   ========================================================================== */
+@theme {
+  /* superfícies */
+  --color-bg: #09090b;
+  --color-bg-deep: #050507;
+  --color-panel: #101015;
+  --color-panel-2: #16161d;
+  --color-panel-3: #1d1d26;
+  --color-line: #27272f;
+  --color-line-soft: #1e1e26;
+
+  /* texto */
+  --color-ink: #ecedf1;
+  --color-ink-soft: #a1a1ae;
+  /* Clareado de #6f6f7d para passar no AA de texto normal: o antigo dava só
+     3,38:1 sobre --color-panel-3 (#1d1d26), a superfície mais clara onde ele
+     aparece. #858593 dá 4,60:1 sobre panel-3 e 5,47:1 sobre --color-bg, e
+     segue 10,7 pontos de L* abaixo de ink-soft — os três degraus continuam
+     visíveis. */
+  --color-ink-dim: #858593;
+
+  /* acentos */
+  --color-neon: #39ff9e;
+  --color-neon-dim: #1fb673;
+  --color-cyan: #22d3ee;
+  --color-cyan-dim: #0e93a8;
+  --color-gold: #fbbf24;
+  --color-danger: #f87171;
+
+  /* As cores de geração NÃO ficam aqui: vivem em `CATEGORY_META[x].color`
+     (lib/platforms.ts) e são aplicadas via `style` inline, porque o Tailwind
+     não gera classe a partir de valor dinâmico. Fonte única, sem cópia. */
+
+  /* tipografia */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-pixel), ui-monospace, "Courier New", monospace;
+
+  /* motion */
+  --ease-pop: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* leve grade retrô ao fundo */
+    background-image:
+      radial-gradient(1000px 620px at 50% -14%, rgba(57, 255, 158, 0.09), transparent 62%),
+      radial-gradient(760px 460px at 100% 0%, rgba(34, 211, 238, 0.07), transparent 60%),
+      linear-gradient(to bottom, #0b0b10 0%, #09090b 42%, #09090b 100%);
+    background-attachment: fixed;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-neon) 35%, transparent);
+    color: #04150c;
+  }
+
+  /* inputs numéricos sem esquisitice de spinner */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* foco visível e consistente em todo o app */
+  :focus-visible {
+    outline: 2px solid var(--color-neon);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer base {
+  :root {
+    /* Altura real do cabeçalho, publicada pelo <Header /> via ResizeObserver.
+       A barra de filtros gruda logo abaixo usando este valor. */
+    --header-h: 105px;
+  }
+}
+
+@layer utilities {
+  /* Faixa horizontal única do app: header, filtros e conteúdo têm que bater.
+     O padding respeita o recorte lateral (notch em paisagem) sem perder os
+     degraus responsivos. */
+  .app-container {
+    /* `--app-pad` é o degrau de padding sem a área segura. Quem precisa sangrar
+       até a borda (faixas com rolagem horizontal) usa margem negativa deste
+       valor: como o padding real é sempre >= --app-pad, o sangramento nunca
+       ultrapassa a viewport — foi assim que nascia 4px de rolagem lateral no
+       celular, com a faixa de gerações sangrando 1rem contra 0.75rem de padding. */
+    --app-pad: 0.75rem;
+    margin-inline: auto;
+    width: 100%;
+    max-width: 1600px;
+    padding-inline: max(var(--app-pad), env(safe-area-inset-left))
+      max(var(--app-pad), env(safe-area-inset-right));
+  }
+  @media (min-width: 640px) {
+    .app-container {
+      --app-pad: 1rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .app-container {
+      --app-pad: 1.5rem;
+    }
+  }
+
+  /* scrollbar discreta */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--color-panel-3);
+    border-radius: 999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* brilho neon reutilizável */
+  .glow-neon {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-neon) 45%, transparent),
+      0 0 22px -6px color-mix(in oklab, var(--color-neon) 60%, transparent);
+  }
+  .glow-cyan {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-cyan) 45%, transparent),
+      0 0 22px -6px color-mix(in oklab, var(--color-cyan) 55%, transparent);
+  }
+  .text-glow {
+    text-shadow: 0 0 18px color-mix(in oklab, var(--color-neon) 55%, transparent);
+  }
+
+  /* linhas de varredura tipo CRT (usado em capas e no header) */
+  .scanlines::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.035) 0px,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+
+}
+
+/* animações */
+@keyframes zerei-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes zerei-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes zerei-slide-up {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes zerei-shimmer {
+  0% { background-position: -180% 0; }
+  100% { background-position: 180% 0; }
+}
+
+.animate-pop { animation: zerei-pop 0.36s var(--ease-pop) both; }
+.animate-fade-in { animation: zerei-fade-in 0.18s ease-out both; }
+.animate-slide-up { animation: zerei-slide-up 0.26s var(--ease-pop) both; }
+.animate-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  animation: zerei-shimmer 1.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-shimmer {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}

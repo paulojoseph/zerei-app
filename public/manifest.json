@@ -1,0 +1,63 @@
+{
+  "name": "Zerei.app — Diário de Jogos Zerados",
+  "short_name": "Zerei.app",
+  "description": "Catalogue todos os jogos que você zerou na vida, do Master System da locadora ao PS5. Memórias afetivas, notas e estatísticas — tudo salvo no seu navegador.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["games", "entertainment", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Jogos zerados",
+      "short_name": "Zerados",
+      "description": "Abre direto na lista do que você já zerou.",
+      "url": "/?status=beaten",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Nostalgia BR",
+      "short_name": "Nostalgia BR",
+      "description": "Clássicos de locadora e fliperama que marcaram o Brasil.",
+      "url": "/?preset=brasil",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Zerei.app">
+  <title>Zerei.app</title>
+
+  <!--
+    Versao maskable: mesma arte do icon.svg, porem sem moldura e com o check
+    reduzido a 80% para caber inteiro no circulo seguro (margem de 10% de cada
+    lado). O fundo preenche os 512x512 para o sistema recortar como quiser.
+  -->
+
+  <defs>
+    <radialGradient id="bg-glow" gradientUnits="userSpaceOnUse" cx="256" cy="220" r="300">
+      <stop offset="0" stop-color="#39ff9e" stop-opacity="0.26" />
+      <stop offset="0.45" stop-color="#22d3ee" stop-opacity="0.15" />
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="check-fill" gradientUnits="userSpaceOnUse" x1="96" y1="400" x2="416" y2="112">
+      <stop offset="0" stop-color="#39ff9e" />
+      <stop offset="0.6" stop-color="#39ff9e" />
+      <stop offset="1" stop-color="#22d3ee" />
+    </linearGradient>
+
+    <pattern id="scanlines" patternUnits="userSpaceOnUse" width="8" height="8">
+      <rect width="8" height="4" fill="#ffffff" opacity="0.035" />
+    </pattern>
+
+    <filter id="neon-glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="14" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fundo full-bleed: nada aqui pode depender das bordas, elas serao cortadas. -->
+  <rect width="512" height="512" fill="#09090b" />
+  <rect width="512" height="512" fill="url(#bg-glow)" />
+  <rect width="512" height="512" fill="url(#scanlines)" />
+
+  <!--
+    Mesmas 10 colunas do icon.svg. A transformacao le da direita para a esquerda:
+    translate(-224 -240) leva o centro do desenho a origem, scale(0.8) encolhe e
+    translate(256 256) devolve ao centro do canvas. Resultado: 256x230px de arte,
+    folgado dentro do circulo seguro de 410px.
+  -->
+  <g transform="translate(256 256) scale(0.8) translate(-224 -240)" fill="url(#check-fill)" filter="url(#neon-glow)">
+    <rect x="64" y="224" width="32" height="96" />
+    <rect x="96" y="256" width="32" height="96" />
+    <rect x="128" y="288" width="32" height="96" />
+    <rect x="160" y="288" width="32" height="96" />
+    <rect x="192" y="256" width="32" height="96" />
+    <rect x="224" y="224" width="32" height="96" />
+    <rect x="256" y="192" width="32" height="96" />
+    <rect x="288" y="160" width="32" height="96" />
+    <rect x="320" y="128" width="32" height="96" />
+    <rect x="352" y="96" width="32" height="96" />
+  </g>
+</svg>

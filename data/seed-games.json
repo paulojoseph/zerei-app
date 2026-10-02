@@ -1,0 +1,1081 @@
+[
+  {
+    "id": "alex-kidd-in-miracle-world-sms",
+    "title": "Alex Kidd in Miracle World",
+    "platform": "Master System",
+    "category": "8-bit",
+    "releaseYear": 1986,
+    "coverUrl": "/covers/alex-kidd-in-miracle-world-sms.jpg",
+    "summary": "O mascote da Sega antes do Sonic, que já vinha gravado na memória do Master System da Tec Toy. Pedra, papel e tesoura para decidir a luta contra os chefes.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "monica-no-castelo-do-dragao-sms",
+    "title": "Mônica no Castelo do Dragão",
+    "platform": "Master System",
+    "category": "8-bit",
+    "releaseYear": 1991,
+    "coverUrl": "/covers/monica-no-castelo-do-dragao-sms.jpg",
+    "summary": "A Tec Toy trocou o Wonder Boy pela turma do Limoeiro e criou a aventura mais brasileira do Master System. O Sansão no lugar da espada.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Aventura",
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "phantasy-star-sms",
+    "title": "Phantasy Star",
+    "platform": "Master System",
+    "category": "8-bit",
+    "releaseYear": 1987,
+    "coverUrl": "/covers/phantasy-star-sms.png",
+    "summary": "RPG espacial com masmorras em primeira pessoa que parecia bruxaria em 1987. Muita gente descobriu o gênero por causa do catálogo da Tec Toy.",
+    "isBrazilClassic": true,
+    "genres": [
+      "RPG",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "sonic-the-hedgehog-sms",
+    "title": "Sonic the Hedgehog",
+    "platform": "Master System",
+    "category": "8-bit",
+    "releaseYear": 1991,
+    "coverUrl": "/covers/sonic-the-hedgehog-sms.jpg",
+    "summary": "A versão 8-bit que veio embutida em tanto console vendido aqui. Green Hill mais lenta, mas com todo o carinho da primeira vez.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "wonder-boy-sms",
+    "title": "Wonder Boy",
+    "platform": "Master System",
+    "category": "8-bit",
+    "releaseYear": 1987,
+    "coverUrl": "/covers/wonder-boy-sms.png",
+    "summary": "Correr sem parar, comer fruta para a energia não zerar e arremessar a machadinha. Simples, viciante e presente em toda casa com Master System.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "super-mario-bros-nes",
+    "title": "Super Mario Bros.",
+    "platform": "Phantom System / NES",
+    "category": "8-bit",
+    "releaseYear": 1985,
+    "coverUrl": "/covers/super-mario-bros-nes.png",
+    "summary": "O jogo que ensinou o mundo inteiro a pular. Por aqui rodava no Phantom System, no Dynavision e no Turbo Game, sempre no cartucho de mil jogos em um.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "contra-nes",
+    "title": "Contra",
+    "platform": "Phantom System / NES",
+    "category": "8-bit",
+    "releaseYear": 1988,
+    "coverUrl": "/covers/contra-nes.jpg",
+    "summary": "Trinta vidas no código secreto, dois jogadores no sofá e nenhum sobrevivente. O tiro cooperativo definitivo do nintendinho.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "mega-man-2-nes",
+    "title": "Mega Man 2",
+    "platform": "Phantom System / NES",
+    "category": "8-bit",
+    "releaseYear": 1988,
+    "coverUrl": "/covers/mega-man-2-nes.jpg",
+    "summary": "Oito chefes, uma trilha sonora eterna e a dança de descobrir qual arma derruba quem.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma",
+      "Ação"
+    ]
+  },
+  {
+    "id": "castlevania-nes",
+    "title": "Castlevania",
+    "platform": "Phantom System / NES",
+    "category": "8-bit",
+    "releaseYear": 1986,
+    "coverUrl": "/covers/castlevania-nes.png",
+    "summary": "Chicote na mão, escada traiçoeira e o relógio correndo até o Drácula. Difícil do jeito que os anos 80 gostavam.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma",
+      "Ação"
+    ]
+  },
+  {
+    "id": "the-legend-of-zelda-nes",
+    "title": "The Legend of Zelda",
+    "platform": "Phantom System / NES",
+    "category": "8-bit",
+    "releaseYear": 1986,
+    "coverUrl": "/covers/the-legend-of-zelda-nes.png",
+    "summary": "O cartucho dourado que inventou a aventura de explorar sem mapa. Segredo bom se anotava em folha de caderno.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "pitfall-a2600",
+    "title": "Pitfall!",
+    "platform": "Atari 2600",
+    "category": "8-bit",
+    "releaseYear": 1982,
+    "coverUrl": "/covers/pitfall-a2600.jpg",
+    "summary": "Cipó, jacaré e escorpião em vinte minutos de corrida contra o relógio. O ícone do Atari nas salas brasileiras.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "river-raid-a2600",
+    "title": "River Raid",
+    "platform": "Atari 2600",
+    "category": "8-bit",
+    "releaseYear": 1982,
+    "coverUrl": "/covers/river-raid-a2600.jpg",
+    "summary": "Voar rio acima abastecendo no tanque certo, sem nunca poder voltar. Recorde alto era assunto sério no recreio.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "enduro-a2600",
+    "title": "Enduro",
+    "platform": "Atari 2600",
+    "category": "8-bit",
+    "releaseYear": 1983,
+    "coverUrl": "/covers/enduro-a2600.png",
+    "summary": "Ultrapassar carros do amanhecer à nevasca, um dia inteiro sem tirar o dedo do botão do joystick.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Corrida"
+    ]
+  },
+  {
+    "id": "metal-gear-msx",
+    "title": "Metal Gear",
+    "platform": "MSX",
+    "category": "8-bit",
+    "releaseYear": 1987,
+    "coverUrl": "/covers/metal-gear-msx.jpg",
+    "summary": "A estreia de Solid Snake, onde se esconder valia mais que atirar. Rodava nos MSX da Gradiente e da Sharp que chegaram antes do videogame em muita casa.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "sonic-the-hedgehog-2-md",
+    "title": "Sonic the Hedgehog 2",
+    "platform": "Mega Drive",
+    "category": "16-bit",
+    "releaseYear": 1992,
+    "coverUrl": "/covers/sonic-the-hedgehog-2-md.jpg",
+    "summary": "Tails no cangote, spin dash no chão e a Chemical Plant tirando o fôlego. O cartucho que já vinha junto com o Mega Drive da Tec Toy.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "streets-of-rage-2-md",
+    "title": "Streets of Rage 2",
+    "platform": "Mega Drive",
+    "category": "16-bit",
+    "releaseYear": 1992,
+    "coverUrl": "/covers/streets-of-rage-2-md.jpg",
+    "summary": "Axel, Blaze e uma trilha do Yuzo Koshiro que ainda toca na cabeça. Beat 'em up de dois jogadores até o cano de ferro quebrar.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Beat 'em up",
+      "Ação"
+    ]
+  },
+  {
+    "id": "golden-axe-md",
+    "title": "Golden Axe",
+    "platform": "Mega Drive",
+    "category": "16-bit",
+    "releaseYear": 1989,
+    "coverUrl": "/covers/golden-axe-md.png",
+    "summary": "Bárbaro, anão e amazona cavalgando dragão azul. A poção da magia sempre guardada para a hora do desespero.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Beat 'em up",
+      "Ação"
+    ]
+  },
+  {
+    "id": "shining-force-md",
+    "title": "Shining Force",
+    "platform": "Mega Drive",
+    "category": "16-bit",
+    "releaseYear": 1992,
+    "coverUrl": "/covers/shining-force-md.jpg",
+    "summary": "RPG tático em que cada passo no tabuleiro vira decisão de vida ou morte. A porta de entrada de muita gente no gênero.",
+    "isBrazilClassic": true,
+    "genres": [
+      "RPG",
+      "Estratégia"
+    ]
+  },
+  {
+    "id": "phantasy-star-iv-md",
+    "title": "Phantasy Star IV",
+    "platform": "Mega Drive",
+    "category": "16-bit",
+    "releaseYear": 1993,
+    "coverUrl": "/covers/phantasy-star-iv-md.jpg",
+    "summary": "O fecho da saga de Algol, com quadrinhos na tela e combos de equipe. Cartucho caro, sonho de prateleira de locadora.",
+    "isBrazilClassic": true,
+    "genres": [
+      "RPG"
+    ]
+  },
+  {
+    "id": "castle-of-illusion-md",
+    "title": "Castle of Illusion Starring Mickey Mouse",
+    "platform": "Mega Drive",
+    "category": "16-bit",
+    "releaseYear": 1990,
+    "coverUrl": "/covers/castle-of-illusion-md.jpg",
+    "summary": "O Mickey saltando de bumbum contra a bruxa Mizrabel, em cenários que pareciam desenho animado rodando na TV da sala.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "mortal-kombat-ii-md",
+    "title": "Mortal Kombat II",
+    "platform": "Mega Drive",
+    "category": "16-bit",
+    "releaseYear": 1994,
+    "coverUrl": "/covers/mortal-kombat-ii-md.png",
+    "summary": "Sangue liberado sem precisar de código e fatality copiado no papel de revista. Rendeu discussão em toda locadora do bairro.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Luta"
+    ]
+  },
+  {
+    "id": "super-mario-world-snes",
+    "title": "Super Mario World",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1990,
+    "coverUrl": "/covers/super-mario-world-snes.png",
+    "summary": "Yoshi, capa amarela e noventa e seis saídas para achar. O motivo de alugar o Super Nintendo no fim de semana inteiro.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "donkey-kong-country-snes",
+    "title": "Donkey Kong Country",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1994,
+    "coverUrl": "/covers/donkey-kong-country-snes.png",
+    "summary": "Gráficos pré-renderizados que pareciam mágica em 1994, Diddy no barril e a fase aquática com a trilha mais bonita do 16-bit.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "top-gear-snes",
+    "title": "Top Gear",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1992,
+    "coverUrl": "/covers/top-gear-snes.jpg",
+    "summary": "Nitro contado no dedo, tela dividida e aquela música de abertura que ninguém esquece. O rei absoluto das locadoras brasileiras.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Corrida"
+    ]
+  },
+  {
+    "id": "chrono-trigger-snes",
+    "title": "Chrono Trigger",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1995,
+    "coverUrl": "/covers/chrono-trigger-snes.jpg",
+    "summary": "Viagem no tempo, batalhas sem tela de transição e um grupo que a gente aprende a amar. RPG que envelheceu melhor que quase tudo.",
+    "isBrazilClassic": false,
+    "genres": [
+      "RPG",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "the-legend-of-zelda-a-link-to-the-past-snes",
+    "title": "The Legend of Zelda: A Link to the Past",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1991,
+    "coverUrl": "/covers/the-legend-of-zelda-a-link-to-the-past-snes.jpg",
+    "summary": "Hyrule e o Mundo das Trevas em espelho, com masmorras que ensinam sem dizer uma palavra.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "super-metroid-snes",
+    "title": "Super Metroid",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1994,
+    "coverUrl": "/covers/super-metroid-snes.jpg",
+    "summary": "Samus sozinha em Zebes: o mapa se abre conforme você acha a próxima habilidade. Aula de level design em silêncio.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "mega-man-x-snes",
+    "title": "Mega Man X",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1993,
+    "coverUrl": "/covers/mega-man-x-snes.png",
+    "summary": "O Mega Man cresceu: dash na parede, armadura escondida e chefes Mavericks. A fase de abertura explica tudo sem uma linha de texto.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma",
+      "Ação"
+    ]
+  },
+  {
+    "id": "super-bomberman-snes",
+    "title": "Super Bomberman",
+    "platform": "Super Nintendo",
+    "category": "16-bit",
+    "releaseYear": 1993,
+    "coverUrl": "/covers/super-bomberman-snes.png",
+    "summary": "Quatro controles, uma arena apertada e a amizade posta à prova a cada bomba. Multiplayer oficial de festa de aniversário.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Ação",
+      "Puzzle"
+    ]
+  },
+  {
+    "id": "another-world-ami",
+    "title": "Another World",
+    "platform": "Amiga",
+    "category": "16-bit",
+    "releaseYear": 1991,
+    "coverUrl": "/covers/another-world-ami.png",
+    "summary": "Ficção científica em polígonos silenciosos, sem tutorial e sem piedade. Parecia mais filme do que jogo.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "street-fighter-ii-arc",
+    "title": "Street Fighter II",
+    "platform": "Arcade",
+    "category": "32/64-bit",
+    "releaseYear": 1991,
+    "coverUrl": "/covers/street-fighter-ii-arc.jpg",
+    "summary": "A moeda de 25 centavos em cima do gabinete marcando a vez de jogar. Hadouken virou palavra do vocabulário nacional.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Luta"
+    ]
+  },
+  {
+    "id": "hard-drivin-arc",
+    "title": "Hard Drivin'",
+    "platform": "Arcade",
+    "category": "32/64-bit",
+    "releaseYear": 1989,
+    "coverUrl": "/covers/hard-drivin-arc.jpg",
+    "summary": "Volante que reagia na mão, loop mortal e o replay da capotagem passando para todo mundo ver. Era a ficha mais cara do fliperama e valia cada centavo.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Corrida"
+    ]
+  },
+  {
+    "id": "final-fight-arc",
+    "title": "Final Fight",
+    "platform": "Arcade",
+    "category": "32/64-bit",
+    "releaseYear": 1989,
+    "coverUrl": "/covers/final-fight-arc.png",
+    "summary": "Haggar, Cody e Guy limpando Metro City no braço. Todo barril quebrado escondia um frango assado.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Beat 'em up",
+      "Ação"
+    ]
+  },
+  {
+    "id": "marvel-vs-capcom-arc",
+    "title": "Marvel vs. Capcom",
+    "platform": "Arcade",
+    "category": "32/64-bit",
+    "releaseYear": 1998,
+    "coverUrl": "/covers/marvel-vs-capcom-arc.png",
+    "summary": "Ryu contra Wolverine, ajudante entrando na tela e combo aéreo sem fim. Era o gabinete mais barulhento da galeria.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Luta"
+    ]
+  },
+  {
+    "id": "metal-slug-neo",
+    "title": "Metal Slug",
+    "platform": "Neo Geo",
+    "category": "32/64-bit",
+    "releaseYear": 1996,
+    "coverUrl": "/covers/metal-slug-neo.png",
+    "summary": "Animação desenhada quadro a quadro, o tanquinho e os reféns barbudos. A prova de que o Neo Geo do fliperama jogava em outro nível.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "the-king-of-fighters-97-neo",
+    "title": "The King of Fighters '97",
+    "platform": "Neo Geo",
+    "category": "32/64-bit",
+    "releaseYear": 1997,
+    "coverUrl": "/covers/the-king-of-fighters-97-neo.jpg",
+    "summary": "Times de três, Iori contra Kyo e a fila inteira esperando para desafiar quem estava ganhando. O KOF definitivo do fliperama brasileiro.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Luta"
+    ]
+  },
+  {
+    "id": "super-sidekicks-2-neo",
+    "title": "Super Sidekicks 2",
+    "platform": "Neo Geo",
+    "category": "32/64-bit",
+    "releaseYear": 1994,
+    "coverUrl": "/covers/super-sidekicks-2-neo.jpg",
+    "summary": "Futebol de Neo Geo com narração empolgada e gol de bicicleta. O Brasil já estava escolhido antes mesmo de a ficha cair.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Esporte"
+    ]
+  },
+  {
+    "id": "crash-bandicoot-ps1",
+    "title": "Crash Bandicoot",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1996,
+    "coverUrl": "/covers/crash-bandicoot-ps1.png",
+    "summary": "Correr fugindo da pedra gigante, quebrar caixa e ouvir aquele grito característico. O mascote não oficial do PlayStation.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "resident-evil-2-ps1",
+    "title": "Resident Evil 2",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1998,
+    "coverUrl": "/covers/resident-evil-2-ps1.png",
+    "summary": "Raccoon City tomada, dois cenários que se cruzam e passos pesados no corredor. Terror de dormir com a luz do quarto acesa.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Terror",
+      "Ação"
+    ]
+  },
+  {
+    "id": "final-fantasy-vii-ps1",
+    "title": "Final Fantasy VII",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1997,
+    "coverUrl": "/covers/final-fantasy-vii-ps1.jpg",
+    "summary": "Midgar, as Materias e um vilão de cabelo prateado. Três CDs que redefiniram o tamanho que um RPG podia ter.",
+    "isBrazilClassic": false,
+    "genres": [
+      "RPG"
+    ]
+  },
+  {
+    "id": "metal-gear-solid-ps1",
+    "title": "Metal Gear Solid",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1998,
+    "coverUrl": "/covers/metal-gear-solid-ps1.png",
+    "summary": "Codec tocando, radar piscando e um chefe que lia o seu cartão de memória. Cinema interativo muito antes da moda.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "silent-hill-ps1",
+    "title": "Silent Hill",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1999,
+    "coverUrl": "/covers/silent-hill-ps1.png",
+    "summary": "A névoa que escondia o limite do console virou o terror mais psicológico do PS1. O chiado do rádio já dava calafrio.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Terror",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "gran-turismo-ps1",
+    "title": "Gran Turismo",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1997,
+    "coverUrl": "/covers/gran-turismo-ps1.jpg",
+    "summary": "Tirar a carteira virtual, encher a garagem e assistir ao replay inteiro só pelo prazer. O simulador que virou febre por aqui.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Corrida"
+    ]
+  },
+  {
+    "id": "tekken-3-ps1",
+    "title": "Tekken 3",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1998,
+    "coverUrl": "/covers/tekken-3-ps1.jpg",
+    "summary": "Eddy Gordo girando capoeira com o botão de chute apertado sem parar: o brasileiro mais popular dos videogames nos anos 90.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Luta"
+    ]
+  },
+  {
+    "id": "castlevania-symphony-of-the-night-ps1",
+    "title": "Castlevania: Symphony of the Night",
+    "platform": "PlayStation",
+    "category": "32/64-bit",
+    "releaseYear": 1997,
+    "coverUrl": "/covers/castlevania-symphony-of-the-night-ps1.jpg",
+    "summary": "Alucard, o castelo invertido e uma trilha gótica de arrepiar. Aqui nasceu o gênero que hoje chamam de metroidvania.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "super-mario-64-n64",
+    "title": "Super Mario 64",
+    "platform": "Nintendo 64",
+    "category": "32/64-bit",
+    "releaseYear": 1996,
+    "coverUrl": "/covers/super-mario-64-n64.png",
+    "summary": "O primeiro salto triplo em três dimensões. Continua sendo a aula definitiva de como mover um personagem no espaço.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "the-legend-of-zelda-ocarina-of-time-n64",
+    "title": "The Legend of Zelda: Ocarina of Time",
+    "platform": "Nintendo 64",
+    "category": "32/64-bit",
+    "releaseYear": 1998,
+    "coverUrl": "/covers/the-legend-of-zelda-ocarina-of-time-n64.jpg",
+    "summary": "O campo de Hyrule aberto, Epona no galope e a ocarina mandando no tempo. Virou régua para toda aventura que veio depois.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "goldeneye-007-n64",
+    "title": "GoldenEye 007",
+    "platform": "Nintendo 64",
+    "category": "32/64-bit",
+    "releaseYear": 1997,
+    "coverUrl": "/covers/goldeneye-007-n64.jpg",
+    "summary": "Quatro amigos, tela dividida e a regra sagrada de não espiar o canto do outro. Modo Licença para Matar era quase obrigatório.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "ronaldinho-soccer-64-n64",
+    "title": "Ronaldinho Soccer 64",
+    "platform": "Nintendo 64",
+    "category": "32/64-bit",
+    "releaseYear": 1997,
+    "coverUrl": "/covers/ronaldinho-soccer-64-n64.png",
+    "summary": "O cartucho pirata que trocou os times japoneses pelo futebol brasileiro e apareceu em toda banca de camelô. Adaptação feita no muque, e a gente amava.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Esporte"
+    ]
+  },
+  {
+    "id": "nights-into-dreams-sat",
+    "title": "Nights into Dreams",
+    "platform": "Sega Saturn",
+    "category": "32/64-bit",
+    "releaseYear": 1996,
+    "coverUrl": "/covers/nights-into-dreams-sat.jpg",
+    "summary": "Voar em looping por cenários de sonho usando o controle analógico da Sega. O Saturn também tinha as suas joias.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "grand-theft-auto-vice-city-ps2",
+    "title": "Grand Theft Auto: Vice City",
+    "platform": "PlayStation 2",
+    "category": "128-bit",
+    "releaseYear": 2002,
+    "coverUrl": "/covers/grand-theft-auto-vice-city-ps2.jpg",
+    "summary": "Neon dos anos 80, camisa havaiana e rádio ligada na estação de flashback. Só dirigir sem rumo já era diversão suficiente.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "grand-theft-auto-san-andreas-ps2",
+    "title": "Grand Theft Auto: San Andreas",
+    "platform": "PlayStation 2",
+    "category": "128-bit",
+    "releaseYear": 2004,
+    "coverUrl": "/covers/grand-theft-auto-san-andreas-ps2.jpg",
+    "summary": "Três cidades, bicicleta, academia e código de trapaça decorado de cabeça. Ficou anos morando na bandeja do PS2 destravado.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "god-of-war-ps2",
+    "title": "God of War",
+    "platform": "PlayStation 2",
+    "category": "128-bit",
+    "releaseYear": 2005,
+    "coverUrl": "/covers/god-of-war-ps2.jpg",
+    "summary": "Kratos e as lâminas do caos contra o Olimpo inteiro, com o botão certo aparecendo na hora certa. O PS2 espremido até a última gota.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "shadow-of-the-colossus-ps2",
+    "title": "Shadow of the Colossus",
+    "platform": "PlayStation 2",
+    "category": "128-bit",
+    "releaseYear": 2005,
+    "coverUrl": "/covers/shadow-of-the-colossus-ps2.jpg",
+    "summary": "Dezesseis colossos, um cavalo e um mundo vazio de propósito. Cada escalada termina com um gosto amargo na boca.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "devil-may-cry-ps2",
+    "title": "Devil May Cry",
+    "platform": "PlayStation 2",
+    "category": "128-bit",
+    "releaseYear": 2001,
+    "coverUrl": "/covers/devil-may-cry-ps2.jpg",
+    "summary": "Dante estiloso, nota do combo piscando na tela e a certeza de que ação também podia ser elegante.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação"
+    ]
+  },
+  {
+    "id": "winning-eleven-9-ps2",
+    "title": "Winning Eleven 9",
+    "platform": "PlayStation 2",
+    "category": "128-bit",
+    "releaseYear": 2005,
+    "coverUrl": "/covers/winning-eleven-9-ps2.jpg",
+    "summary": "O futebol que mandava na locadora e no campeonato de rua: passe seco, nome de jogador trocado e comemoração no dedo do controle.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Esporte"
+    ]
+  },
+  {
+    "id": "bomba-patch-ps2",
+    "title": "Bomba Patch",
+    "platform": "PlayStation 2",
+    "category": "128-bit",
+    "releaseYear": 2005,
+    "coverUrl": "",
+    "summary": "O patch brasileiro que colocou o Brasileirão inteiro dentro do Winning Eleven, com narração e escudo do time do coração. Vendido em qualquer banca.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Esporte"
+    ]
+  },
+  {
+    "id": "halo-combat-evolved-xbox",
+    "title": "Halo: Combat Evolved",
+    "platform": "Xbox",
+    "category": "128-bit",
+    "releaseYear": 2001,
+    "coverUrl": "/covers/halo-combat-evolved-xbox.jpg",
+    "summary": "Um anel gigante, duas armas por vez e a mira que finalmente funcionava no controle. Foi o motivo de existir do primeiro Xbox.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "shenmue-dc",
+    "title": "Shenmue",
+    "platform": "Dreamcast",
+    "category": "128-bit",
+    "releaseYear": 1999,
+    "coverUrl": "/covers/shenmue-dc.png",
+    "summary": "Rotina, clima de inverno e uma investigação sem pressa em Yokosuka. Ambicioso demais para a época, e por isso inesquecível.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura"
+    ]
+  },
+  {
+    "id": "sonic-adventure-dc",
+    "title": "Sonic Adventure",
+    "platform": "Dreamcast",
+    "category": "128-bit",
+    "releaseYear": 1998,
+    "coverUrl": "/covers/sonic-adventure-dc.png",
+    "summary": "O Sonic em três dimensões correndo por Station Square, com Chao para criar entre as fases. O Dreamcast estreando com fôlego de sobra.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Plataforma",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "resident-evil-4-ngc",
+    "title": "Resident Evil 4",
+    "platform": "GameCube",
+    "category": "128-bit",
+    "releaseYear": 2005,
+    "coverUrl": "/covers/resident-evil-4-ngc.jpg",
+    "summary": "Câmera no ombro, aldeia hostil e o barulho da serra elétrica se aproximando. Reinventou a ação em terceira pessoa de uma vez.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Terror",
+      "Ação"
+    ]
+  },
+  {
+    "id": "castlevania-aria-of-sorrow-gba",
+    "title": "Castlevania: Aria of Sorrow",
+    "platform": "Game Boy Advance",
+    "category": "128-bit",
+    "releaseYear": 2003,
+    "coverUrl": "/covers/castlevania-aria-of-sorrow-gba.jpg",
+    "summary": "Coletar a alma de cada inimigo e montar o seu próprio estilo de luta, tudo cabendo na telinha do Game Boy Advance.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "doom-dos",
+    "title": "Doom",
+    "platform": "PC (MS-DOS)",
+    "category": "128-bit",
+    "releaseYear": 1993,
+    "coverUrl": "/covers/doom-dos.jpg",
+    "summary": "O 486 do laboratório da escola rodava, o disquete passava de mão em mão e o corredor virava campo de batalha. O tiro em primeira pessoa já nasceu adulto.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "prince-of-persia-dos",
+    "title": "Prince of Persia",
+    "platform": "PC (MS-DOS)",
+    "category": "128-bit",
+    "releaseYear": 1989,
+    "coverUrl": "/covers/prince-of-persia-dos.jpg",
+    "summary": "Uma hora no relógio, saltos milimétricos e espinhos sem perdão. A animação rotoscopada parecia impossível para a época.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Plataforma",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "halo-3-x360",
+    "title": "Halo 3",
+    "platform": "Xbox 360",
+    "category": "modern",
+    "releaseYear": 2007,
+    "coverUrl": "/covers/halo-3-x360.jpg",
+    "summary": "O fecho da trilogia com campanha para jogar em dupla e um multiplayer que segurou o Xbox 360 ligado por anos.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "dark-souls-ps3",
+    "title": "Dark Souls",
+    "platform": "PlayStation 3",
+    "category": "modern",
+    "releaseYear": 2011,
+    "coverUrl": "/covers/dark-souls-ps3.jpg",
+    "summary": "Lordran encaixada como um relógio, fogueira como respiro e a lição dura de aprender morrendo.",
+    "isBrazilClassic": false,
+    "genres": [
+      "RPG",
+      "Ação"
+    ]
+  },
+  {
+    "id": "the-last-of-us-ps3",
+    "title": "The Last of Us",
+    "platform": "PlayStation 3",
+    "category": "modern",
+    "releaseYear": 2013,
+    "coverUrl": "/covers/the-last-of-us-ps3.jpg",
+    "summary": "Joel, Ellie e uma travessia que dói de verdade. O PS3 se despedindo com a história mais comentada da geração.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "bloodborne-ps4",
+    "title": "Bloodborne",
+    "platform": "PlayStation 4",
+    "category": "modern",
+    "releaseYear": 2015,
+    "coverUrl": "/covers/bloodborne-ps4.jpg",
+    "summary": "Yharnam gótica, agressividade recompensada e um pesadelo que muda de forma a cada descoberta.",
+    "isBrazilClassic": false,
+    "genres": [
+      "RPG",
+      "Ação"
+    ]
+  },
+  {
+    "id": "god-of-war-2018-ps4",
+    "title": "God of War",
+    "platform": "PlayStation 4",
+    "category": "modern",
+    "releaseYear": 2018,
+    "coverUrl": "/covers/god-of-war-2018-ps4.jpg",
+    "summary": "Kratos pai, o machado Leviatã voltando à mão e uma câmera sem um único corte atravessando os nove reinos.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "marvels-spider-man-ps4",
+    "title": "Marvel's Spider-Man",
+    "platform": "PlayStation 4",
+    "category": "modern",
+    "releaseYear": 2018,
+    "coverUrl": "/covers/marvels-spider-man-ps4.jpg",
+    "summary": "Balançar por Nova York no ritmo certo já é diversão completa antes mesmo de a missão começar.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "red-dead-redemption-2-ps4",
+    "title": "Red Dead Redemption 2",
+    "platform": "PlayStation 4",
+    "category": "modern",
+    "releaseYear": 2018,
+    "coverUrl": "/covers/red-dead-redemption-2-ps4.jpg",
+    "summary": "O Velho Oeste chegando ao fim, com um acampamento que parece feito de gente de verdade. Cavalgar devagar faz parte da graça.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "sekiro-shadows-die-twice-ps4",
+    "title": "Sekiro: Shadows Die Twice",
+    "platform": "PlayStation 4",
+    "category": "modern",
+    "releaseYear": 2019,
+    "coverUrl": "/covers/sekiro-shadows-die-twice-ps4.jpg",
+    "summary": "Duelo de katana no compasso do defletir. Ou você aprende a postura do inimigo, ou não passa da ponte.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "ghost-of-tsushima-ps4",
+    "title": "Ghost of Tsushima",
+    "platform": "PlayStation 4",
+    "category": "modern",
+    "releaseYear": 2020,
+    "coverUrl": "/covers/ghost-of-tsushima-ps4.jpg",
+    "summary": "O vento como bússola, campos de flores até o horizonte e duelos decididos em um golpe só.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Ação",
+      "Aventura"
+    ]
+  },
+  {
+    "id": "elden-ring-ps5",
+    "title": "Elden Ring",
+    "platform": "PlayStation 5",
+    "category": "modern",
+    "releaseYear": 2022,
+    "coverUrl": "/covers/elden-ring-ps5.jpg",
+    "summary": "Um mundo aberto que não segura a sua mão: atrás de cada horizonte tem uma masmorra e um chefe esperando.",
+    "isBrazilClassic": false,
+    "genres": [
+      "RPG",
+      "Ação"
+    ]
+  },
+  {
+    "id": "the-legend-of-zelda-breath-of-the-wild-nsw",
+    "title": "The Legend of Zelda: Breath of the Wild",
+    "platform": "Nintendo Switch",
+    "category": "modern",
+    "releaseYear": 2017,
+    "coverUrl": "/covers/the-legend-of-zelda-breath-of-the-wild-nsw.jpg",
+    "summary": "Escalar qualquer parede, planar até onde a vista alcança e resolver do seu jeito. Liberdade transformada em mecânica.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "celeste-nsw",
+    "title": "Celeste",
+    "platform": "Nintendo Switch",
+    "category": "modern",
+    "releaseYear": 2018,
+    "coverUrl": "/covers/celeste-nsw.png",
+    "summary": "Escalar a montanha é sobre ansiedade e insistência. Dash preciso, checkpoint generoso e uma história que acolhe.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Plataforma"
+    ]
+  },
+  {
+    "id": "hollow-knight-pc",
+    "title": "Hollow Knight",
+    "platform": "PC",
+    "category": "modern",
+    "releaseYear": 2017,
+    "coverUrl": "/covers/hollow-knight-pc.jpg",
+    "summary": "Hallownest desenhada à mão, silêncio no lugar de tutorial e uma tristeza bonita no fundo de cada sala.",
+    "isBrazilClassic": false,
+    "genres": [
+      "Aventura",
+      "Ação"
+    ]
+  },
+  {
+    "id": "counter-strike-pc",
+    "title": "Counter-Strike",
+    "platform": "PC",
+    "category": "modern",
+    "releaseYear": 2000,
+    "coverUrl": "/covers/counter-strike-pc.jpg",
+    "summary": "A rotina da lan house: pagar a hora, escolher terrorista ou contra, e o grito de rush B ecoando na de_dust2.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Tiro",
+      "Ação"
+    ]
+  },
+  {
+    "id": "age-of-empires-ii-pc",
+    "title": "Age of Empires II",
+    "platform": "PC",
+    "category": "modern",
+    "releaseYear": 1999,
+    "coverUrl": "/covers/age-of-empires-ii-pc.png",
+    "summary": "Aldeão cortando lenha, aríete batendo na muralha e partida em rede varando a madrugada na lan house da esquina.",
+    "isBrazilClassic": true,
+    "genres": [
+      "Estratégia"
+    ]
+  }
+]

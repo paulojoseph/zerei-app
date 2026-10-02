@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Zerei.app">
+  <title>Zerei.app</title>
+
+  <defs>
+    <!-- Brilho de fundo: verde neon no centro derretendo em ciano nas bordas. -->
+    <radialGradient id="bg-glow" gradientUnits="userSpaceOnUse" cx="256" cy="200" r="310">
+      <stop offset="0" stop-color="#39ff9e" stop-opacity="0.26" />
+      <stop offset="0.45" stop-color="#22d3ee" stop-opacity="0.15" />
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- O check e neon puro na maior parte e so "esfria" para ciano na ponta. -->
+    <linearGradient id="check-fill" gradientUnits="userSpaceOnUse" x1="96" y1="400" x2="416" y2="112">
+      <stop offset="0" stop-color="#39ff9e" />
+      <stop offset="0.6" stop-color="#39ff9e" />
+      <stop offset="1" stop-color="#22d3ee" />
+    </linearGradient>
+
+    <!-- Linhas de varredura tipo CRT (mesma ideia do utilitario .scanlines). -->
+    <pattern id="scanlines" patternUnits="userSpaceOnUse" width="8" height="8">
+      <rect width="8" height="4" fill="#ffffff" opacity="0.035" />
+    </pattern>
+
+    <!-- Glow: um halo borrado atras e a forma nitida por cima, para o
+         serrilhado de pixel continuar legivel em tamanho de favicon. -->
+    <filter id="neon-glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="14" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fundo -->
+  <rect width="512" height="512" fill="#09090b" />
+  <rect width="512" height="512" fill="url(#bg-glow)" />
+  <rect width="512" height="512" fill="url(#scanlines)" />
+
+  <!-- Moldura discreta, no espirito de tela de console -->
+  <rect x="26" y="26" width="460" height="460" rx="98" fill="none" stroke="#39ff9e" stroke-opacity="0.26" stroke-width="4" />
+
+  <!--
+    Check em pixel art numa grade de 32px: 10 colunas de 32x96 (3 celulas de
+    altura). O braco curto desce em 3 degraus, o longo sobe em 6 — e o degrau
+    de exatamente uma celula por coluna que cria o serrilhado.
+    O translate(32 16) centra o desenho em (256, 256).
+  -->
+  <g transform="translate(32 16)" fill="url(#check-fill)" filter="url(#neon-glow)">
+    <rect x="64" y="224" width="32" height="96" />
+    <rect x="96" y="256" width="32" height="96" />
+    <rect x="128" y="288" width="32" height="96" />
+    <rect x="160" y="288" width="32" height="96" />
+    <rect x="192" y="256" width="32" height="96" />
+    <rect x="224" y="224" width="32" height="96" />
+    <rect x="256" y="192" width="32" height="96" />
+    <rect x="288" y="160" width="32" height="96" />
+    <rect x="320" y="128" width="32" height="96" />
+    <rect x="352" y="96" width="32" height="96" />
+  </g>
+</svg>
