@@ -111,6 +111,12 @@ export interface TimelineEntry {
   progress: UserGameProgress;
 }
 
+/** Contagem por rótulo (gênero, década...). */
+export interface CountStat {
+  label: string;
+  count: number;
+}
+
 export interface YearStat {
   year: number;
   count: number;
@@ -129,6 +135,10 @@ export interface StatsSummary {
   byCategory: CategoryStat[];
   byPlatform: PlatformStat[];
   byYear: YearStat[];
+  /** Zerados por gênero (um jogo conta em cada gênero que tem), do maior para o menor. */
+  byGenre: CountStat[];
+  /** Zerados por década de lançamento, em ordem cronológica. */
+  byDecade: CountStat[];
   timeline: TimelineEntry[];
   topRated: TimelineEntry[];
 }

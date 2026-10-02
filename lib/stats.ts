@@ -1,5 +1,6 @@
 import type {
   CategoryStat,
+  CountStat,
   Game,
   PlatformCategory,
   PlatformStat,
@@ -72,6 +73,8 @@ export function computeStats(
   );
   const platformTally = new Map<string, PlatformStat>();
   const yearTally = new Map<number, number>();
+  const genreTally = new Map<string, number>();
+  const decadeTally = new Map<number, number>();
   const beatenEntries: TimelineEntry[] = [];
   const ratedEntries: TimelineEntry[] = [];
 
@@ -110,6 +113,12 @@ export function computeStats(
         if (entry.completedYear !== undefined) {
           yearTally.set(entry.completedYear, (yearTally.get(entry.completedYear) ?? 0) + 1);
         }
+        // Um jogo pode ter vários gêneros: conta em cada um.
+        for (const genre of game.genres ?? []) genreTally.set(genre, (genreTally.get(genre) ?? 0) + 1);
+        if (game.releaseYear > 0) {
+          const decade = Math.floor(game.releaseYear / 10) * 10;
+          decadeTally.set(decade, (decadeTally.get(decade) ?? 0) + 1);
+        }
 
         beatenEntries.push({ game, progress: entry });
         break;
@@ -147,6 +156,14 @@ export function computeStats(
     .map(([year, count]) => ({ year, count }))
     .sort((a, b) => a.year - b.year);
 
+  const byGenre: CountStat[] = [...genreTally.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'pt-BR'));
+
+  const byDecade: CountStat[] = [...decadeTally.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([decade, count]) => ({ label: `${decade}s`, count }));
+
   const timeline = beatenEntries.sort(byRecent).slice(0, MAX_TIMELINE);
 
   const topRated = ratedEntries
@@ -167,6 +184,8 @@ export function computeStats(
     byCategory,
     byPlatform,
     byYear,
+    byGenre,
+    byDecade,
     timeline,
     topRated,
   };

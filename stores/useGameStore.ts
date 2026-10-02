@@ -56,7 +56,6 @@ interface GameStore extends PersistedState {
   catalogConsoles: Record<string, Game[]>;
   catalogStatus: CatalogStatus;
   selectedGameId: string | null;
-  statsOpen: boolean;
   hydrated: boolean;
   toast: Toast | null;
 
@@ -72,7 +71,6 @@ interface GameStore extends PersistedState {
   /* ---- UI ---- */
   openGame: (gameId: string) => void;
   closeGame: () => void;
-  setStatsOpen: (open: boolean) => void;
   setHydrated: () => void;
   pushToast: (message: string, tone?: ToastTone) => void;
   dismissToast: () => void;
@@ -298,7 +296,6 @@ export const useGameStore = create<GameStore>()(
       catalogConsoles: {},
       catalogStatus: 'idle',
       selectedGameId: null,
-      statsOpen: false,
       hydrated: false,
       toast: null,
 
@@ -314,7 +311,6 @@ export const useGameStore = create<GameStore>()(
       /* UI */
       openGame: (gameId) => set({ selectedGameId: gameId }),
       closeGame: () => set({ selectedGameId: null }),
-      setStatsOpen: (open) => set({ statsOpen: open }),
       setHydrated: () => set({ hydrated: true }),
       pushToast: (message, tone = 'success') => {
         toastSeq += 1;

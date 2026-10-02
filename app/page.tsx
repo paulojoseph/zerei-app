@@ -2,7 +2,6 @@ import { Filters } from '@/components/Filters';
 import { GameGrid } from '@/components/GameGrid';
 import { GameModal } from '@/components/GameModal';
 import { Header } from '@/components/Header';
-import { StatsModal } from '@/components/StatsModal';
 import { Toaster } from '@/components/Toaster';
 import { SEED_GAMES } from '@/lib/games';
 import { CATALOG_TOTAL } from '@/lib/consoles';
@@ -51,7 +50,6 @@ export default function HomePage() {
       </footer>
 
       <GameModal />
-      <StatsModal />
       <Toaster />
     </main>
   );
