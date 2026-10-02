@@ -5,7 +5,7 @@ import { ChevronDown, Gamepad2, LoaderCircle, RotateCcw, Search, Trophy } from '
 
 import { GameCard } from '@/components/GameCard';
 import { Button } from '@/components/ui/Button';
-import { filterGames } from '@/lib/games';
+import { filterByStatus, selectGames, sortGames } from '@/lib/games';
 import { MAKER_PREFIX, consoleByName } from '@/lib/consoles';
 import { pluralize } from '@/lib/utils';
 import {
@@ -242,22 +242,34 @@ export function GameGrid() {
     loadCatalog();
   }, [loadCatalog]);
 
-  const visible = useMemo(
-    () => filterGames({ games, progress, search, platform, status, brazilOnly, sort }),
-    [games, progress, search, platform, status, brazilOnly, sort],
-  );
-
   // Estado derivado por chave (padrão oficial do React, sem useEffect): quando
-  // qualquer filtro muda, a paginação volta para a primeira leva.
-  const filterKey = `${search}|${platform}|${status}|${brazilOnly}|${sort}`;
+  // qualquer filtro muda, a paginação volta para a primeira leva e a ordem é
+  // recalculada com uma fotografia do progresso daquele momento.
+  const filterKey = `${search}|${platform}|${status}|${brazilOnly}|${sort}|${hydrated}`;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [pagedKey, setPagedKey] = useState(filterKey);
+  const [orderProgress, setOrderProgress] = useState(progress);
   let count = visibleCount;
+  let snapshot = orderProgress;
   if (pagedKey !== filterKey) {
     setPagedKey(filterKey);
     setVisibleCount(PAGE_SIZE);
+    setOrderProgress(progress);
     count = PAGE_SIZE;
+    snapshot = progress;
   }
+
+  // Três passos com custos bem diferentes. Seleção e ordenação (dezenas de
+  // milhares de jogos) NÃO dependem do progresso ao vivo: um clique em
+  // "Zerei!" só refaz o filtro de status, que é O(n) e sem ordenar. A ordem
+  // fica congelada até o próximo filtro, então o card também não pula de
+  // lugar embaixo do dedo. Medido em lib/games.perf.test.ts.
+  const selected = useMemo(
+    () => selectGames({ games, search, platform, brazilOnly }),
+    [games, search, platform, brazilOnly],
+  );
+  const sorted = useMemo(() => sortGames(selected, games, sort, snapshot), [selected, games, sort, snapshot]);
+  const visible = useMemo(() => filterByStatus(sorted, progress, status), [sorted, progress, status]);
 
   // Rolagem infinita: o sentinela no fim da grade puxa a próxima leva antes de
   // o usuário chegar lá. O botão "Carregar mais" continua como alternativa.

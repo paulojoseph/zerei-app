@@ -6,7 +6,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
 import { loadCatalog } from '@/lib/catalog';
-import { SEED_GAMES } from '@/lib/games';
+import { SEED_GAMES, countByStatus } from '@/lib/games';
 import type {
   BackupPayload,
   Game,
@@ -430,11 +430,7 @@ export const useGameProgress = (gameId: string | null) =>
 export const useBeatenCount = () => {
   const games = useAllGames();
   const progress = useGameStore((s) => s.progress);
-  return useMemo(() => {
-    let count = 0;
-    for (const game of games) if (progress[game.id]?.status === 'beaten') count += 1;
-    return count;
-  }, [games, progress]);
+  return useMemo(() => countByStatus(games, progress).beaten, [games, progress]);
 };
 
 export interface FilterState {

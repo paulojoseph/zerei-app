@@ -4,7 +4,7 @@ import { CATALOG_COUNTS, CONSOLES, type ConsoleMeta } from '@/lib/consoles';
 /** [título, ano, capa, slug] — formato compacto gerado por scripts/build-catalog.mjs. */
 type CatalogRow = [string, number, string, string];
 
-interface CatalogFile {
+export interface CatalogFile {
   base: string;
   games: CatalogRow[];
 }
@@ -15,10 +15,8 @@ function coverUrl(console_: ConsoleMeta, base: string, cover: string): string {
   return console_.libretro ? `${base}${encodeURIComponent(cover)}.png` : `${base}${cover}`;
 }
 
-async function fetchConsole(console_: ConsoleMeta): Promise<Game[]> {
-  const res = await fetch(`/catalog/${console_.id}.json`);
-  if (!res.ok) throw new Error(`catálogo ${console_.id}: HTTP ${res.status}`);
-  const data = (await res.json()) as CatalogFile;
+/** Converte um arquivo de catálogo em jogos. Puro: usado no app, nos testes e nos benchmarks. */
+export function catalogToGames(console_: ConsoleMeta, data: CatalogFile): Game[] {
   return data.games.map(([title, year, cover, slug]) => ({
     id: `${console_.id}--${slug}`,
     title,
@@ -28,6 +26,12 @@ async function fetchConsole(console_: ConsoleMeta): Promise<Game[]> {
     coverUrl: coverUrl(console_, data.base, cover),
     isCatalog: true,
   }));
+}
+
+async function fetchConsole(console_: ConsoleMeta): Promise<Game[]> {
+  const res = await fetch(`/catalog/${console_.id}.json`);
+  if (!res.ok) throw new Error(`catálogo ${console_.id}: HTTP ${res.status}`);
+  return catalogToGames(console_, (await res.json()) as CatalogFile);
 }
 
 /**

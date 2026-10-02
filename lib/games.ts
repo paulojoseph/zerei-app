@@ -136,28 +136,36 @@ function titleRanks(games: Game[]): Map<string, number> {
   return ranks;
 }
 
-export function filterGames({
-  games,
-  progress,
-  search,
-  platform,
-  status,
-  brazilOnly,
-  sort,
-}: FilterOptions): Game[] {
+export type SelectionOptions = Pick<FilterOptions, 'games' | 'search' | 'platform' | 'brazilOnly'>;
+
+/**
+ * Recorte que NÃO depende do progresso do usuário (console, busca, preset).
+ * Separado de propósito: marcar "Zerei!" não pode refazer este trabalho.
+ */
+export function selectGames({ games, search, platform, brazilOnly }: SelectionOptions): Game[] {
   const maker = platform.startsWith(MAKER_PREFIX) ? platform.slice(MAKER_PREFIX.length) : null;
-  const result = games.filter((game) => {
+  return games.filter((game) => {
     if (maker !== null) {
       if (makerOf(game.platform) !== maker) return false;
     } else if (platform !== 'all' && game.platform !== platform) {
       return false;
     }
     if (brazilOnly && !game.isBrazilClassic) return false;
-    if (status !== 'all' && statusOf(progress, game.id) !== status) return false;
-    if (!matchesSearch(game, search)) return false;
-    return true;
+    return matchesSearch(game, search);
   });
+}
 
+/**
+ * Ordena uma seleção (cópia nova). `games` é o catálogo inteiro, usado só para
+ * o ranking alfabético em cache; `progress` alimenta "recentes" e "nota".
+ */
+export function sortGames(
+  list: Game[],
+  games: Game[],
+  sort: SortMode,
+  progress: Record<string, UserGameProgress>,
+): Game[] {
+  const result = [...list];
   const ranks = titleRanks(games);
   const byTitle = (a: Game, b: Game) => (ranks.get(a.id) ?? 0) - (ranks.get(b.id) ?? 0);
   // Ano 0 = desconhecido: vai para o fim nas duas direções.
@@ -193,4 +201,74 @@ export function filterGames({
   }
 
   return result;
+}
+
+/**
+ * Índices em cache por array (WeakMap: somem junto com o array). Com eles, o
+ * custo dos passos que olham o progresso depende de quantos jogos o usuário
+ * marcou (centenas), não do tamanho do catálogo (dezenas de milhares).
+ */
+const positionCache = new WeakMap<Game[], Map<string, number>>();
+const idSetCache = new WeakMap<Game[], Set<string>>();
+
+function positionsOf(list: Game[]): Map<string, number> {
+  let map = positionCache.get(list);
+  if (!map) {
+    map = new Map(list.map((g, i) => [g.id, i]));
+    positionCache.set(list, map);
+  }
+  return map;
+}
+
+function idsOf(games: Game[]): Set<string> {
+  let set = idSetCache.get(games);
+  if (!set) {
+    set = new Set(games.map((g) => g.id));
+    idSetCache.set(games, set);
+  }
+  return set;
+}
+
+/** Filtro de status: o único passo que olha o progresso ao vivo. Mantém a ordem de `list`. */
+export function filterByStatus(
+  list: Game[],
+  progress: Record<string, UserGameProgress>,
+  status: StatusFilter,
+): Game[] {
+  if (status === 'all') return list;
+  // "Não joguei" é quase o catálogo inteiro: aqui não há atalho.
+  if (status === 'unplayed') return list.filter((game) => statusOf(progress, game.id) === 'unplayed');
+
+  const positions = positionsOf(list);
+  const hits: number[] = [];
+  for (const id of Object.keys(progress)) {
+    if (progress[id].status !== status) continue;
+    const index = positions.get(id);
+    if (index !== undefined) hits.push(index);
+  }
+  hits.sort((a, b) => a - b);
+  return hits.map((index) => list[index]);
+}
+
+/**
+ * Quantos jogos do catálogo estão em cada status. Percorre só o progresso;
+ * registros órfãos (jogo que saiu do catálogo) não entram na conta.
+ */
+export function countByStatus(
+  games: Game[],
+  progress: Record<string, UserGameProgress>,
+): Record<GameStatus, number> {
+  const ids = idsOf(games);
+  const counts: Record<GameStatus, number> = { beaten: 0, playing: 0, backlog: 0, unplayed: 0 };
+  for (const id of Object.keys(progress)) {
+    if (ids.has(id)) counts[progress[id].status] += 1;
+  }
+  counts.unplayed = games.length - counts.beaten - counts.playing - counts.backlog;
+  return counts;
+}
+
+/** Tudo de uma vez: seleção → ordenação → status. */
+export function filterGames({ games, progress, search, platform, status, brazilOnly, sort }: FilterOptions): Game[] {
+  const selected = selectGames({ games, search, platform, brazilOnly });
+  return filterByStatus(sortGames(selected, games, sort, progress), progress, status);
 }
