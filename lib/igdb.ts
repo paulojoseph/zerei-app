@@ -277,7 +277,9 @@ function buildBody(query: string, limit: number): string {
     'fields name, summary, first_release_date, cover.image_id, platforms.name, genres.name; ' +
     `search "${escapeQuery(query)}"; ` +
     `limit ${limit}; ` +
-    'where version_parent = null & category = 0;'
+    // `category` foi substituído por `game_type` na IGDB: com o campo antigo a
+    // busca voltava sempre vazia. 0 = jogo principal, 8/9 = remake/remaster.
+    'where version_parent = null & game_type = (0,8,9);'
   );
 }
 
