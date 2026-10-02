@@ -12,7 +12,7 @@
     "covers": "node scripts/fetch-covers.mjs && node scripts/download-covers.mjs",
     "covers:all": "node scripts/fetch-covers.mjs --all && node scripts/download-covers.mjs",
     "covers:download": "node scripts/download-covers.mjs",
-    "catalog": "node scripts/build-catalog.mjs",
+    "catalog": "node pipeline/build.mts",
     "icons": "node scripts/gen-icons.mjs",
     "preview": "opennextjs-cloudflare build && wrangler dev",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
