@@ -26,10 +26,19 @@ export interface ConsoleMeta {
 
 export const CONSOLES = consolesData as ConsoleMeta[];
 
-/** Quantos jogos cada console tem em `public/catalog/<id>.json`. */
-export const CATALOG_COUNTS: Record<string, number> = catalogIndex;
+const INDEX = catalogIndex as Record<string, unknown>;
 
-export const CATALOG_TOTAL = Object.values(CATALOG_COUNTS).reduce((sum, n) => sum + n, 0);
+/** Quantos jogos cada console tem em `public/catalog/<id>.json` (multiplataforma conta em cada um). */
+export const CATALOG_COUNTS: Record<string, number> = Object.fromEntries(
+  Object.entries(INDEX).filter((e): e is [string, number] => !e[0].startsWith('_') && typeof e[1] === 'number'),
+);
+
+/** Jogos SEM repetição (um jogo multiplataforma conta uma vez), curadoria incluída. */
+export const CATALOG_TOTAL =
+  typeof INDEX._total === 'number' ? INDEX._total : Object.values(CATALOG_COUNTS).reduce((sum, n) => sum + n, 0);
+
+/** Jogos sem repetição por fabricante. */
+export const MAKER_COUNTS = (INDEX._makers ?? {}) as Record<string, number>;
 
 /** Ordem dos fabricantes na barra de filtros. */
 export const MAKER_ORDER = ['Nintendo', 'Sony', 'Sega', 'Microsoft', 'Atari', 'PC', 'Outros'];

@@ -1,6 +1,6 @@
 # ADR 0004 — IGDB como fonte principal e o modelo Obra/Edição
 
-- **Status:** aceito
+- **Status:** aceito; a unidade de marcação foi substituída pelo [ADR 0005](0005-um-card-por-jogo.md)
 - **Data:** 2026-10-02
 
 ## Contexto

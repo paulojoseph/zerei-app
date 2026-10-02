@@ -4,10 +4,12 @@ import { ArrowUpDown, ChevronDown, Flame, RotateCcw } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { SEED_GAMES, SORT_OPTIONS, countByStatus } from '@/lib/games';
+import { SORT_OPTIONS, countByStatus } from '@/lib/games';
 import {
   CATALOG_COUNTS,
+  CATALOG_TOTAL,
   CONSOLES,
+  MAKER_COUNTS,
   MAKER_ORDER,
   MAKER_PREFIX,
   MINE_FILTER,
@@ -63,7 +65,9 @@ function compactCount(n: number): string {
  */
 function buildGroups(customGames: Game[]): MakerGroup[] {
   const extra = new Map<string, number>();
-  for (const game of [...SEED_GAMES, ...customGames]) {
+  // A curadoria já está dentro das contagens do catálogo (mesmo ID da obra);
+  // só os jogos trazidos pela busca online somam por fora.
+  for (const game of customGames) {
     extra.set(game.platform, (extra.get(game.platform) ?? 0) + 1);
   }
 
@@ -95,7 +99,9 @@ function buildGroups(customGames: Game[]): MakerGroup[] {
 
   return MAKER_ORDER.map((maker) => {
     const consoles = groups.get(maker) ?? [];
-    return { maker, consoles, count: consoles.reduce((sum, c) => sum + c.count, 0) };
+    // Sem repetição: um jogo de Wii e Wii U conta uma vez na Nintendo.
+    const extra = consoles.reduce((sum, c) => sum + (CONSOLES.some((k) => k.name === c.id) ? 0 : c.count), 0);
+    return { maker, consoles, count: (MAKER_COUNTS[maker] ?? consoles.reduce((sum, c) => sum + c.count, 0)) + extra };
   }).filter((g) => g.count > 0);
 }
 
@@ -153,6 +159,7 @@ export function Filters() {
   const reopenOnboarding = useGameStore((s) => s.reopenOnboarding);
 
   const setPlatform = useGameStore((s) => s.setPlatform);
+  const markUrlApplied = useGameStore((s) => s.markUrlApplied);
   const setStatusFilter = useGameStore((s) => s.setStatusFilter);
   const toggleBrazilOnly = useGameStore((s) => s.toggleBrazilOnly);
   const setBrazilOnly = useGameStore((s) => s.setBrazilOnly);
@@ -196,13 +203,18 @@ export function Filters() {
 
     // A query já virou estado: apagá-la da barra de endereços evita que o filtro
     // "volte sozinho" quando o usuário limpar os filtros e recarregar a página.
+    markUrlApplied();
     if (applied) window.history.replaceState({}, '', window.location.pathname);
+    // Link sem filtro válido: a vitrine pode aparecer já. Com filtro, quem tira
+    // a marcação é a própria vitrine, DEPOIS que o filtro estiver na tela —
+    // tirar aqui abria uma janela em que ela piscava (corrida que o Lighthouse pegou).
+    else delete document.documentElement.dataset.deeplink;
     // Ações do Zustand têm referência estável — o efeito é de montagem.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const groups = useMemo(() => buildGroups(customGames), [customGames]);
-  const total = groups.reduce((sum, g) => sum + g.count, 0);
+  const total = CATALOG_TOTAL + customGames.length;
 
   // Fabricante em destaque: o escolhido ou o dono do console escolhido.
   const myNames = useMemo(

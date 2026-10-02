@@ -21,14 +21,30 @@ const COVER_HOSTS = new Set([
 const DEFAULT_SIZES = '(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 180px';
 
 /**
- * Capas que o navegador busca direto, sem passar pelo otimizador do Next:
- * - IGDB: o CDN deles já entrega no tamanho do card (264 px), com cache de um
- *   ano; passar pelo nosso servidor só gastaria CPU e criaria cópia nossa da
- *   arte (ADR 0004: hotlink, sem armazenar);
- * - Wikimedia: responde 429 à rajada que o otimizador dispara do servidor.
+ * Capas da IGDB: o próprio CDN deles serve vários tamanhos (cache de um ano), e
+ * este loader os oferece ao navegador num `srcset` — cada aparelho baixa o
+ * menor que preenche o card na densidade da tela. Sem passar pelo nosso
+ * servidor nem criar cópia nossa da arte (ADR 0004). Antes, todo card baixava
+ * o de 264 px (~28 KB) mesmo ocupando 128 px.
  */
+const IGDB_SIZES: [number, string][] = [
+  [90, 't_cover_small'],
+  [180, 't_cover_small_2x'],
+  [264, 't_cover_big'],
+  [528, 't_cover_big_2x'],
+];
+
+function igdbLoader({ src, width }: { src: string; width: number }): string {
+  const image = src.slice(src.lastIndexOf('/') + 1);
+  const size = (IGDB_SIZES.find(([w]) => w >= width) ?? IGDB_SIZES[IGDB_SIZES.length - 1])[1];
+  return `https://images.igdb.com/igdb/image/upload/${size}/${image}`;
+}
+
+const isIgdb = (url: string) => url.startsWith('https://images.igdb.com/');
+
+/** Wikimedia responde 429 à rajada que o otimizador dispara do servidor: o navegador busca direto. */
 function bypassOptimizer(url: string): boolean {
-  return url.startsWith('https://images.igdb.com/') || url.startsWith('https://upload.wikimedia.org/');
+  return url.startsWith('https://upload.wikimedia.org/');
 }
 
 /** Formato do wrapper — a capa gerada precisa ocupar exatamente o mesmo espaço. */
@@ -111,6 +127,7 @@ export function CoverImage({ game, sizes, priority, className }: CoverImageProps
         loading={priority ? 'eager' : undefined}
         fetchPriority={priority ? 'high' : undefined}
         unoptimized={bypassOptimizer(src)}
+        loader={isIgdb(src) ? igdbLoader : undefined}
         onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
         className="animate-fade-in object-cover"

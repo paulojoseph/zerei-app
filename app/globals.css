@@ -235,3 +235,11 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Decidido antes da primeira pintura pelo script do <head> (app/layout.tsx):
+   quem volta não vê o onboarding piscar; quem chega por link com filtro não
+   vê a vitrine aparecer e sumir. */
+html[data-returning] .onboarding-slot,
+html[data-deeplink] .showcase {
+  display: none;
+}

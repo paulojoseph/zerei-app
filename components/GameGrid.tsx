@@ -4,11 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Gamepad2, LoaderCircle, RotateCcw, Search, Trophy } from 'lucide-react';
 
 import { GameCard } from '@/components/GameCard';
-import { Onboarding } from '@/components/Onboarding';
 import { SelectionBar } from '@/components/SelectionBar';
 import { Button } from '@/components/ui/Button';
 import { filterByStatus, selectGames, sortGames } from '@/lib/games';
-import { CONSOLES, MAKER_PREFIX, MINE_FILTER, consoleByName } from '@/lib/consoles';
+import { CATALOG_COUNTS, CONSOLES, MAKER_PREFIX, MINE_FILTER, consoleByName } from '@/lib/consoles';
 import { STATUS_META } from '@/lib/platforms';
 import { pluralize } from '@/lib/utils';
 import {
@@ -243,12 +242,12 @@ export function GameGrid() {
   const progress = useProgressMap();
   const hydrated = useHydrated();
   const catalogStatus = useCatalogStatus();
+  const urlApplied = useGameStore((s) => s.urlApplied);
   const { search, platform, status, brazilOnly, sort } = useFilters();
   const resetFilters = useGameStore((s) => s.resetFilters);
   const loadCatalog = useGameStore((s) => s.loadCatalog);
   const ensureConsoles = useGameStore((s) => s.ensureConsoles);
   const myConsoles = useGameStore((s) => s.myConsoles);
-  const onboardingDone = useGameStore((s) => s.onboardingDone);
   const mine = useMemo(
     () => new Set(CONSOLES.filter((c) => myConsoles.includes(c.id)).map((c) => c.name)),
     [myConsoles],
@@ -266,6 +265,16 @@ export function GameGrid() {
   useEffect(() => {
     loadCatalog();
   }, [loadCatalog]);
+  // Consoles que o filtro atual exige por inteiro (o console, o fabricante, os seus).
+  const selectedConsoles = useMemo(() => {
+    if (platform === MINE_FILTER) return myConsoles;
+    if (platform.startsWith(MAKER_PREFIX)) {
+      const maker = platform.slice(MAKER_PREFIX.length);
+      return CONSOLES.filter((c) => c.maker === maker).map((c) => c.id);
+    }
+    const id = platform !== 'all' ? consoleByName(platform)?.id : undefined;
+    return id ? [id] : [];
+  }, [platform, myConsoles]);
   useEffect(() => {
     if (!hydrated) return;
     if (needsEverything) {
@@ -273,17 +282,20 @@ export function GameGrid() {
       return;
     }
     const wanted = new Set(progressConsoles ? progressConsoles.split(',') : []);
-    if (platform === MINE_FILTER) {
-      for (const id of myConsoles) wanted.add(id);
-    } else if (platform.startsWith(MAKER_PREFIX)) {
-      const maker = platform.slice(MAKER_PREFIX.length);
-      for (const c of CONSOLES) if (c.maker === maker) wanted.add(c.id);
-    } else if (platform !== 'all') {
-      const id = consoleByName(platform)?.id;
-      if (id) wanted.add(id);
-    }
+    for (const id of selectedConsoles) wanted.add(id);
     ensureConsoles([...wanted]);
-  }, [hydrated, needsEverything, platform, progressConsoles, myConsoles, ensureConsoles]);
+  }, [hydrated, needsEverything, selectedConsoles, progressConsoles, ensureConsoles]);
+  // Console escolhido ainda baixando: esperar. Mostrar o pedaço que já veio no
+  // top.json e depois rearranjar tudo quando o arquivo chega empurrava os cards
+  // (CLS) e baixava capas que logo sumiam da tela.
+  const catalogConsoles = useGameStore((s) => s.catalogConsoles);
+  const catalogHeads = useGameStore((s) => s.catalogHeads);
+  // Na visão padrão (A–Z, sem busca nem status) a "cabeça" do console basta:
+  // o arquivo completo só acrescenta jogos abaixo dos que estão na tela.
+  const defaultView = sort === 'title' && search.trim() === '' && status === 'all' && !brazilOnly;
+  const waitingConsole =
+    catalogStatus === 'loading' &&
+    selectedConsoles.some((id) => CATALOG_COUNTS[id] && !catalogConsoles[id] && !(defaultView && catalogHeads[id]));
 
   // Estado derivado por chave (padrão oficial do React, sem useEffect): quando
   // qualquer filtro muda, a paginação volta para a primeira leva e a ordem é
@@ -399,9 +411,19 @@ export function GameGrid() {
   // o usuário chegar lá. O botão "Carregar mais" continua como alternativa.
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hasMore = count < visible.length;
+  // Só depois que a pessoa rola: na primeira carga a grade ainda está curta e o
+  // sentinela caía dentro da margem, puxando a 2ª página (o dobro de capas e um
+  // deslocamento de layout) sem ninguém pedir.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (scrolled) return;
+    const arm = () => setScrolled(true);
+    window.addEventListener('scroll', arm, { once: true, passive: true });
+    return () => window.removeEventListener('scroll', arm);
+  }, [scrolled]);
   useEffect(() => {
     const node = sentinelRef.current;
-    if (!node || !hasMore) return;
+    if (!node || !hasMore || !scrolled) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) setVisibleCount((c) => c + PAGE_SIZE);
@@ -410,9 +432,11 @@ export function GameGrid() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasMore, count, hydrated]);
+  }, [hasMore, count, hydrated, scrolled]);
 
-  if (!hydrated) return <GridSkeleton />;
+  // Até o filtro do link (?console=...) entrar no estado, a grade mostraria
+  // "Todos" por um quadro — e o navegador já começaria a baixar aquelas capas.
+  if (!hydrated || !urlApplied || waitingConsole) return <GridSkeleton />;
 
   const loadingCatalog = catalogStatus === 'loading';
   const term = search.trim();
@@ -424,7 +448,6 @@ export function GameGrid() {
 
   return (
     <div className="animate-fade-in">
-      {!onboardingDone && <Onboarding />}
       <SelectionBar />
       {total > 0 && (
         <div
