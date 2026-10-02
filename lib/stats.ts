@@ -10,6 +10,9 @@ import type {
   YearStat,
 } from '@/types/game';
 import { CATEGORY_META, CATEGORY_ORDER } from '@/lib/platforms';
+import { CONSOLES } from '@/lib/consoles';
+
+const consoleById = (id: string) => CONSOLES.find((c) => c.id === id);
 
 /**
  * Módulo puro de estatísticas: nada de React, store, `Date.now()` ou I/O.
@@ -104,11 +107,12 @@ export function computeStats(
         if (game.isBrazilClassic) brazilBeaten += 1;
         if (category) category.beaten += 1;
 
-        const platform = platformTally.get(game.platform);
+        // Console onde a pessoa jogou (se informou); senão, a plataforma original.
+        const playedOn = entry.playedOn ? consoleById(entry.playedOn) : undefined;
+        const platformName = playedOn?.name ?? game.platform;
+        const platform = platformTally.get(platformName);
         if (platform) platform.beaten += 1;
-        // A geração do badge vem do primeiro zerado daquela plataforma —
-        // na prática todos compartilham a mesma categoria.
-        else platformTally.set(game.platform, { platform: game.platform, category: game.category, beaten: 1 });
+        else platformTally.set(platformName, { platform: platformName, category: playedOn?.category ?? game.category, beaten: 1 });
 
         if (entry.completedYear !== undefined) {
           yearTally.set(entry.completedYear, (yearTally.get(entry.completedYear) ?? 0) + 1);

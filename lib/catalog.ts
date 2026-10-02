@@ -1,22 +1,28 @@
 import type { Game } from '@/types/game';
-import { CATALOG_COUNTS, CONSOLES, type ConsoleMeta } from '@/lib/consoles';
+import { CATALOG_COUNTS, CONSOLES, consoleByName, type ConsoleMeta } from '@/lib/consoles';
+
+const BY_ID = new Map(CONSOLES.map((c) => [c.id, c]));
 
 /**
- * [id estável, título, ano, capa codificada, popularidade, índices de gênero] —
- * formato v2 gerado por pipeline/build.mts (ADR 0004).
+ * Uma linha por OBRA (jogo), repetida no arquivo de cada console em que saiu —
+ * formato v3 gerado por pipeline/build.mts (ADR 0005):
+ * [id, título, ano original, capa, popularidade, gêneros, consoles (índices em
+ *  meta.consoles, o original primeiro), crítica, nº críticas, público, nº votos]
  */
-export type CatalogRow = [string, string, number, string, number, number[]];
+export type CatalogRow = [string, string, number, string, number, number[], number[], number, number, number, number];
 
 export interface CatalogFile {
-  v: 2;
+  v: 3;
   /** Prefixo da capa → URL base: i = IGDB, l = libretro, w = Wikimedia. */
   covers: Record<string, string>;
   games: CatalogRow[];
 }
 
 export interface CatalogMeta {
-  v: 2;
+  v: 3;
   genres: string[];
+  /** Ids de console na ordem dos índices das linhas. */
+  consoles: string[];
 }
 
 /**
@@ -34,19 +40,31 @@ export function coverUrl(covers: Record<string, string>, cover: string): string 
   return `${base}${value}`;
 }
 
-/** Converte um arquivo de catálogo em jogos. Puro: usado no app, nos testes e nos benchmarks. */
-export function catalogToGames(console_: ConsoleMeta, data: CatalogFile, meta: CatalogMeta): Game[] {
-  return data.games.map(([id, title, year, cover, popularity, genres]) => ({
-    id,
-    title,
-    platform: console_.name,
-    category: console_.category,
-    releaseYear: year,
-    coverUrl: coverUrl(data.covers, cover),
-    genres: genres.length ? genres.map((g) => meta.genres[g]).filter(Boolean) : undefined,
-    popularity,
-    isCatalog: true,
-  }));
+/** Converte linhas do catálogo em jogos. Puro: usado no app, nos testes e nos benchmarks. */
+export function rowsToGames(rows: CatalogRow[], covers: Record<string, string>, meta: CatalogMeta): Game[] {
+  const games: Game[] = [];
+  for (const [id, title, year, cover, popularity, genres, platformIdx, critic, criticCount, user, userCount] of rows) {
+    const platforms = platformIdx.map((i) => BY_ID.get(meta.consoles[i])).filter((c): c is ConsoleMeta => !!c);
+    const original = platforms[0];
+    if (!original) continue;
+    games.push({
+      id,
+      title,
+      platform: original.name,
+      platforms: platforms.map((c) => c.name),
+      category: original.category,
+      releaseYear: year,
+      coverUrl: coverUrl(covers, cover),
+      genres: genres.length ? genres.map((g) => meta.genres[g]).filter(Boolean) : undefined,
+      popularity,
+      criticScore: critic || undefined,
+      criticCount: criticCount || undefined,
+      userScore: user || undefined,
+      userCount: userCount || undefined,
+      isCatalog: true,
+    });
+  }
+  return games;
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -62,7 +80,6 @@ async function fetchJson<T>(url: string): Promise<T> {
 /** Console de cada jogo já visto (preenchido conforme os arquivos chegam). */
 const consoleOfGame = new Map<string, string>();
 const CONSOLE_IDS = new Set(CONSOLES.map((c) => c.id));
-const BY_ID = new Map(CONSOLES.map((c) => [c.id, c]));
 
 /**
  * Console de um jogo pelo ID. Jogos já carregados vêm do registro; IDs do
@@ -77,38 +94,31 @@ export function consoleIdOf(gameId: string): string | undefined {
 
 let metaPromise: Promise<CatalogMeta> | null = null;
 function loadMeta(): Promise<CatalogMeta> {
-  metaPromise ??= fetchJson<CatalogMeta>('/catalog/meta.json').catch(() => ({ v: 2 as const, genres: [] }));
+  metaPromise ??= fetchJson<CatalogMeta>('/catalog/meta.json').catch(() => ({ v: 3 as const, genres: [], consoles: [] }));
   return metaPromise;
 }
 
-function register(consoleId: string, games: Game[]): Game[] {
-  for (const game of games) consoleOfGame.set(game.id, consoleId);
+/** Registra o console de origem (o arquivo onde o jogo vive), se ainda não houver. */
+function register(games: Game[], consoleId?: string): Game[] {
+  for (const game of games) {
+    if (consoleOfGame.has(game.id)) continue;
+    const id = consoleId ?? consoleByName(game.platform)?.id;
+    if (id) consoleOfGame.set(game.id, id);
+  }
   return games;
 }
 
 /** Os mais populares de todos os consoles (primeira tela da aba "Todos"). */
 export async function fetchTopGames(): Promise<Game[]> {
-  const [meta, data] = await Promise.all([
-    loadMeta(),
-    fetchJson<{ v: 2; covers: Record<string, string>; games: [string, ...CatalogRow][] }>('/catalog/top.json'),
-  ]);
-  const games: Game[] = [];
-  for (const [consoleId, ...row] of data.games) {
-    const console_ = BY_ID.get(consoleId);
-    if (!console_) continue;
-    const [game] = catalogToGames(console_, { v: 2, covers: data.covers, games: [row] }, meta);
-    consoleOfGame.set(game.id, consoleId);
-    games.push(game);
-  }
-  return games;
+  const [meta, data] = await Promise.all([loadMeta(), fetchJson<CatalogFile>('/catalog/top.json')]);
+  return register(rowsToGames(data.games, data.covers, meta));
 }
 
-/** O catálogo inteiro de um console. */
+/** O catálogo inteiro de um console (obras que saíram nele, inclusive multiplataforma). */
 export async function fetchConsoleGames(consoleId: string): Promise<Game[]> {
-  const console_ = BY_ID.get(consoleId);
-  if (!console_ || !CATALOG_COUNTS[consoleId]) return [];
+  if (!BY_ID.has(consoleId) || !CATALOG_COUNTS[consoleId]) return [];
   const [meta, data] = await Promise.all([loadMeta(), fetchJson<CatalogFile>(`/catalog/${consoleId}.json`)]);
-  return register(consoleId, catalogToGames(console_, data, meta));
+  return register(rowsToGames(data.games, data.covers, meta), consoleId);
 }
 
 /** Todos os consoles que têm catálogo publicado. */

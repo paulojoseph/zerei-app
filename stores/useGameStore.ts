@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
-import { remapProgress } from '@/lib/aliases';
+import { ALIASES_VERSION, loadAliases, remapProgress } from '@/lib/aliases';
 import { CATALOG_CONSOLE_IDS, consoleIdOf, fetchConsoleGames, fetchTopGames } from '@/lib/catalog';
 import { SEED_GAMES, countByStatus } from '@/lib/games';
 import type {
@@ -38,6 +38,8 @@ interface PersistedState {
   myConsoles: string[];
   /** Onboarding concluído ou pulado: não aparece de novo. */
   onboardingDone: boolean;
+  /** Versão do mapa de aliases já aplicada ao progresso (ver `migrateIds`). */
+  aliasesVersion?: string;
 }
 
 interface GameStore extends PersistedState {
@@ -93,6 +95,8 @@ interface GameStore extends PersistedState {
   setMyConsoles: (ids: string[]) => void;
   finishOnboarding: () => void;
   reopenOnboarding: () => void;
+  /** Reaponta o progresso pelos aliases, se o catálogo mudou desde a última vez. */
+  migrateIds: () => Promise<void>;
   toggleSelected: (gameId: string) => void;
   clearSelection: () => void;
 
@@ -117,7 +121,8 @@ const FILTER_DEFAULTS = {
   platform: 'all' as PlatformFilter,
   status: 'all' as StatusFilter,
   brazilOnly: false,
-  sort: 'recent' as SortMode,
+  // A–Z é o padrão (decisão de produto, inclusive na aba "Todos").
+  sort: 'title' as SortMode,
 };
 
 /**
@@ -168,9 +173,11 @@ function mergeProgress(
     notes: patch.notes !== undefined ? patch.notes : current?.notes,
     // Guardar o console permite baixar só o arquivo dele ao reabrir o app.
     consoleId: current?.consoleId ?? consoleIdOf(gameId),
+    playedOn: patch.playedOn !== undefined ? patch.playedOn || undefined : current?.playedOn,
     updatedAt: now(),
   };
   if (!next.consoleId) delete next.consoleId;
+  if (!next.playedOn) delete next.playedOn;
   if (next.completedYear === undefined) delete next.completedYear;
   if (next.rating === undefined || next.rating === 0) delete next.rating;
   if (!next.notes) delete next.notes;
@@ -211,6 +218,7 @@ function sanitizeProgress(raw: unknown): Record<string, UserGameProgress> {
     }
     if (typeof item.notes === 'string' && item.notes.trim()) entry.notes = item.notes;
     if (typeof item.consoleId === 'string' && /^[a-z0-9-]{1,32}$/.test(item.consoleId)) entry.consoleId = item.consoleId;
+    if (typeof item.playedOn === 'string' && /^[a-z0-9-]{1,32}$/.test(item.playedOn)) entry.playedOn = item.playedOn;
     out[gameId] = entry;
   }
   return out;
@@ -224,11 +232,15 @@ const catalogRequested = new Set<string>();
 let inFlight = 0;
 let failures = 0;
 
-/** Populares de consoles ainda não baixados + os consoles baixados (sem repetir). */
+/**
+ * Populares + consoles baixados, cada obra uma vez só: um jogo multiplataforma
+ * vem no arquivo de cada console em que saiu (e talvez no top.json também).
+ */
 function mergeCatalog(top: Game[], consoles: Record<string, Game[]>): Game[] {
-  const loaded = Object.values(consoles);
-  const topRest = top.filter((game) => !consoles[consoleIdOf(game.id) ?? '']);
-  return loaded.length ? topRest.concat(...loaded) : topRest;
+  const byId = new Map<string, Game>();
+  for (const list of Object.values(consoles)) for (const game of list) if (!byId.has(game.id)) byId.set(game.id, game);
+  for (const game of top) if (!byId.has(game.id)) byId.set(game.id, game);
+  return [...byId.values()];
 }
 
 function trackLoad(promise: Promise<unknown>) {
@@ -356,6 +368,18 @@ export const useGameStore = create<GameStore>()(
       setMyConsoles: (ids) => set({ myConsoles: [...new Set(ids)] }),
       finishOnboarding: () => set({ onboardingDone: true }),
       reopenOnboarding: () => set({ onboardingDone: false }),
+      migrateIds: async () => {
+        const { progress, aliasesVersion } = get();
+        if (aliasesVersion === ALIASES_VERSION) return;
+        if (!Object.keys(progress).length) {
+          set({ aliasesVersion: ALIASES_VERSION });
+          return;
+        }
+        const aliases = await loadAliases();
+        if (!Object.keys(aliases).length) return; // falhou: tenta na próxima visita
+        // Usa o progresso de AGORA: o usuário pode ter marcado algo durante o download.
+        set((s) => ({ progress: remapProgress(s.progress, aliases), aliasesVersion: ALIASES_VERSION }));
+      },
       toggleSelected: (gameId) =>
         set((s) => ({
           selection: s.selection.includes(gameId)
@@ -424,8 +448,9 @@ export const useGameStore = create<GameStore>()(
       },
 
       importBackup: (payload, mode) => {
-        // Backups antigos podem trazer IDs que viraram alias: reaponta antes de mesclar.
-        const incoming = remapProgress(sanitizeProgress(payload?.progress));
+        // Backups antigos podem trazer IDs que viraram alias: `migrateIds`, logo
+        // depois do import, reaponta tudo (o mapa é baixado sob demanda).
+        const incoming = sanitizeProgress(payload?.progress);
         const incomingCount = Object.keys(incoming).length;
         const incomingGames = Array.isArray(payload?.customGames) ? payload.customGames : [];
 
@@ -479,7 +504,8 @@ export const useGameStore = create<GameStore>()(
         }
         const customGames = [...customMap.values()];
 
-        set({ progress: merged, customGames });
+        set({ progress: merged, customGames, aliasesVersion: undefined });
+        void get().migrateIds();
 
         return {
           ok: true,
@@ -497,14 +523,14 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'zerei-app-storage',
       version: 1,
-      // Toda leitura do LocalStorage passa pelos aliases de ID (ADR 0002): se o
-      // catálogo fundiu ou renomeou um jogo, o progresso salvo segue o jogo.
+      // Os aliases de ID (ADR 0002) são aplicados depois, por `migrateIds`:
+      // o mapa é grande demais para entrar no bundle ou atrasar a hidratação.
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<PersistedState>;
         return {
           ...current,
           ...saved,
-          progress: remapProgress(saved.progress ?? current.progress),
+          progress: saved.progress ?? current.progress,
           myConsoles: Array.isArray(saved.myConsoles) ? saved.myConsoles.filter((id) => typeof id === 'string') : [],
           // Quem já tem jogos marcados (de antes do onboarding existir) não precisa dele.
           onboardingDone:
@@ -517,6 +543,7 @@ export const useGameStore = create<GameStore>()(
         customGames: state.customGames,
         myConsoles: state.myConsoles,
         onboardingDone: state.onboardingDone,
+        aliasesVersion: state.aliasesVersion,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) console.error('[Zerei.app] falha ao restaurar dados locais:', error);
@@ -524,7 +551,11 @@ export const useGameStore = create<GameStore>()(
         // dentro do `create()` — a referência `useGameStore` ainda está em TDZ aqui.
         // Sinalizar pela própria ação da store evita isso; o microtask cobre o
         // caminho de erro, em que `state` vem indefinido.
-        if (state) state.setHydrated();
+        if (state) {
+          state.setHydrated();
+          // Depois da hidratação e fora do caminho crítico da primeira pintura.
+          queueMicrotask(() => void useGameStore.getState().migrateIds());
+        }
         else queueMicrotask(() => useGameStore.setState({ hydrated: true }));
       },
     },
@@ -546,15 +577,41 @@ if (typeof window !== 'undefined' && !useGameStore.persist.getOptions().storage)
 /** `true` depois que o LocalStorage foi lido (evita mismatch de hidratação). */
 export const useHydrated = () => useGameStore((s) => s.hydrated);
 
-/** Tudo que aparece na tela: seed + catálogo completo + jogos vindos da IGDB. */
+const SEED_IDS = new Set(SEED_GAMES.map((g) => g.id));
+
+/**
+ * Tudo que aparece na tela: curadoria + catálogo + jogos vindos da busca online.
+ * Jogo da curadoria que também está no catálogo vira um só: fica a capa, o
+ * resumo e a marca BR da curadoria, e entram as plataformas e notas da IGDB.
+ */
 export function useAllGames(): Game[] {
   const customGames = useGameStore((s) => s.customGames);
   const catalog = useGameStore((s) => s.catalog);
-  return useMemo(
-    () =>
-      customGames.length || catalog.length ? [...SEED_GAMES, ...catalog, ...customGames] : SEED_GAMES,
-    [customGames, catalog],
-  );
+  return useMemo(() => {
+    if (!customGames.length && !catalog.length) return SEED_GAMES;
+    const fromCatalog = new Map<string, Game>();
+    const rest: Game[] = [];
+    for (const game of catalog) {
+      if (SEED_IDS.has(game.id)) fromCatalog.set(game.id, game);
+      else rest.push(game);
+    }
+    const seed = SEED_GAMES.map((g) => {
+      const extra = fromCatalog.get(g.id);
+      if (!extra) return g;
+      return {
+        ...g,
+        platform: g.platform,
+        platforms: [g.platform, ...(extra.platforms ?? []).filter((p) => p !== g.platform)],
+        popularity: extra.popularity,
+        criticScore: extra.criticScore,
+        criticCount: extra.criticCount,
+        userScore: extra.userScore,
+        userCount: extra.userCount,
+        genres: g.genres ?? extra.genres,
+      };
+    });
+    return [...seed, ...rest, ...customGames];
+  }, [customGames, catalog]);
 }
 
 export const useCatalogStatus = () => useGameStore((s) => s.catalogStatus);
@@ -600,5 +657,5 @@ export const useFilters = (): FilterState =>
 export const useHasActiveFilters = () =>
   useGameStore(
     (s) =>
-      s.search !== '' || s.platform !== 'all' || s.status !== 'all' || s.brazilOnly || s.sort !== 'recent',
+      s.search !== '' || s.platform !== 'all' || s.status !== 'all' || s.brazilOnly || s.sort !== 'title',
   );

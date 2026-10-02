@@ -79,6 +79,7 @@ As decisões importantes ficam registradas em [`docs/adr/`](docs/adr/):
 - [0002 — IDs estáveis para os jogos](docs/adr/0002-ids-estaveis.md)
 - [0003 — Orçamentos de performance com catraca no CI](docs/adr/0003-orcamentos-de-performance.md)
 - [0004 — IGDB como fonte principal e o modelo Obra/Edição](docs/adr/0004-dados-igdb-modelo-edicao.md)
+- [0005 — Um card por jogo](docs/adr/0005-um-card-por-jogo.md)
 
 ---
 
@@ -185,7 +186,7 @@ Os ícones vetoriais (`icon.svg` e `maskable.svg`) são a arte de referência; o
 
 `npm run catalog` (`pipeline/build.mts`, [ADR 0004](docs/adr/0004-dados-igdb-modelo-edicao.md)) monta o catálogo a partir da [IGDB](https://www.igdb.com) — uso gratuito e não comercial, com crédito. Precisa de `TWITCH_CLIENT_ID` e `TWITCH_CLIENT_SECRET` no `.env.local` (passo a passo no topo do `.env.example`).
 
-- **Edição = jogo × console.** É onde o usuário marca "zerei". O console do Zerei pode juntar plataformas da IGDB (NES = NES + Famicom).
+- **Um card por jogo** ([ADR 0005](docs/adr/0005-um-card-por-jogo.md)): o usuário marca que zerou o jogo, em qualquer plataforma; as plataformas viram tags. O console do Zerei pode juntar plataformas da IGDB (NES = NES + Famicom).
 - **Só o que é um jogo:** principal, remake, remaster, port, expanded e standalone. DLC, bundle, mod e episódio ficam de fora.
 - **Relançamento não é edição:** jogo muito anterior ao console (Virtual Console, PS one Classics, Arcade Archives) não entra na lista daquele console.
 - **Popularidade** (visitas na IGDB + avaliações) ordena o clássico antes do obscuro. No PC entram só jogos com avaliação (são 180 mil no total).

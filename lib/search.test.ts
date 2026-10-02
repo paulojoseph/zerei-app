@@ -39,6 +39,17 @@ describe('busca', () => {
     expect(matchesSearch(game({ title: 'Street Fighter II', releaseYear: 1991 }), 'street 1991')).toBe(true);
   });
 
+  it('jogo multiplataforma aparece no filtro de cada console em que saiu', () => {
+    const gta = game({ title: 'Grand Theft Auto V', platform: 'Xbox 360', platforms: ['Xbox 360', 'PlayStation 3', 'PC'] });
+    const sel = (platform: string) => filterGames({ games: [gta], progress: {}, search: '', platform, status: 'all', brazilOnly: false, sort: 'title' });
+    expect(sel('PlayStation 3')).toHaveLength(1);
+    expect(sel('PC')).toHaveLength(1);
+    expect(sel('maker:Sony')).toHaveLength(1);
+    expect(sel('Nintendo Switch')).toHaveLength(0);
+    // E a busca entende o apelido de qualquer uma das plataformas.
+    expect(matchesSearch(gta, 'gta ps3') || matchesSearch(gta, 'grand ps3')).toBe(true);
+  });
+
   it('filtra por fabricante ("maker:Sega") e por console', () => {
     const sega = filterGames({ games: SEED_GAMES, progress: {}, search: '', platform: 'maker:Sega', status: 'all', brazilOnly: false, sort: 'title' });
     expect(sega.length).toBeGreaterThan(0);

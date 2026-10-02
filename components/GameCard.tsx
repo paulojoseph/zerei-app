@@ -54,6 +54,9 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
   const status = statusOf(progress ? { [game.id]: progress } : NO_PROGRESS, game.id);
   const beaten = status === 'beaten';
   const accent = categoryMeta(game.category).color;
+  // Um card por jogo (ADR 0005): saiu em vários consoles = selo MULTI.
+  const platforms = game.platforms ?? [game.platform];
+  const multi = platforms.length > 1;
   const rating = progress?.rating ?? 0;
   // O ano sobrevive à troca de status (o dado fica guardado), mas só faz sentido exibir em jogo zerado.
   const completedYear = beaten ? progress?.completedYear : undefined;
@@ -96,7 +99,7 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
       data-card-index={index}
       data-game-id={game.id}
       tabIndex={focusable ? 0 : -1}
-      aria-label={`${game.title}, ${game.platform}${game.releaseYear ? `, ${game.releaseYear}` : ''} — ${STATUS_META[status].label}${selected ? ', selecionado' : ''}`}
+      aria-label={`${game.title}, ${platforms.join(', ')}${game.releaseYear ? `, ${game.releaseYear}` : ''} — ${STATUS_META[status].label}${selected ? ', selecionado' : ''}`}
       onFocus={(e) => {
         if (e.target === e.currentTarget) onFocusCard?.(index);
       }}
@@ -282,6 +285,7 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
         <div className="mt-1 flex h-4 items-center gap-1.5">
           {game.releaseYear > 0 && <span className="text-[11px] text-ink-dim">{game.releaseYear}</span>}
           <span
+            title={multi ? platforms.map(platformShort).join(' · ') : game.platform}
             className="font-display ml-auto shrink-0 rounded border px-1 py-0.5 text-[8px] leading-none"
             style={{
               color: accent,
@@ -289,7 +293,7 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
               backgroundColor: `color-mix(in oklab, ${accent} 12%, transparent)`,
             }}
           >
-            {platformShort(game.platform)}
+            {multi ? 'MULTI' : platformShort(game.platform)}
           </span>
         </div>
 

@@ -8,7 +8,8 @@ import { CoverImage } from '@/components/ui/CoverImage';
 import { Modal } from '@/components/ui/Modal';
 import { StarRating } from '@/components/ui/StarRating';
 import { STATUS_META, STATUS_ORDER, categoryMeta } from '@/lib/platforms';
-import { cn, currentYear, formatDate, timeAgo } from '@/lib/utils';
+import { consoleByName } from '@/lib/consoles';
+import { cn, currentYear, formatDate, pluralize, timeAgo } from '@/lib/utils';
 import { useAllGames, useGameProgress, useGameStore } from '@/stores/useGameStore';
 import type { Game, GameStatus } from '@/types/game';
 
@@ -135,6 +136,7 @@ function GameModalContent({ game }: { game: Game }) {
       status: progress.status,
       rating: progress.rating,
       notes: progress.notes,
+      playedOn: progress.playedOn,
     });
   }
 
@@ -225,13 +227,12 @@ function GameModalContent({ game }: { game: Game }) {
           </h2>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm text-ink-soft">
-            <span className="font-medium text-ink">{game.platform}</span>
             {game.releaseYear > 0 && (
               <>
+                <span>{game.releaseYear}</span>
                 <span aria-hidden className="text-ink-dim">
                   ·
                 </span>
-                <span>{game.releaseYear}</span>
               </>
             )}
             <span
@@ -254,6 +255,39 @@ function GameModalContent({ game }: { game: Game }) {
               </span>
             )}
           </div>
+
+          {/* Um card por jogo (ADR 0005): as plataformas viram tags, a original primeiro. */}
+          <ul aria-label="Plataformas" className="mt-2.5 flex flex-wrap gap-1.5">
+            {(game.platforms ?? [game.platform]).map((name) => (
+              <li
+                key={name}
+                className="rounded-md border border-line bg-panel-2 px-2 py-0.5 text-[11px] font-medium text-ink-soft"
+                title={name}
+              >
+                {consoleByName(name)?.label ?? name}
+              </li>
+            ))}
+          </ul>
+
+          {(game.criticScore || game.userScore) && (
+            <dl className="mt-3 flex flex-wrap gap-2 text-xs">
+              {game.criticScore ? (
+                <div className="flex items-baseline gap-1.5 rounded-lg border border-line bg-panel-2 px-2.5 py-1.5">
+                  <dt className="text-ink-dim">Crítica</dt>
+                  <dd className="text-sm font-semibold text-ink">{game.criticScore}</dd>
+                  <dd className="text-ink-dim">{pluralize(game.criticCount ?? 0, 'crítica')}</dd>
+                </div>
+              ) : null}
+              {game.userScore ? (
+                <div className="flex items-baseline gap-1.5 rounded-lg border border-line bg-panel-2 px-2.5 py-1.5">
+                  <dt className="text-ink-dim">Público</dt>
+                  <dd className="text-sm font-semibold text-ink">{game.userScore}</dd>
+                  <dd className="text-ink-dim">{pluralize(game.userCount ?? 0, 'voto')}</dd>
+                </div>
+              ) : null}
+              <dd className="self-center text-[10px] text-ink-dim">fonte: IGDB</dd>
+            </dl>
+          )}
 
           {game.summary && (
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">{game.summary}</p>
@@ -355,6 +389,30 @@ function GameModalContent({ game }: { game: Game }) {
             <p className="mt-2 text-xs text-ink-dim">
               Não lembra a data exata? Chute honesto vale — é a sua linha do tempo.
             </p>
+            {(game.platforms?.length ?? 0) > 1 && (
+              <div className="mt-4">
+                <label htmlFor="zerei-played-on" className={cn(SECTION_TITLE, 'block')}>
+                  Em qual console?
+                </label>
+                <select
+                  id="zerei-played-on"
+                  disabled={!showYear}
+                  value={progress?.playedOn ?? ''}
+                  onChange={(event) => updateProgress(game.id, { playedOn: event.target.value })}
+                  className={cn(FIELD, 'mt-3 w-full max-w-xs cursor-pointer')}
+                >
+                  <option value="">Não informar ({consoleByName(game.platform)?.label ?? game.platform}, o original)</option>
+                  {(game.platforms ?? []).map((name) => {
+                    const c = consoleByName(name);
+                    return c ? (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ) : null;
+                  })}
+                </select>
+              </div>
+            )}
           </section>
         </div>
       </div>

@@ -17,7 +17,10 @@ export type GameStatus = 'beaten' | 'playing' | 'backlog' | 'unplayed';
 export interface Game {
   id: string;
   title: string;
+  /** Plataforma original (a primeira em que o jogo saiu). */
   platform: string;
+  /** Todas as plataformas do jogo, a original primeiro (ADR 0005: um card por jogo). */
+  platforms?: string[];
   category: PlatformCategory;
   releaseYear: number;
   coverUrl: string;
@@ -30,6 +33,12 @@ export interface Game {
   isCatalog?: boolean;
   /** 0–999: visitas na IGDB + número de avaliações. Ordena o clássico antes do obscuro. */
   popularity?: number;
+  /** Nota agregada da crítica especializada (IGDB), 0–100; só com 3+ críticas. */
+  criticScore?: number;
+  criticCount?: number;
+  /** Nota do público na IGDB, 0–100, e quantos votos. */
+  userScore?: number;
+  userCount?: number;
   /** Gêneros (opcional; a IGDB devolve, a seed usa para busca textual). */
   genres?: string[];
 }
@@ -43,6 +52,8 @@ export interface UserGameProgress {
   notes?: string;
   /** Console do jogo (id de data/consoles.json): diz qual arquivo do catálogo carregar. */
   consoleId?: string;
+  /** Console em que o usuário jogou (opcional); o painel "por console" usa este. */
+  playedOn?: string;
   /** ISO string. */
   updatedAt: string;
 }
@@ -55,7 +66,7 @@ export type CategoryFilter = PlatformCategory | 'all';
 /** Nome do console (`Game.platform`) ou 'all'. */
 export type PlatformFilter = string;
 export type StatusFilter = GameStatus | 'all';
-export type SortMode = 'recent' | 'title' | 'year-desc' | 'year-asc' | 'rating';
+export type SortMode = 'recent' | 'title' | 'year-desc' | 'year-asc' | 'rating' | 'critic' | 'popular';
 
 /* -------------------------------------------------------------------------- */
 /*  Backup / restauração                                                       */

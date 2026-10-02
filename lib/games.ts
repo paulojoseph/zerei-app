@@ -65,8 +65,9 @@ const searchIndex = new Map<string, string>();
 export function searchTextOf(game: Game): string {
   const cached = searchIndex.get(game.id);
   if (cached) return cached;
+  const platforms = game.platforms ?? [game.platform];
   const text = normalize(
-    [game.title, game.platform, platformSearchTerms(game.platform), game.genres?.join(' ') ?? '', String(game.releaseYear)].join(' '),
+    [game.title, ...platforms, ...platforms.map(platformSearchTerms), game.genres?.join(' ') ?? '', String(game.releaseYear)].join(' '),
   );
   searchIndex.set(game.id, text);
   return text;
@@ -103,12 +104,15 @@ export interface FilterOptions {
   sort: SortMode;
 }
 
+/** A ordem das chaves é a ordem no seletor; A–Z é o padrão (decisão de produto). */
 const SORT_LABEL: Record<SortMode, string> = {
-  recent: 'Atualizados primeiro',
   title: 'Título (A–Z)',
+  popular: 'Mais populares',
+  critic: 'Melhor nota da crítica',
   'year-desc': 'Lançamento (novos)',
   'year-asc': 'Lançamento (antigos)',
-  rating: 'Melhor nota',
+  recent: 'Marcados recentemente',
+  rating: 'Sua melhor nota',
 };
 
 export const SORT_OPTIONS = (Object.keys(SORT_LABEL) as SortMode[]).map((id) => ({
@@ -148,11 +152,13 @@ export type SelectionOptions = Pick<FilterOptions, 'games' | 'search' | 'platfor
 export function selectGames({ games, search, platform, brazilOnly, mine }: SelectionOptions): Game[] {
   const maker = platform.startsWith(MAKER_PREFIX) ? platform.slice(MAKER_PREFIX.length) : null;
   return games.filter((game) => {
+    // Um jogo multiplataforma aparece em todos os consoles em que saiu.
+    const platforms = game.platforms ?? [game.platform];
     if (platform === MINE_FILTER) {
-      if (!mine?.has(game.platform)) return false;
+      if (!platforms.some((p) => mine?.has(p))) return false;
     } else if (maker !== null) {
-      if (makerOf(game.platform) !== maker) return false;
-    } else if (platform !== 'all' && game.platform !== platform) {
+      if (!platforms.some((p) => makerOf(p) === maker)) return false;
+    } else if (platform !== 'all' && !platforms.includes(platform)) {
       return false;
     }
     if (brazilOnly && !game.isBrazilClassic) return false;
@@ -188,6 +194,15 @@ export function sortGames(
       break;
     case 'rating':
       result.sort((a, b) => (progress[b.id]?.rating ?? 0) - (progress[a.id]?.rating ?? 0) || byTitle(a, b));
+      break;
+    case 'popular':
+      result.sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0) || byTitle(a, b));
+      break;
+    case 'critic':
+      // Sem nota da crítica vai para o fim; empate pelo número de críticas.
+      result.sort(
+        (a, b) => (b.criticScore ?? -1) - (a.criticScore ?? -1) || (b.criticCount ?? 0) - (a.criticCount ?? 0) || byTitle(a, b),
+      );
       break;
     case 'recent':
     default:
