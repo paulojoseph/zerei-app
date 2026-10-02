@@ -6,7 +6,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
 import { ALIASES_VERSION, loadAliases, remapProgress } from '@/lib/aliases';
-import { CATALOG_CONSOLE_IDS, consoleIdOf, fetchConsoleGames, fetchTopGames } from '@/lib/catalog';
+import { CATALOG_CONSOLE_IDS, consoleIdOf, fetchConsoleGames, fetchConsoleHead, fetchTopGames } from '@/lib/catalog';
 import { SEED_GAMES, countByStatus } from '@/lib/games';
 import type {
   BackupPayload,
@@ -56,6 +56,8 @@ interface GameStore extends PersistedState {
   catalog: Game[];
   catalogTop: Game[];
   catalogConsoles: Record<string, Game[]>;
+  /** Primeiros em A–Z de consoles cujo arquivo completo ainda não chegou. */
+  catalogHeads: Record<string, Game[]>;
   catalogStatus: CatalogStatus;
   selectedGameId: string | null;
   hydrated: boolean;
@@ -79,6 +81,9 @@ interface GameStore extends PersistedState {
 
   /** Seleção múltipla (ids de jogos), para marcar vários de uma vez. */
   selection: string[];
+  /** Filtros do link (?console=, ?q=...) já aplicados: a grade pode aparecer. */
+  urlApplied: boolean;
+  markUrlApplied: () => void;
 
   /* ---- progresso ---- */
   setGameStatus: (gameId: string, status: GameStatus) => void;
@@ -236,9 +241,13 @@ let failures = 0;
  * Populares + consoles baixados, cada obra uma vez só: um jogo multiplataforma
  * vem no arquivo de cada console em que saiu (e talvez no top.json também).
  */
-function mergeCatalog(top: Game[], consoles: Record<string, Game[]>): Game[] {
+function mergeCatalog(top: Game[], consoles: Record<string, Game[]>, heads: Record<string, Game[]> = {}): Game[] {
   const byId = new Map<string, Game>();
   for (const list of Object.values(consoles)) for (const game of list) if (!byId.has(game.id)) byId.set(game.id, game);
+  for (const [id, list] of Object.entries(heads)) {
+    if (consoles[id]) continue;
+    for (const game of list) if (!byId.has(game.id)) byId.set(game.id, game);
+  }
   for (const game of top) if (!byId.has(game.id)) byId.set(game.id, game);
   return [...byId.values()];
 }
@@ -280,7 +289,7 @@ function flushConsoles() {
   pendingConsoles = {};
   useGameStore.setState((s) => {
     const catalogConsoles = { ...s.catalogConsoles, ...batch };
-    return { catalogConsoles, catalog: mergeCatalog(s.catalogTop, catalogConsoles) };
+    return { catalogConsoles, catalog: mergeCatalog(s.catalogTop, catalogConsoles, s.catalogHeads) };
   });
 }
 
@@ -302,10 +311,13 @@ export const useGameStore = create<GameStore>()(
       myConsoles: [],
       onboardingDone: false,
       selection: [],
+      urlApplied: false,
+      markUrlApplied: () => set({ urlApplied: true }),
       ...FILTER_DEFAULTS,
       catalog: [],
       catalogTop: [],
       catalogConsoles: {},
+      catalogHeads: {},
       catalogStatus: 'idle',
       selectedGameId: null,
       hydrated: false,
@@ -394,7 +406,7 @@ export const useGameStore = create<GameStore>()(
         catalogRequested.add(TOP);
         trackLoad(
           fetchTopGames().then((games) => {
-            set((s) => ({ catalogTop: games, catalog: mergeCatalog(games, s.catalogConsoles) }));
+            set((s) => ({ catalogTop: games, catalog: mergeCatalog(games, s.catalogConsoles, s.catalogHeads) }));
           }),
         );
       },
@@ -404,6 +416,19 @@ export const useGameStore = create<GameStore>()(
         if (!wanted.length) return;
         for (const id of wanted) catalogRequested.add(id);
         for (const id of wanted) {
+          // A cabeça (~4 KB) chega bem antes e já desenha a primeira tela.
+          void fetchConsoleHead(id)
+            .then((games) =>
+              set((s) =>
+                s.catalogConsoles[id]
+                  ? {}
+                  : {
+                      catalogHeads: { ...s.catalogHeads, [id]: games },
+                      catalog: mergeCatalog(s.catalogTop, s.catalogConsoles, { ...s.catalogHeads, [id]: games }),
+                    },
+              ),
+            )
+            .catch(() => {});
           trackLoad(
             fetchConsoleGames(id).then(
               (games) => queueConsole(id, games),

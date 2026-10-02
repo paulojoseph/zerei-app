@@ -37,6 +37,17 @@ jogador marca que zerou **o jogo**, independentemente da plataforma.
    público (com o número de votos). Ordem nova "Melhor nota da crítica".
 8. **Ordem padrão A–Z** em todas as telas (decisão de produto).
 
+9. **Mesmo nome = um card só.** A IGDB tem entradas separadas para ports e
+   versões regionais com o mesmo título ("Sonic the Hedgehog" de Mega Drive,
+   Master System e arcade). Jogos de título igual (normalizado) com lançamento
+   até **2 anos** de distância viram um card com todas as plataformas; anos
+   distantes continuam separados (God of War 2005 x 2018, Doom 1993 x 2016).
+   O card que fica é o da curadoria, senão o da IGDB mais popular; os demais
+   viram alias. Quem já é alias nunca volta a ser o principal, e `alias()`
+   recusa ciclos — sem isso, a popularidade oscilando entre execuções poderia
+   inverter um grupo. 7.136 fusões; o pipeline estabiliza (0 aliases novos a
+   partir da 3ª execução). Resultado: 85.854 jogos únicos.
+
 ## Consequências
 
 - 92.990 jogos sem repetição (eram 145 mil linhas de edição).

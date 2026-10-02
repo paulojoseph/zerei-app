@@ -159,6 +159,7 @@ export function Filters() {
   const reopenOnboarding = useGameStore((s) => s.reopenOnboarding);
 
   const setPlatform = useGameStore((s) => s.setPlatform);
+  const markUrlApplied = useGameStore((s) => s.markUrlApplied);
   const setStatusFilter = useGameStore((s) => s.setStatusFilter);
   const toggleBrazilOnly = useGameStore((s) => s.toggleBrazilOnly);
   const setBrazilOnly = useGameStore((s) => s.setBrazilOnly);
@@ -202,7 +203,12 @@ export function Filters() {
 
     // A query já virou estado: apagá-la da barra de endereços evita que o filtro
     // "volte sozinho" quando o usuário limpar os filtros e recarregar a página.
+    markUrlApplied();
     if (applied) window.history.replaceState({}, '', window.location.pathname);
+    // Link sem filtro válido: a vitrine pode aparecer já. Com filtro, quem tira
+    // a marcação é a própria vitrine, DEPOIS que o filtro estiver na tela —
+    // tirar aqui abria uma janela em que ela piscava (corrida que o Lighthouse pegou).
+    else delete document.documentElement.dataset.deeplink;
     // Ações do Zustand têm referência estável — o efeito é de montagem.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -32,6 +32,8 @@ export interface CatalogMeta {
 export function coverUrl(covers: Record<string, string>, cover: string): string {
   const source = cover.slice(0, 1);
   const value = cover.slice(2);
+  // "u:" = URL completa (capa do libretro de outro console, num card fundido).
+  if (source === 'u') return value.startsWith('https://') ? value : '';
   const base = covers[source];
   if (!value || !base) return '';
   if (source === 'i') return `${base}${value}.jpg`;
@@ -118,6 +120,17 @@ export async function fetchTopGames(): Promise<Game[]> {
 export async function fetchConsoleGames(consoleId: string): Promise<Game[]> {
   if (!BY_ID.has(consoleId) || !CATALOG_COUNTS[consoleId]) return [];
   const [meta, data] = await Promise.all([loadMeta(), fetchJson<CatalogFile>(`/catalog/${consoleId}.json`)]);
+  return register(rowsToGames(data.games, data.covers, meta), consoleId);
+}
+
+/**
+ * Os primeiros jogos do console em A–Z (arquivo "cabeça", ~4 KB): desenha a
+ * primeira tela enquanto o arquivo completo baixa. Mesma ordem do app, então
+ * o completo só acrescenta jogos ABAIXO dos que já estão na tela.
+ */
+export async function fetchConsoleHead(consoleId: string): Promise<Game[]> {
+  if (!BY_ID.has(consoleId) || !CATALOG_COUNTS[consoleId]) return [];
+  const [meta, data] = await Promise.all([loadMeta(), fetchJson<CatalogFile>(`/catalog/${consoleId}.head.json`)]);
   return register(rowsToGames(data.games, data.covers, meta), consoleId);
 }
 

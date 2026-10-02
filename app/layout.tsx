@@ -106,9 +106,26 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
+/**
+ * `data-returning`: já usou o app (onboarding feito ou jogos marcados).
+ * `data-deeplink`: chegou por um link com filtro (?console=, ?q=, ?status=, ?preset=).
+ */
+const PRE_PAINT = `try{var d=document.documentElement,s=JSON.parse(localStorage.getItem('zerei-app-storage')||'null'),t=s&&s.state;if(t&&(t.onboardingDone||Object.keys(t.progress||{}).length))d.dataset.returning='1';if(/[?&](console|q|status|preset)=/.test(location.search))d.dataset.deeplink='1'}catch(e){}`;
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR" className={cn(inter.variable, pressStart.variable)} suppressHydrationWarning>
+      <head>
+        {/* Roda antes da primeira pintura (mesma técnica do "flash" de tema): o
+            HTML estático não sabe se a pessoa é nova ou se veio por um link com
+            filtro, e esconder a vitrine/onboarding só depois da hidratação
+            empurrava a página inteira (CLS 0,66 no Lighthouse). */}
+        <script dangerouslySetInnerHTML={{ __html: PRE_PAINT }} />
+        {/* As capas vêm direto do CDN da IGDB: abrir a conexão (DNS + TCP + TLS)
+            em paralelo com o resto tira essa espera do caminho do LCP. */}
+        <link rel="preconnect" href="https://images.igdb.com" />
+        <link rel="dns-prefetch" href="https://images.igdb.com" />
+      </head>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );
