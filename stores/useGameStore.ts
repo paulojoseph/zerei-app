@@ -176,8 +176,9 @@ function mergeProgress(
     completedYear: patch.completedYear !== undefined ? patch.completedYear : current?.completedYear,
     rating: patch.rating !== undefined ? patch.rating : current?.rating,
     notes: patch.notes !== undefined ? patch.notes : current?.notes,
-    // Guardar o console permite baixar só o arquivo dele ao reabrir o app.
-    consoleId: current?.consoleId ?? consoleIdOf(gameId),
+    // Guardar o console permite baixar só o arquivo dele ao reabrir o app
+    // (a página do jogo informa no patch: lá o catálogo não está carregado).
+    consoleId: current?.consoleId ?? patch.consoleId ?? consoleIdOf(gameId),
     playedOn: patch.playedOn !== undefined ? patch.playedOn || undefined : current?.playedOn,
     updatedAt: now(),
   };

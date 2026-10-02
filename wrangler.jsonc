@@ -12,6 +12,10 @@
     // Auto-referência exigida pelo cache do OpenNext; o nome casa com "name".
     { "binding": "WORKER_SELF_REFERENCE", "service": "zerei" }
   ],
+  "r2_buckets": [
+    // Detalhes de cada jogo (página /jogo/[id]), em 256 fatias: details/<00-ff>.json
+    { "binding": "CATALOG", "bucket_name": "zerei-catalog" }
+  ],
   "images": {
     // Otimizador de imagens do next/image rodando no Cloudflare Images.
     "binding": "IMAGES"

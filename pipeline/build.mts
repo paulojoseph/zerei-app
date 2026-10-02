@@ -33,7 +33,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { IgdbClient } from './igdb.mts';
-import { matchKeys, mintId, normKey } from './normalize.mts';
+import { detailShard, matchKeys, mintId, normKey } from './normalize.mts';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public/catalog');
@@ -41,6 +41,8 @@ const DETAILS_DIR = path.join(ROOT, '.cache/pipeline/details');
 const INDEX_FILE = path.join(ROOT, 'data/catalog-index.json');
 const ID_MAP_FILE = path.join(ROOT, 'data/id-map.json');
 const ALIASES_FILE = path.join(ROOT, 'data/id-aliases.json');
+
+const R2_DIR = path.join(ROOT, '.cache/pipeline/r2/details');
 
 const COVER_BASES = {
   i: 'https://images.igdb.com/igdb/image/upload/t_cover_big/',
@@ -658,6 +660,52 @@ for (const console_ of consoles) {
 }
 console.log(`${sameNameMerges} jogos de mesmo nome fundidos num card só`);
 
+/* ---- detalhes por jogo para o R2 (página /jogo/[id]), em 256 fatias ---- */
+
+/** Capa como URL absoluta (a página não conhece as bases de cada console). */
+function absoluteCover(cover: string, home?: string): string {
+  const source = cover.slice(0, 1);
+  const value = cover.slice(2);
+  if (!value) return '';
+  if (source === 'i') return `https://images.igdb.com/igdb/image/upload/t_cover_big/${value}.jpg`;
+  if (source === 'u') return value;
+  if (source === 'w') return `${COVER_BASES.w}${value}`;
+  if (source === 'l' && home) return `${libretroBase(home)}${encodeURIComponent(value)}.png`;
+  return '';
+}
+const mergedById = new Map(merged.map((e) => [e.id, e]));
+const shards = new Map<string, Record<string, unknown>>();
+for (const e of merged) {
+  const [id, title, year, cover, , genres, platforms, critic, criticCount, user, userCount] = e.row;
+  const d = e.details ?? {};
+  const similar = ((d.similar as string[] | undefined) ?? [])
+    .map((s) => mergedById.get(resolveAlias(s)))
+    .filter((s): s is Entry => !!s && s.id !== id)
+    .slice(0, 8)
+    .map((s) => [s.id, s.row[1], absoluteCover(s.row[3], s.home), s.row[2]]);
+  const shard = detailShard(id);
+  const bucket = shards.get(shard) ?? {};
+  bucket[id] = {
+    t: title,
+    y: year,
+    c: absoluteCover(cover, e.home),
+    p: platforms.map((i) => allConsoles[i].id),
+    g: genres.map((i) => genreNames[i]).filter(Boolean),
+    cs: critic || undefined,
+    cc: criticCount || undefined,
+    us: user || undefined,
+    uc: userCount || undefined,
+    s: d.summary,
+    dev: d.developers,
+    pub: d.publishers,
+    fr: d.franchises,
+    alt: (d.altNames as string[] | undefined)?.slice(0, 6),
+    sim: similar.length ? similar : undefined,
+    igdb: d.slug ? `https://www.igdb.com/games/${d.slug as string}` : undefined,
+  };
+  shards.set(shard, bucket);
+}
+
 // A trava (ADR 0002), depois de todos os consoles: um ID publicado pode ter ido
 // para o arquivo de outro console (obra multiplataforma) — isso não é sumiço.
 const realViolations: string[] = [];
@@ -677,6 +725,8 @@ if (realViolations.length) {
 
 await mkdir(OUT_DIR, { recursive: true });
 await mkdir(DETAILS_DIR, { recursive: true });
+await mkdir(R2_DIR, { recursive: true });
+for (const [shard, bucket] of shards) await writeFile(path.join(R2_DIR, `${shard}.json`), JSON.stringify(bucket));
 // "Cabeça" de cada console: os primeiros em A–Z (a ordem padrão do app), num
 // arquivo minúsculo que desenha a primeira tela antes do arquivo completo
 // chegar. O collator é O MESMO do app (lib/games.ts): se a ordem divergir, o

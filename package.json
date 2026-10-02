@@ -16,7 +16,9 @@
     "icons": "node scripts/gen-icons.mjs",
     "preview": "opennextjs-cloudflare build && wrangler dev",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "test": "vitest run"
+    "test": "vitest run",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "catalog:publish": "node pipeline/publish-r2.mts"
   },
   "dependencies": {
     "class-variance-authority": "0.7.1",
@@ -25,6 +27,7 @@
     "next": "^16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "tailwind-merge": "3.6.0",
     "zustand": "5.0.15"
   },

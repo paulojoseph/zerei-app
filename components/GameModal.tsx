@@ -1,8 +1,10 @@
 'use client';
 
-import { Check, Clock, Flame, PartyPopper, Trash2, X } from 'lucide-react';
+import Link from 'next/link';
+import { Check, ChevronRight, Clock, Flame, PartyPopper, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
+import { ShareButtons } from '@/components/game/ShareButtons';
 import { Button } from '@/components/ui/Button';
 import { CoverImage } from '@/components/ui/CoverImage';
 import { Modal } from '@/components/ui/Modal';
@@ -292,6 +294,17 @@ function GameModalContent({ game }: { game: Game }) {
           {game.summary && (
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">{game.summary}</p>
           )}
+
+          {/* Jogos da busca online (IGDB ao vivo) não têm página própria. */}
+          {!game.isCustom && (
+            <Link
+              href={`/jogo/${game.id}`}
+              className="mt-3 inline-flex min-h-10 items-center gap-1 text-sm font-medium text-neon hover:underline"
+            >
+              Abrir página do jogo
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </Link>
+          )}
         </div>
       </header>
 
@@ -416,6 +429,15 @@ function GameModalContent({ game }: { game: Game }) {
           </section>
         </div>
       </div>
+
+      {!game.isCustom && (
+        <section className={SECTION}>
+          <h3 className={SECTION_TITLE}>Compartilhar</h3>
+          <div className="mt-3">
+            <ShareButtons id={game.id} title={game.title} beaten={status === 'beaten'} />
+          </div>
+        </section>
+      )}
 
       {/* ---------------------------------------------------------- avaliação */}
       <section className={SECTION}>

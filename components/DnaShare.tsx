@@ -5,6 +5,7 @@ import { Check, Download, Link2, Share2, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { useCanShare, useOrigin } from '@/lib/browser';
 import { computeDna, encodeDna } from '@/lib/dna';
 import { pluralize } from '@/lib/utils';
 import { useGameStore } from '@/stores/useGameStore';
@@ -33,7 +34,7 @@ export function DnaShare({ stats }: { stats: StatsSummary }) {
 
   const dna = useMemo(() => computeDna(stats), [stats]);
   const code = useMemo(() => encodeDna(dna), [dna]);
-  const origin = typeof window === 'undefined' ? '' : window.location.origin;
+  const origin = useOrigin();
   const link = `${origin}/dna?d=${code}`;
   const storyUrl = `/api/dna?d=${code}&f=story`;
   const text = `Meu Gamer DNA no Zerei: ${dna.archetype.label}, ${pluralize(dna.beaten, 'jogo zerado', 'jogos zerados')}. Descubra o seu:`;
@@ -65,7 +66,7 @@ export function DnaShare({ stats }: { stats: StatsSummary }) {
     }
   };
 
-  const canShareNative = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const canShareNative = useCanShare();
 
   return (
     <>

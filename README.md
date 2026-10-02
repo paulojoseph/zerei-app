@@ -176,6 +176,8 @@ Os ícones vetoriais (`icon.svg` e `maskable.svg`) são a arte de referência; o
 | `npm run deploy` | Builda e publica na Cloudflare (precisa de conta e `wrangler login`) |
 | `npm run icons` | Gera os PNGs do PWA em `public/icons/` |
 | `npm run catalog` | Regera o catálogo a partir da IGDB (`public/catalog/`). Aceita `-- --only=nes,snes` e `-- --fresh` |
+| `npm run catalog:publish` | Envia os detalhes dos jogos (páginas `/jogo/[id]`) para o bucket R2 `zerei-catalog` (precisa de `wrangler login`) |
+| `npm run cf-typegen` | Regera `cloudflare-env.d.ts` (tipos dos bindings) depois de mudar o `wrangler.jsonc` |
 | `npm run covers` | Busca na Wikipédia as capas da curadoria que ainda estão sem `coverUrl` e baixa para `public/covers/` |
 | `npm run covers:all` | Revalida a capa de **todos** os jogos da curadoria |
 | `npm run covers:download` | Só baixa para `public/covers/` as capas que ainda apontam para fora |
