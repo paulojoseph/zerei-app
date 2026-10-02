@@ -34,6 +34,10 @@ export interface Toast {
 interface PersistedState {
   progress: Record<string, UserGameProgress>;
   customGames: Game[];
+  /** Consoles que o usuário teve (ids de data/consoles.json), escolhidos no onboarding. */
+  myConsoles: string[];
+  /** Onboarding concluído ou pulado: não aparece de novo. */
+  onboardingDone: boolean;
 }
 
 interface GameStore extends PersistedState {
@@ -73,14 +77,26 @@ interface GameStore extends PersistedState {
   pushToast: (message: string, tone?: ToastTone) => void;
   dismissToast: () => void;
 
+  /** Seleção múltipla (ids de jogos), para marcar vários de uma vez. */
+  selection: string[];
+
   /* ---- progresso ---- */
   setGameStatus: (gameId: string, status: GameStatus) => void;
+  /** Mesmo status para vários jogos, numa atualização só. Devolve quantos. */
+  setManyStatus: (gameIds: string[], status: GameStatus) => number;
   toggleBeaten: (gameId: string) => void;
   updateProgress: (
     gameId: string,
     patch: Partial<Omit<UserGameProgress, 'gameId' | 'updatedAt'>>,
   ) => void;
   clearProgress: (gameId: string) => void;
+
+  /* ---- onboarding e seleção ---- */
+  setMyConsoles: (ids: string[]) => void;
+  finishOnboarding: () => void;
+  reopenOnboarding: () => void;
+  toggleSelected: (gameId: string) => void;
+  clearSelection: () => void;
 
   /* ---- catálogo ---- */
   loadCatalog: () => void;
@@ -105,6 +121,40 @@ const FILTER_DEFAULTS = {
   brazilOnly: false,
   sort: 'recent' as SortMode,
 };
+
+/**
+ * Aplica um status a vários jogos de uma vez (uma única atualização da store,
+ * um único re-render). Devolve o mesmo objeto se nada mudou.
+ *
+ * "Não joguei" é só mais um status, não um comando de apagar: desmarcar um
+ * jogo não pode levar junto a nota, a memória afetiva e o ano em que ele foi
+ * zerado. O único caminho destrutivo é `clearProgress`, que na interface tem
+ * botão próprio ("Limpar registro"). Quando não há nada para preservar, aí sim
+ * a chave sai e o mapa não engorda à toa.
+ */
+function withStatus(
+  progress: Record<string, UserGameProgress>,
+  gameIds: string[],
+  status: GameStatus,
+): Record<string, UserGameProgress> {
+  let next: Record<string, UserGameProgress> | null = null;
+  for (const gameId of gameIds) {
+    const current = progress[gameId];
+    if (current?.status === status) continue;
+    next ??= { ...progress };
+    if (status === 'unplayed') {
+      const worthKeeping =
+        current !== undefined &&
+        (current.rating !== undefined || current.notes !== undefined || current.completedYear !== undefined);
+      if (!worthKeeping) {
+        delete next[gameId];
+        continue;
+      }
+    }
+    next[gameId] = mergeProgress(current, gameId, { status });
+  }
+  return next ?? progress;
+}
 
 /** Mescla um progresso existente com o patch, sempre carimbando `updatedAt`. */
 function mergeProgress(
@@ -239,6 +289,9 @@ export const useGameStore = create<GameStore>()(
     (set, get) => ({
       progress: {},
       customGames: [],
+      myConsoles: [],
+      onboardingDone: false,
+      selection: [],
       ...FILTER_DEFAULTS,
       catalog: [],
       catalogTop: [],
@@ -272,34 +325,16 @@ export const useGameStore = create<GameStore>()(
       /* progresso */
       setGameStatus: (gameId, status) =>
         set((s) => {
-          const current = s.progress[gameId];
-
-          // "Não joguei" é só mais um status, não um comando de apagar: desmarcar
-          // um jogo não pode levar junto a nota, a memória afetiva e o ano em que
-          // ele foi zerado. O único caminho destrutivo é `clearProgress`, que na
-          // interface tem botão próprio ("Limpar registro"). Quando não há nada
-          // para preservar, aí sim removemos a chave e o mapa não engorda à toa.
-          if (status === 'unplayed') {
-            const worthKeeping =
-              current !== undefined &&
-              (current.rating !== undefined ||
-                current.notes !== undefined ||
-                current.completedYear !== undefined);
-            if (!worthKeeping) {
-              if (!current) return {};
-              const { [gameId]: _removed, ...rest } = s.progress;
-              void _removed;
-              return { progress: rest };
-            }
-          }
-
-          return {
-            progress: {
-              ...s.progress,
-              [gameId]: mergeProgress(current, gameId, { status }),
-            },
-          };
+          const progress = withStatus(s.progress, [gameId], status);
+          return progress === s.progress ? {} : { progress };
         }),
+
+      setManyStatus: (gameIds, status) => {
+        const before = get().progress;
+        const progress = withStatus(before, gameIds, status);
+        if (progress !== before) set({ progress });
+        return gameIds.length;
+      },
 
       toggleBeaten: (gameId) => {
         const isBeaten = get().progress[gameId]?.status === 'beaten';
@@ -320,6 +355,18 @@ export const useGameStore = create<GameStore>()(
           void _removed;
           return { progress: rest };
         }),
+
+      /* onboarding e seleção */
+      setMyConsoles: (ids) => set({ myConsoles: [...new Set(ids)] }),
+      finishOnboarding: () => set({ onboardingDone: true }),
+      reopenOnboarding: () => set({ onboardingDone: false }),
+      toggleSelected: (gameId) =>
+        set((s) => ({
+          selection: s.selection.includes(gameId)
+            ? s.selection.filter((id) => id !== gameId)
+            : [...s.selection, gameId],
+        })),
+      clearSelection: () => set({ selection: [] }),
 
       /* catálogo */
       loadCatalog: () => {
@@ -462,12 +509,18 @@ export const useGameStore = create<GameStore>()(
           ...current,
           ...saved,
           progress: remapProgress(saved.progress ?? current.progress),
+          myConsoles: Array.isArray(saved.myConsoles) ? saved.myConsoles.filter((id) => typeof id === 'string') : [],
+          // Quem já tem jogos marcados (de antes do onboarding existir) não precisa dele.
+          onboardingDone:
+            saved.onboardingDone === true || Object.keys(saved.progress ?? {}).length > 0,
         };
       },
       storage: createJSONStorage(() => localStorage),
       partialize: (state): PersistedState => ({
         progress: state.progress,
         customGames: state.customGames,
+        myConsoles: state.myConsoles,
+        onboardingDone: state.onboardingDone,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) console.error('[Zerei.app] falha ao restaurar dados locais:', error);

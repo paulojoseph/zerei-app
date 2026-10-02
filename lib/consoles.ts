@@ -47,3 +47,6 @@ export function makerOf(platform: string): string {
 
 /** Filtro de fabricante viaja no mesmo campo do console: "maker:Sony". */
 export const MAKER_PREFIX = 'maker:';
+
+/** Filtro "Meus consoles" (os escolhidos no onboarding). */
+export const MINE_FILTER = 'mine';

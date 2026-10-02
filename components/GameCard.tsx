@@ -14,7 +14,15 @@ import type { Game, GameStatus, UserGameProgress } from '@/types/game';
 export interface GameCardProps {
   game: Game;
   priority?: boolean;
+  /** Posição na grade (navegação por teclado). */
+  index?: number;
+  /** Só o card com foco entra na ordem do Tab (roving tabindex). */
+  focusable?: boolean;
+  onFocusCard?: (index: number) => void;
 }
+
+/** Tempo de toque longo que seleciona o card no celular. */
+const LONG_PRESS_MS = 450;
 
 /** Sem progresso salvo o card cai no mesmo caminho de `statusOf` do resto do app. */
 const NO_PROGRESS: Record<string, UserGameProgress> = {};
@@ -27,8 +35,12 @@ const CARD_STATUS_CLASS: Record<GameStatus, string> = {
   unplayed: 'border-line hover:border-ink-dim/50',
 };
 
-export function GameCard({ game, priority }: GameCardProps) {
+export function GameCard({ game, priority, index = 0, focusable = false, onFocusCard }: GameCardProps) {
   const progress = useGameProgress(game.id);
+  const selected = useGameStore((s) => s.selection.includes(game.id));
+  const selectionMode = useGameStore((s) => s.selection.length > 0);
+  const toggleSelected = useGameStore((s) => s.toggleSelected);
+  const longPress = useRef<{ timer: ReturnType<typeof setTimeout> | null; fired: boolean }>({ timer: null, fired: false });
   const openGame = useGameStore((s) => s.openGame);
   const toggleBeaten = useGameStore((s) => s.toggleBeaten);
   const setGameStatus = useGameStore((s) => s.setGameStatus);
@@ -81,16 +93,51 @@ export function GameCard({ game, priority }: GameCardProps) {
 
   return (
     <article
+      data-card-index={index}
+      data-game-id={game.id}
+      tabIndex={focusable ? 0 : -1}
+      aria-label={`${game.title}, ${game.platform}${game.releaseYear ? `, ${game.releaseYear}` : ''} — ${STATUS_META[status].label}${selected ? ', selecionado' : ''}`}
+      onFocus={(e) => {
+        if (e.target === e.currentTarget) onFocusCard?.(index);
+      }}
       className={cn(
         'group relative overflow-hidden rounded-xl border border-line bg-panel transition-all duration-200',
+        'outline-none focus-visible:ring-2 focus-visible:ring-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
         CARD_STATUS_CLASS[status],
+        selected && 'ring-2 ring-gold ring-offset-2 ring-offset-bg',
       )}
     >
       {/* Região da capa: âncora dos elementos flutuantes e recorte do zoom no hover. */}
       <div className="relative overflow-hidden">
         <button
           type="button"
-          onClick={() => openGame(game.id)}
+          onClick={(e) => {
+            // Toque longo já selecionou: o "click" que vem depois não abre o jogo.
+            if (longPress.current.fired) {
+              longPress.current.fired = false;
+              return;
+            }
+            // Shift+clique (ou qualquer clique com a seleção ativa) seleciona em vez de abrir.
+            if (e.shiftKey || selectionMode) toggleSelected(game.id);
+            else openGame(game.id);
+          }}
+          onPointerDown={(e) => {
+            if (e.pointerType === 'mouse') return;
+            longPress.current.fired = false;
+            longPress.current.timer = setTimeout(() => {
+              longPress.current.fired = true;
+              toggleSelected(game.id);
+              navigator.vibrate?.(15);
+            }, LONG_PRESS_MS);
+          }}
+          onPointerUp={() => clearTimeout(longPress.current.timer ?? undefined)}
+          onPointerLeave={() => clearTimeout(longPress.current.timer ?? undefined)}
+          onPointerCancel={() => clearTimeout(longPress.current.timer ?? undefined)}
+          onContextMenu={(e) => {
+            // O menu de contexto do celular disputaria com o toque longo.
+            if (longPress.current.fired) e.preventDefault();
+          }}
+          tabIndex={-1}
           aria-label={`Abrir detalhes de ${game.title}`}
           className="relative block w-full text-left"
         >
@@ -105,6 +152,15 @@ export function GameCard({ game, priority }: GameCardProps) {
           />
         </button>
 
+        {selected && (
+          <span
+            aria-hidden="true"
+            className="animate-pop pointer-events-none absolute bottom-1.5 left-1.5 z-10 grid size-6 place-items-center rounded-md bg-gold text-bg-deep"
+          >
+            <Check className="size-4" strokeWidth={3} />
+          </span>
+        )}
+
         {beaten && (
           <span
             aria-hidden="true"
@@ -117,6 +173,7 @@ export function GameCard({ game, priority }: GameCardProps) {
         <button
           ref={triggerRef}
           type="button"
+          tabIndex={focusable ? 0 : -1}
           aria-label={`Mudar status de ${game.title}`}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
@@ -141,6 +198,7 @@ export function GameCard({ game, priority }: GameCardProps) {
         <button
           type="button"
           aria-pressed={beaten}
+          tabIndex={focusable ? 0 : -1}
           aria-label={beaten ? 'Desmarcar zerado' : 'Marcar como zerado'}
           title={beaten ? 'Desmarcar zerado' : 'Marcar como zerado'}
           onClick={(e) => {

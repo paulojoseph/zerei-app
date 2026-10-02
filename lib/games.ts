@@ -10,7 +10,7 @@ import type {
 } from '@/types/game';
 import { CATEGORY_ORDER } from '@/lib/platforms';
 import { platformSearchTerms } from '@/lib/platforms';
-import { MAKER_PREFIX, consoleByName, makerOf } from '@/lib/consoles';
+import { MAKER_PREFIX, MINE_FILTER, consoleByName, makerOf } from '@/lib/consoles';
 import { normalize } from '@/lib/utils';
 
 /* -------------------------------------------------------------------------- */
@@ -136,16 +136,21 @@ function titleRanks(games: Game[]): Map<string, number> {
   return ranks;
 }
 
-export type SelectionOptions = Pick<FilterOptions, 'games' | 'search' | 'platform' | 'brazilOnly'>;
+export type SelectionOptions = Pick<FilterOptions, 'games' | 'search' | 'platform' | 'brazilOnly'> & {
+  /** Nomes de plataforma dos "Meus consoles" (filtro MINE_FILTER). */
+  mine?: ReadonlySet<string>;
+};
 
 /**
  * Recorte que NÃO depende do progresso do usuário (console, busca, preset).
  * Separado de propósito: marcar "Zerei!" não pode refazer este trabalho.
  */
-export function selectGames({ games, search, platform, brazilOnly }: SelectionOptions): Game[] {
+export function selectGames({ games, search, platform, brazilOnly, mine }: SelectionOptions): Game[] {
   const maker = platform.startsWith(MAKER_PREFIX) ? platform.slice(MAKER_PREFIX.length) : null;
   return games.filter((game) => {
-    if (maker !== null) {
+    if (platform === MINE_FILTER) {
+      if (!mine?.has(game.platform)) return false;
+    } else if (maker !== null) {
       if (makerOf(game.platform) !== maker) return false;
     } else if (platform !== 'all' && game.platform !== platform) {
       return false;

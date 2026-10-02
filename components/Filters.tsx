@@ -10,6 +10,7 @@ import {
   CONSOLES,
   MAKER_ORDER,
   MAKER_PREFIX,
+  MINE_FILTER,
   makerOf,
 } from '@/lib/consoles';
 import {
@@ -31,6 +32,8 @@ import type { Game, GameStatus, PlatformFilter, SortMode, StatusFilter } from '@
 
 /** Acento de "Todos" e dos fabricantes (verde neon do design system). */
 const NEON = '#39ff9e';
+/** Acento de "Meus consoles" (dourado do design system). */
+const GOLD = '#fbbf24';
 
 interface ChipItem {
   id: PlatformFilter;
@@ -146,6 +149,8 @@ export function Filters() {
   const hasActiveFilters = useHasActiveFilters();
   const { platform, status, brazilOnly, sort } = useFilters();
   const customGames = useGameStore((s) => s.customGames);
+  const myConsoles = useGameStore((s) => s.myConsoles);
+  const reopenOnboarding = useGameStore((s) => s.reopenOnboarding);
 
   const setPlatform = useGameStore((s) => s.setPlatform);
   const setStatusFilter = useGameStore((s) => s.setStatusFilter);
@@ -200,18 +205,41 @@ export function Filters() {
   const total = groups.reduce((sum, g) => sum + g.count, 0);
 
   // Fabricante em destaque: o escolhido ou o dono do console escolhido.
+  const myNames = useMemo(
+    () => new Set(CONSOLES.filter((c) => myConsoles.includes(c.id)).map((c) => c.name)),
+    [myConsoles],
+  );
+  const allConsoleChips = useMemo(() => groups.flatMap((g) => g.consoles), [groups]);
+  const mineActive = platform === MINE_FILTER;
+
+  // Fabricante em destaque: o escolhido ou o dono do console escolhido.
   const activeMaker =
-    platform === 'all'
+    platform === 'all' || mineActive
       ? null
       : platform.startsWith(MAKER_PREFIX)
         ? platform.slice(MAKER_PREFIX.length)
         : makerOf(platform);
-  const visibleConsoles = activeMaker
-    ? (groups.find((g) => g.maker === activeMaker)?.consoles ?? [])
-    : groups.flatMap((g) => g.consoles);
+  const visibleConsoles = mineActive
+    ? allConsoleChips.filter((c) => myNames.has(c.id))
+    : activeMaker
+      ? (groups.find((g) => g.maker === activeMaker)?.consoles ?? [])
+      : allConsoleChips;
+
+  const mineChip: ChipItem[] = myNames.size
+    ? [
+        {
+          id: MINE_FILTER,
+          label: 'Meus consoles',
+          hint: 'Os consoles que você teve',
+          color: GOLD,
+          count: allConsoleChips.filter((c) => myNames.has(c.id)).reduce((sum, c) => sum + c.count, 0),
+        },
+      ]
+    : [];
 
   const makerChips: ChipItem[] = [
     { id: 'all', label: 'Todos', hint: 'Todos os consoles', color: NEON, count: total },
+    ...mineChip,
     ...groups.map((g) => ({
       id: `${MAKER_PREFIX}${g.maker}`,
       label: g.maker,
@@ -270,14 +298,27 @@ export function Filters() {
               key={chip.id}
               chip={chip}
               active={platform === chip.id}
-              // Segundo clique no console ativo volta para o fabricante dele.
+              // Segundo clique no console ativo volta para o grupo de onde veio.
               onClick={() =>
                 setPlatform(
-                  platform === chip.id ? `${MAKER_PREFIX}${makerOf(chip.id)}` : chip.id,
+                  platform === chip.id
+                    ? myNames.has(chip.id)
+                      ? MINE_FILTER
+                      : `${MAKER_PREFIX}${makerOf(chip.id)}`
+                    : chip.id,
                 )
               }
             />
           ))}
+          {(mineActive || myNames.size === 0) && (
+            <button
+              type="button"
+              onClick={reopenOnboarding}
+              className="flex h-8 shrink-0 items-center rounded-lg border border-dashed border-line px-2.5 text-xs text-ink-dim transition-colors duration-200 hover:border-gold/60 hover:text-gold"
+            >
+              {myNames.size ? 'Editar meus consoles' : '+ Meus consoles'}
+            </button>
+          )}
         </div>
 
         {/* No celular status, preset e ordenação dividem uma faixa só, com rolagem
