@@ -71,6 +71,16 @@ Sem as credenciais, a rota `/api/igdb/search` simplesmente responde com resultad
 
 ---
 
+## Decisões de arquitetura
+
+As decisões importantes ficam registradas em [`docs/adr/`](docs/adr/):
+
+- [0001 — Hospedagem em Cloudflare Workers com OpenNext](docs/adr/0001-hospedagem-cloudflare-workers-opennext.md)
+- [0002 — IDs estáveis para os jogos](docs/adr/0002-ids-estaveis.md)
+- [0003 — Orçamentos de performance com catraca no CI](docs/adr/0003-orcamentos-de-performance.md)
+
+---
+
 ## Estrutura de pastas
 
 ```
@@ -160,6 +170,9 @@ Os ícones vetoriais (`icon.svg` e `maskable.svg`) são a arte de referência; o
 | `npm run start` | Serve o build de produção (rode `build` antes) |
 | `npm run lint` | ESLint com a configuração do Next.js |
 | `npm run typecheck` | `tsc --noEmit` — checagem de tipos em modo strict |
+| `npm test` | Vitest: backup, busca, aliases de ID e o teste de desempenho do clique em "Zerei!" com o catálogo completo |
+| `npm run preview` | Builda com OpenNext e roda o Worker localmente no `workerd` (runtime da Cloudflare) |
+| `npm run deploy` | Builda e publica na Cloudflare (precisa de conta e `wrangler login`) |
 | `npm run icons` | Gera os PNGs do PWA em `public/icons/` |
 | `npm run catalog` | Regera o catálogo completo (`public/catalog/`). Aceita `-- --only=nes,snes` e `-- --fresh` |
 | `npm run covers` | Busca na Wikipédia as capas da curadoria que ainda estão sem `coverUrl` e baixa para `public/covers/` |
