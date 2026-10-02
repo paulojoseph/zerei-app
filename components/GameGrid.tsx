@@ -4,9 +4,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Gamepad2, LoaderCircle, RotateCcw, Search, Trophy } from 'lucide-react';
 
 import { GameCard } from '@/components/GameCard';
+import { Onboarding } from '@/components/Onboarding';
+import { SelectionBar } from '@/components/SelectionBar';
 import { Button } from '@/components/ui/Button';
 import { filterByStatus, selectGames, sortGames } from '@/lib/games';
-import { CONSOLES, MAKER_PREFIX, consoleByName } from '@/lib/consoles';
+import { CONSOLES, MAKER_PREFIX, MINE_FILTER, consoleByName } from '@/lib/consoles';
+import { STATUS_META } from '@/lib/platforms';
 import { pluralize } from '@/lib/utils';
 import {
   progressConsoleIds,
@@ -18,6 +21,7 @@ import {
   useProgressMap,
 } from '@/stores/useGameStore';
 import type {
+  Game,
   GameStatus,
   IgdbSearchResponse,
   PlatformFilter,
@@ -80,6 +84,12 @@ function emptyCopy(
       title: 'Nenhum clássico nacional por aqui',
       subtitle:
         'O filtro de clássicos brasileiros não achou nada com a seleção atual. Desligue o filtro para ver o catálogo inteiro.',
+    };
+  }
+  if (platform === MINE_FILTER) {
+    return {
+      title: 'Nada nos seus consoles',
+      subtitle: 'Nenhum jogo dos consoles que você escolheu bate com os filtros de agora.',
     };
   }
   if (platform !== 'all') {
@@ -237,6 +247,12 @@ export function GameGrid() {
   const resetFilters = useGameStore((s) => s.resetFilters);
   const loadCatalog = useGameStore((s) => s.loadCatalog);
   const ensureConsoles = useGameStore((s) => s.ensureConsoles);
+  const myConsoles = useGameStore((s) => s.myConsoles);
+  const onboardingDone = useGameStore((s) => s.onboardingDone);
+  const mine = useMemo(
+    () => new Set(CONSOLES.filter((c) => myConsoles.includes(c.id)).map((c) => c.name)),
+    [myConsoles],
+  );
 
   /*
    * Baixar só o necessário (o catálogo inteiro passa de 3 MB comprimido):
@@ -257,7 +273,9 @@ export function GameGrid() {
       return;
     }
     const wanted = new Set(progressConsoles ? progressConsoles.split(',') : []);
-    if (platform.startsWith(MAKER_PREFIX)) {
+    if (platform === MINE_FILTER) {
+      for (const id of myConsoles) wanted.add(id);
+    } else if (platform.startsWith(MAKER_PREFIX)) {
       const maker = platform.slice(MAKER_PREFIX.length);
       for (const c of CONSOLES) if (c.maker === maker) wanted.add(c.id);
     } else if (platform !== 'all') {
@@ -265,23 +283,27 @@ export function GameGrid() {
       if (id) wanted.add(id);
     }
     ensureConsoles([...wanted]);
-  }, [hydrated, needsEverything, platform, progressConsoles, ensureConsoles]);
+  }, [hydrated, needsEverything, platform, progressConsoles, myConsoles, ensureConsoles]);
 
   // Estado derivado por chave (padrão oficial do React, sem useEffect): quando
   // qualquer filtro muda, a paginação volta para a primeira leva e a ordem é
   // recalculada com uma fotografia do progresso daquele momento.
-  const filterKey = `${search}|${platform}|${status}|${brazilOnly}|${sort}|${hydrated}`;
+  const filterKey = `${search}|${platform}|${status}|${brazilOnly}|${sort}|${hydrated}|${myConsoles.join()}`;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [pagedKey, setPagedKey] = useState(filterKey);
   const [orderProgress, setOrderProgress] = useState(progress);
+  const [focusIndex, setFocusIndex] = useState(0);
   let count = visibleCount;
   let snapshot = orderProgress;
+  let focused = focusIndex;
   if (pagedKey !== filterKey) {
     setPagedKey(filterKey);
     setVisibleCount(PAGE_SIZE);
     setOrderProgress(progress);
+    setFocusIndex(0);
     count = PAGE_SIZE;
     snapshot = progress;
+    focused = 0;
   }
 
   // Três passos com custos bem diferentes. Seleção e ordenação (dezenas de
@@ -290,11 +312,88 @@ export function GameGrid() {
   // fica congelada até o próximo filtro, então o card também não pula de
   // lugar embaixo do dedo. Medido em lib/games.perf.test.ts.
   const selected = useMemo(
-    () => selectGames({ games, search, platform, brazilOnly }),
-    [games, search, platform, brazilOnly],
+    () => selectGames({ games, search, platform, brazilOnly, mine }),
+    [games, search, platform, brazilOnly, mine],
   );
   const sorted = useMemo(() => sortGames(selected, games, sort, snapshot), [selected, games, sort, snapshot]);
   const visible = useMemo(() => filterByStatus(sorted, progress, status), [sorted, progress, status]);
+
+  /* ------------------------------------------------------------ teclado -- */
+
+  const gridRef = useRef<HTMLDivElement>(null);
+  const setGameStatus = useGameStore((s) => s.setGameStatus);
+  const toggleBeaten = useGameStore((s) => s.toggleBeaten);
+  const toggleSelected = useGameStore((s) => s.toggleSelected);
+  const clearSelection = useGameStore((s) => s.clearSelection);
+  const openGame = useGameStore((s) => s.openGame);
+  const pushToast = useGameStore((s) => s.pushToast);
+  const pendingFocus = useRef<number | null>(null);
+
+  // Foco pedido pelo teclado num card que só existe depois do próximo render.
+  useEffect(() => {
+    if (pendingFocus.current === null) return;
+    const node = gridRef.current?.querySelector<HTMLElement>(`[data-card-index="${pendingFocus.current}"]`);
+    if (node) {
+      node.focus();
+      pendingFocus.current = null;
+    }
+  });
+
+  const STATUS_KEYS: Record<string, GameStatus> = { j: 'playing', q: 'backlog', n: 'unplayed' };
+
+  /**
+   * Marcar sem mouse: setas navegam, Z zera, J/Q/N mudam o status, Espaço/X
+   * seleciona, Enter abre, Esc limpa a seleção. Só age com o foco num card
+   * (nunca dentro da busca, do menu do card ou com Ctrl/⌘).
+   */
+  const onGridKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, list: Game[], total: number) => {
+    const target = event.target as HTMLElement;
+    if (!target.matches('article[data-card-index]') || event.ctrlKey || event.metaKey || event.altKey) return;
+    const index = Number(target.dataset.cardIndex);
+    const game = list[index];
+    if (!game) return;
+
+    const columns = gridRef.current
+      ? getComputedStyle(gridRef.current).gridTemplateColumns.split(' ').filter(Boolean).length
+      : 1;
+    const moves: Record<string, number> = {
+      ArrowRight: 1,
+      ArrowLeft: -1,
+      ArrowDown: columns,
+      ArrowUp: -columns,
+      Home: -index,
+      End: total - 1 - index,
+    };
+    const key = event.key.toLowerCase();
+
+    if (event.key in moves) {
+      event.preventDefault();
+      const next = Math.max(0, Math.min(total - 1, index + moves[event.key]));
+      if (next >= count) setVisibleCount((c) => Math.max(c, next + PAGE_SIZE));
+      pendingFocus.current = next;
+      setFocusIndex(next);
+      gridRef.current?.querySelector<HTMLElement>(`[data-card-index="${next}"]`)?.focus();
+      return;
+    }
+    if (key === 'z') {
+      event.preventDefault();
+      const wasBeaten = progress[game.id]?.status === 'beaten';
+      toggleBeaten(game.id);
+      pushToast(`${game.title} → ${wasBeaten ? STATUS_META.unplayed.label : STATUS_META.beaten.label}`, wasBeaten ? 'info' : 'success');
+    } else if (key in STATUS_KEYS) {
+      event.preventDefault();
+      setGameStatus(game.id, STATUS_KEYS[key]);
+      pushToast(`${game.title} → ${STATUS_META[STATUS_KEYS[key]].label}`, 'info');
+    } else if (key === 'x' || event.key === ' ') {
+      event.preventDefault();
+      toggleSelected(game.id);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      openGame(game.id);
+    } else if (event.key === 'Escape') {
+      clearSelection();
+    }
+  };
 
   // Rolagem infinita: o sentinela no fim da grade puxa a próxima leva antes de
   // o usuário chegar lá. O botão "Carregar mais" continua como alternativa.
@@ -325,6 +424,8 @@ export function GameGrid() {
 
   return (
     <div className="animate-fade-in">
+      {!onboardingDone && <Onboarding />}
+      <SelectionBar />
       {total > 0 && (
         <div
           className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2"
@@ -377,12 +478,24 @@ export function GameGrid() {
         />
       ) : (
         <>
-          <div className={GRID}>
+          <div ref={gridRef} className={GRID} onKeyDown={(e) => onGridKeyDown(e, visible, total)}>
             {cards.map((game, index) => (
               // As 6 primeiras capas são o LCP provável do celular.
-              <GameCard key={game.id} game={game} priority={index < 6} />
+              <GameCard
+                key={game.id}
+                game={game}
+                priority={index < 6}
+                index={index}
+                focusable={index === Math.min(focused, cards.length - 1)}
+                onFocusCard={setFocusIndex}
+              />
             ))}
           </div>
+          <p className="mt-4 hidden text-center text-[11px] text-ink-dim [@media(hover:hover)_and_(pointer:fine)]:block">
+            Teclado: setas navegam · <kbd className="font-display">Z</kbd> zerei · <kbd className="font-display">J</kbd> jogando ·{' '}
+            <kbd className="font-display">Q</kbd> quero jogar · <kbd className="font-display">N</kbd> não joguei ·{' '}
+            <kbd className="font-display">Espaço</kbd> seleciona · Shift+clique seleciona vários
+          </p>
           <div ref={sentinelRef} aria-hidden="true" />
 
           {remaining > 0 ? (
