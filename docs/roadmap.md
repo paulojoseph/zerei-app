@@ -17,9 +17,9 @@ carregamento sob demanda.
 
 | Marco | Entrega | Por quê |
 | --- | --- | --- |
-| **M1 — Marcar rápido** | Onboarding "quais consoles você teve?", filtro "Meus consoles", atalhos de teclado (setas + Z/J/Q/N), seleção múltipla com barra de ações | Registrar 200 jogos na primeira visita é o momento de ativação |
-| **M2 — Painel** | Gráficos de zerados por gênero, console, geração e década; linha do tempo da vida gamer | Pedido central do produto; os gêneros já existem desde a Fase 1 |
-| **M3 — Compartilhar** | Card "Gamer DNA" (imagem para stories e prévia de link), rótulos com humor brasileiro, botões de compartilhamento | Motor de viralização |
+| **M1 — Marcar rápido** ✅ | Onboarding "quais consoles você teve?", filtro "Meus consoles", atalhos de teclado (setas + Z/J/Q/N), seleção múltipla com barra de ações | Registrar 200 jogos na primeira visita é o momento de ativação |
+| **M2 — Painel** ✅ | Gráficos de zerados por gênero, console, geração e década; linha do tempo da vida gamer | Pedido central do produto; os gêneros já existem desde a Fase 1 |
+| **M3 — Compartilhar** ✅ | Card "Gamer DNA" (imagem para stories e prévia de link), rótulos com humor brasileiro, botões de compartilhamento | Motor de viralização |
 | **M4 — Página do jogo** | URL própria por jogo e por console, renderizada na borda; jogos similares; compartilhar "zerei este jogo" | SEO e links compartilháveis |
 | **M5 — Escala** | Índice de busca em Web Worker, grade virtualizada, página pública `/status` com métricas reais (RUM) | LCP ≤ 1,8 s e INP ≤ 100 ms no Android intermediário |
 

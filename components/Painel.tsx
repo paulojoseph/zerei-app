@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Star, Trophy } from 'lucide-react';
 
 import { BarList, ColumnChart } from '@/components/charts/Chart';
+import { DnaShare } from '@/components/DnaShare';
 import { consoleByName } from '@/lib/consoles';
 import { CATEGORY_META, CATEGORY_ORDER } from '@/lib/platforms';
 import { computeStats } from '@/lib/stats';
@@ -73,12 +74,15 @@ function Dashboard({ stats }: { stats: StatsSummary }) {
   return (
     <>
       {/* Um número lidera a página: o total de zerados. */}
-      <section className="flex flex-col items-start gap-1 rounded-2xl border border-neon/25 bg-panel-2/60 px-5 py-6 scanlines sm:flex-row sm:items-end sm:gap-4">
-        <p className="text-6xl leading-none font-semibold text-ink sm:text-7xl">{stats.beaten}</p>
-        <p className="pb-1 text-sm text-ink-soft">
-          {stats.beaten === 1 ? 'jogo zerado' : 'jogos zerados'}
-          {stats.byPlatform.length > 0 && ` em ${pluralize(stats.byPlatform.length, 'console')}`}
-        </p>
+      <section className="flex flex-wrap items-end justify-between gap-4 rounded-2xl border border-neon/25 bg-panel-2/60 px-5 py-6 scanlines">
+        <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-end sm:gap-4">
+          <p className="text-6xl leading-none font-semibold text-ink sm:text-7xl">{stats.beaten}</p>
+          <p className="pb-1 text-sm text-ink-soft">
+            {stats.beaten === 1 ? 'jogo zerado' : 'jogos zerados'}
+            {stats.byPlatform.length > 0 && ` em ${pluralize(stats.byPlatform.length, 'console')}`}
+          </p>
+        </div>
+        {stats.beaten > 0 && <DnaShare stats={stats} />}
       </section>
 
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
