@@ -4,7 +4,19 @@ import nextTypeScript from 'eslint-config-next/typescript';
 
 /** @type {import('eslint').Linter.Config[]} */
 const eslintConfig = [
-  { ignores: ['.next/**', 'node_modules/**', 'out/**', 'next-env.d.ts'] },
+  {
+    // Saídas geradas (build do Next, Worker do OpenNext, caches, relatórios).
+    ignores: [
+      '.next/**',
+      '.open-next/**',
+      '.wrangler/**',
+      '.cache/**',
+      '.lighthouseci/**',
+      'node_modules/**',
+      'out/**',
+      'next-env.d.ts',
+    ],
+  },
   ...coreWebVitals,
   ...nextTypeScript,
 ];
