@@ -20,7 +20,12 @@ const pressStart = Press_Start_2P({
   display: 'swap',
 });
 
-const SITE_URL = 'https://zerei.app';
+/**
+ * Endereço público do site (prévias de link, og:image). Configurável porque o
+ * domínio ainda não foi registrado: sem a variável, um link compartilhado
+ * apontaria as imagens para um domínio que não é nosso.
+ */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 const SITE_NAME = 'Zerei.app';
 const SITE_TITLE = 'Zerei.app — seu diário de jogos zerados';
 const SITE_DESCRIPTION =
