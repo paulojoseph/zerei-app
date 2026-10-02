@@ -3,7 +3,9 @@
 import { ChartColumn, Download, FileText, Save, Search, Trophy, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
+
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import {
   backupFilename,
@@ -34,7 +36,6 @@ export function Header() {
   const games = useAllGames();
   const storeSearch = useGameStore((s) => s.search);
   const setSearch = useGameStore((s) => s.setSearch);
-  const setStatsOpen = useGameStore((s) => s.setStatsOpen);
   const importBackup = useGameStore((s) => s.importBackup);
   const pushToast = useGameStore((s) => s.pushToast);
 
@@ -318,16 +319,17 @@ export function Header() {
 
         {/* ---------------------------------------------------------- ações -- */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-auto">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setStatsOpen(true)}
-            aria-label="Ver estatísticas"
-            className="text-ink hover:border-cyan/50 hover:text-cyan sm:w-auto sm:px-3"
+          <Link
+            href="/painel"
+            aria-label="Ver seu painel"
+            className={cn(
+              buttonVariants({ variant: 'outline', size: 'icon' }),
+              'text-ink hover:border-cyan/50 hover:text-cyan sm:w-auto sm:px-3',
+            )}
           >
             <ChartColumn aria-hidden="true" className="size-4" />
-            <span className="hidden text-sm sm:inline">Estatísticas</span>
-          </Button>
+            <span className="hidden text-sm sm:inline">Painel</span>
+          </Link>
 
           {/* menu de exportação */}
           <div ref={exportMenuRef} className="relative">

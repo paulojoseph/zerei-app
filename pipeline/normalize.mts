@@ -41,3 +41,17 @@ export function mintId(taken: Set<string>, random: (n: number) => Uint8Array): s
     if (!taken.has(id)) return id;
   }
 }
+
+/**
+ * Cópia de `detailShard` (lib/shard.ts): fatia 00–ff dos detalhes no R2.
+ * Se divergir da do app, toda página de jogo dá 404 — pipeline/normalize.test.ts
+ * garante que as duas batem.
+ */
+export function detailShard(id: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < id.length; i += 1) {
+    hash ^= id.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return ((hash >>> 0) & 0xff).toString(16).padStart(2, '0');
+}

@@ -27,13 +27,13 @@
  *   .cache/pipeline/details/       detalhes por jogo (resumo, empresas,
  *                                  similares, IDs externos) — artefato da Fase 2
  */
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { IgdbClient } from './igdb.mts';
-import { matchKeys, mintId, normKey } from './normalize.mts';
+import { detailShard, matchKeys, mintId, normKey } from './normalize.mts';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public/catalog');
@@ -41,6 +41,8 @@ const DETAILS_DIR = path.join(ROOT, '.cache/pipeline/details');
 const INDEX_FILE = path.join(ROOT, 'data/catalog-index.json');
 const ID_MAP_FILE = path.join(ROOT, 'data/id-map.json');
 const ALIASES_FILE = path.join(ROOT, 'data/id-aliases.json');
+
+const R2_DIR = path.join(ROOT, '.cache/pipeline/r2/details');
 
 const COVER_BASES = {
   i: 'https://images.igdb.com/igdb/image/upload/t_cover_big/',
@@ -54,6 +56,8 @@ const REMAKE_TYPES = new Set([8, 9]);
 const RERELEASE_GAP = 7;
 /** Quantos jogos entram em top.json (primeira tela da aba "Todos"). */
 const TOP_SIZE = 3000;
+/** Primeiros jogos em A–Z de cada console no arquivo "cabeça" (> 1 página da grade). */
+const HEAD_SIZE = 96;
 
 const args = process.argv.slice(2);
 const fresh = args.includes('--fresh');
@@ -99,13 +103,22 @@ interface IgdbGame {
   external_games?: { external_game_source?: number; uid?: string }[];
   total_rating?: number;
   total_rating_count?: number;
+  aggregated_rating?: number;
+  aggregated_rating_count?: number;
+  rating?: number;
+  rating_count?: number;
 }
 
-/** [id, título, ano, capa codificada, popularidade, índices de gênero] */
-type Row = [string, string, number, string, number, number[]];
+/**
+ * v3 — uma linha por OBRA (jogo), repetida no arquivo de cada console em que saiu:
+ * [id, título, ano original, capa, popularidade, gêneros, consoles (índices em
+ *  meta.consoles, o original primeiro), crítica 0–100, nº de críticas,
+ *  público 0–100, nº de votos]
+ */
+type Row = [string, string, number, string, number, number[], number[], number, number, number, number];
 
-interface CatalogFileV2 {
-  v: 2;
+interface CatalogFileV3 {
+  v: 3;
   covers: Record<string, string>;
   games: Row[];
 }
@@ -176,7 +189,7 @@ async function readPrevious(console_: ConsoleDef): Promise<PrevCatalog> {
     path.join(OUT_DIR, `${console_.id}.json`),
     { games: [] },
   );
-  if (raw.v === 2) {
+  if (raw.v === 3 || raw.v === 2) {
     const rows = (raw.games as Row[]).map(([id, title, year, cover, pop, genres]) => ({
       id,
       title,
@@ -231,6 +244,10 @@ const GAME_FIELDS = [
   'external_games.uid',
   'total_rating',
   'total_rating_count',
+  'aggregated_rating',
+  'aggregated_rating_count',
+  'rating',
+  'rating_count',
 ].join(',');
 
 async function extractConsole(igdb: IgdbClient, console_: ConsoleDef): Promise<IgdbGame[]> {
@@ -291,16 +308,22 @@ function isRerelease(game: IgdbGame, console_: ConsoleDef, year: number): boolea
 /*  Montagem                                                                   */
 /* -------------------------------------------------------------------------- */
 
-const consoles = (await readJson<ConsoleDef[]>(path.join(ROOT, 'data/consoles.json'), [])).filter(
-  (c) => c.igdb.length > 0 && (!only || only.has(c.id)),
-);
-const seed = await readJson<{ title: string; platform: string }[]>(path.join(ROOT, 'data/seed-games.json'), []);
-const index = await readJson<Record<string, number>>(INDEX_FILE, {});
+const allConsoles = await readJson<ConsoleDef[]>(path.join(ROOT, 'data/consoles.json'), []);
+const consoles = allConsoles.filter((c) => c.igdb.length > 0 && (!only || only.has(c.id)));
+const consoleIndex = new Map(allConsoles.map((c, i) => [c.id, i]));
+const consoleOrder = new Map(allConsoles.map((c, i) => [c.id, i]));
+const byName = new Map(allConsoles.map((c) => [c.name, c.id]));
+const seed = await readJson<{ id: string; title: string; platform: string }[]>(path.join(ROOT, 'data/seed-games.json'), []);
+const index = Object.fromEntries(
+  Object.entries(await readJson<Record<string, unknown>>(INDEX_FILE, {})).filter(([k, v]) => !k.startsWith('_') && typeof v === 'number'),
+) as Record<string, number>;
 const idMap = await readJson<Record<string, Record<string, string>>>(ID_MAP_FILE, {});
 const aliases = await readJson<Record<string, string>>(ALIASES_FILE, {});
 const takenIds = new Set(Object.values(idMap).flatMap((m) => Object.values(m)));
 /** Fusões descobertas nesta execução (gravadas em data/id-aliases.json). */
 const newAliases: Record<string, string> = {};
+/** IGDB → ID da obra (estável entre execuções). */
+const worksMap = (idMap.__works ??= {});
 
 const igdb = new IgdbClient(fresh);
 const startedAt = Date.now();
@@ -310,153 +333,390 @@ const genreNames = genreList.map((g) => GENRE_PT[g.name] ?? g.name);
 const genreIndex = new Map(genreList.map((g, i) => [g.id, i]));
 const visits = await extractPopularity(igdb);
 
-interface Output {
-  console: ConsoleDef;
-  file: CatalogFileV2;
-  details: Record<string, unknown>;
-  stats: { igdb: number; reReleases: number; adopted: number; minted: number; legacy: number };
+/** Destino final de um ID, seguindo a cadeia de aliases. */
+function resolveAlias(id: string): string {
+  let current = id;
+  for (let hops = 0; hops < 20 && aliases[current]; hops += 1) current = aliases[current];
+  return current;
 }
 
-const outputs: Output[] = [];
-const violations: string[] = [];
+function alias(from: string, to: string) {
+  if (from === to || aliases[from] === to) return;
+  // Nunca fecha um ciclo (A → B → A): o progresso ficaria girando em círculo.
+  if (resolveAlias(to) === from) throw new Error(`alias em ciclo: ${from} -> ${to}`);
+  aliases[from] = to;
+  newAliases[from] = to;
+}
+
+/* ---- 1ª passada: extração e edições válidas (obra × console, sem relançamento) ---- */
+
+interface WorkAcc {
+  game: IgdbGame;
+  pop: number;
+  /** console → ano do jogo naquele console */
+  editions: Map<string, number>;
+}
+const works = new Map<number, WorkAcc>();
+const prevByConsole = new Map<string, PrevCatalog>();
+const reReleases = new Map<string, number>();
 
 for (const console_ of consoles) {
   process.stdout.write(`${console_.name}… `);
   const games = await extractConsole(igdb, console_);
-  const prev = await readPrevious(console_);
-  const consoleMap = (idMap[console_.id] ??= {});
-  const published = new Set(Object.values(consoleMap));
-  const seedKeys = new Set(seed.filter((g) => g.platform === console_.name).map((g) => normKey(g.title)));
+  prevByConsole.set(console_.id, await readPrevious(console_));
+  let removed = 0;
+  for (const game of games) {
+    const year = consoleYear(game, console_);
+    if (isRerelease(game, console_, year)) {
+      removed += 1;
+      continue;
+    }
+    let work = works.get(game.id);
+    if (!work) {
+      work = { game, pop: popularityOf(game, visits), editions: new Map() };
+      works.set(game.id, work);
+    }
+    work.editions.set(console_.id, year);
+  }
+  reReleases.set(console_.id, removed);
+  console.log(`${games.length} jogos (−${removed} relançamentos)`);
+}
 
-  // Jogos do catálogo anterior que ainda não vêm da IGDB, por título normalizado.
+/* ---- 2ª passada: casamento com o catálogo anterior, console a console ---- */
+
+/** IDs antigos (edições, curadoria, catálogo legado) que são esta obra. */
+const workCandidates = new Map<number, string[]>();
+const addCandidate = (gameId: number, id: string) => {
+  const list = workCandidates.get(gameId) ?? [];
+  if (!list.includes(id)) list.push(id);
+  workCandidates.set(gameId, list);
+};
+/** IDs legados absorvidos por alguma obra (não continuam como linha própria). */
+const absorbed = new Set<string>();
+const ranked = [...works.values()].sort((a, b) => b.pop - a.pop || a.game.id - b.game.id);
+
+for (const console_ of consoles) {
+  const prev = prevByConsole.get(console_.id)!;
+  const consoleMap = idMap[console_.id] ?? {};
+  const inConsole = ranked.filter((w) => w.editions.has(console_.id));
+
+  // Edição publicada antes (Fase 1) desta obra neste console.
+  for (const w of inConsole) {
+    const edition = consoleMap[`igdb:${w.game.id}`];
+    if (edition) addCandidate(w.game.id, edition);
+  }
+
+  // Jogos legados do console: nome principal primeiro, depois alternativos.
   const legacyByKey = new Map<string, PrevRow[]>();
   for (const row of prev.rows.filter((r) => r.legacy)) {
     for (const key of matchKeys(row.title)) legacyByKey.set(key, [...(legacyByKey.get(key) ?? []), row]);
   }
   const claimed = new Set<string>();
-  const usedIds = new Set<string>();
-
-  const stats = { igdb: games.length, reReleases: 0, adopted: 0, merged: 0, minted: 0, legacy: 0 };
-  const rows: Row[] = [];
-  const details: Record<string, unknown> = {};
-
-  // Os populares escolhem primeiro: num empate de nome, o clássico herda o ID antigo.
-  const ranked = games
-    .map((game) => ({ game, pop: popularityOf(game, visits), year: consoleYear(game, console_) }))
-    .sort((a, b) => b.pop - a.pop || a.game.id - b.game.id);
-
-  // Primeira passada: casamento pelo NOME PRINCIPAL. Sem ela, um jogo mais
-  // popular "rouba" o par pelo nome alternativo ("T2: The Arcade Game" tem o
-  // alternativo "Terminator 2: Judgment Day", que é o nome do jogo de NES).
-  const primaryClaim = new Map<number, PrevRow>();
-  const primaryClaimed = new Set<string>();
-  for (const { game } of ranked) {
-    const row = matchKeys(game.name)
-      .flatMap((k) => legacyByKey.get(k) ?? [])
-      .find((r) => !primaryClaimed.has(r.id));
-    if (row) {
-      primaryClaim.set(game.id, row);
-      primaryClaimed.add(row.id);
-    }
-  }
-
-  for (const { game, pop, year } of ranked) {
-    if (isRerelease(game, console_, year)) {
-      stats.reReleases += 1;
-      continue;
-    }
-    const names = [game.name, ...(game.alternative_names ?? []).map((a) => a.name)];
-    if (names.some((n) => seedKeys.has(normKey(n)))) continue;
-    const keys = [...new Set(names.flatMap(matchKeys))];
-    // Jogos do catálogo antigo que são este mesmo jogo (nome, nome regional, romanização).
-    const own = primaryClaim.get(game.id);
-    const matches = [
-      ...new Set([
-        ...(own ? [own] : []),
-        ...keys
-          .flatMap((k) => legacyByKey.get(k) ?? [])
-          // Par já reservado pelo nome principal de outro jogo não entra aqui.
-          .filter((row) => !primaryClaimed.has(row.id)),
-      ]),
-    ].filter((row) => !claimed.has(row.id) && !usedIds.has(row.id));
-
-    const sourceKey = `igdb:${game.id}`;
-    let id: string | undefined = consoleMap[sourceKey];
-    if (id && usedIds.has(id)) id = undefined;
-    if (!id && matches.length) {
-      id = matches[0].id;
-      stats.adopted += 1;
-    }
-    if (!id) {
-      id = mintId(takenIds, randomBytes);
-      stats.minted += 1;
-    }
-    usedIds.add(id);
-    takenIds.add(id);
-    consoleMap[sourceKey] ??= id;
-    // Os demais pares no catálogo antigo são o mesmo jogo com outro nome
-    // ("Dragon Quest" x "Dragon Warrior"): viram alias, e o progresso salvo migra.
-    for (const row of matches) {
+  const claim = (w: WorkAcc, names: string[]) => {
+    for (const row of names.flatMap(matchKeys).flatMap((k) => legacyByKey.get(k) ?? [])) {
+      if (claimed.has(row.id)) continue;
       claimed.add(row.id);
-      if (row.id === id) continue;
-      aliases[row.id] = id;
-      newAliases[row.id] = id;
-      stats.merged += 1;
+      absorbed.add(row.id);
+      addCandidate(w.game.id, row.id);
     }
-
-    const genres = (game.genres ?? []).map((g) => genreIndex.get(g)).filter((g): g is number => g !== undefined);
-    // "i:" sem imagem = jogo da IGDB sem capa (o prefixo marca a origem).
-    rows.push([id, game.name, year, `i:${game.cover?.image_id ?? ''}`, pop, genres]);
-
-    const companies = game.involved_companies ?? [];
-    details[id] = {
-      igdb: game.id,
-      slug: game.slug,
-      summary: game.summary,
-      altNames: game.alternative_names?.map((a) => a.name),
-      genres: game.genres,
-      themes: game.themes,
-      modes: game.game_modes,
-      perspectives: game.player_perspectives,
-      franchises: game.franchises?.map((f) => f.name),
-      developers: companies.filter((c) => c.developer).map((c) => c.company?.name),
-      publishers: companies.filter((c) => c.publisher).map((c) => c.company?.name),
-      similar: game.similar_games,
-      external: game.external_games?.map((e) => [e.external_game_source, e.uid]),
-      rating: game.total_rating ? Math.round(game.total_rating) : undefined,
-      ratingCount: game.total_rating_count,
-    };
-  }
-
-  // O que a IGDB não trouxe continua, com a fonte antiga (sem perder progresso).
-  for (const row of prev.rows) {
-    if (usedIds.has(row.id) || aliases[row.id]) continue;
-    usedIds.add(row.id);
-    rows.push([row.id, row.title, row.year, row.cover, row.pop, row.genres]);
-    stats.legacy += 1;
-  }
-
-  // A trava (ADR 0002): todo ID já publicado continua existindo ou tem alias.
-  const missing = [...published].filter((id) => !usedIds.has(id) && !aliases[id]);
-  if (missing.length) {
-    violations.push(`${console_.name}: ${missing.length} ID(s) sumiriam (ex.: ${missing.slice(0, 5).join(', ')})`);
-  }
-
-  rows.sort((a, b) => b[4] - a[4] || a[1].localeCompare(b[1], 'en'));
-  const covers: Record<string, string> = { i: COVER_BASES.i, ...prev.covers };
-  outputs.push({ console: console_, file: { v: 2, covers, games: rows }, details, stats });
-
-  const withCover = rows.filter((r) => r[3].length > 2).length;
-  console.log(
-    `${rows.length} jogos · capa ${Math.round((withCover / rows.length) * 100)}% · ` +
-      `IGDB ${stats.igdb} (−${stats.reReleases} relançamentos) · IDs: ${stats.adopted} herdados, ` +
-      `${stats.merged} fundidos, ${stats.minted} novos · ${stats.legacy} só no catálogo antigo`,
-  );
+  };
+  for (const w of inConsole) claim(w, [w.game.name]);
+  for (const w of inConsole) claim(w, (w.game.alternative_names ?? []).map((a) => a.name));
 }
 
-if (violations.length) {
+/* ---- 3ª passada: ID da obra (curadoria > já publicado > edição original > novo) ---- */
+
+const seedByKey = new Map<string, { id: string; consoleId: string }[]>();
+for (const g of seed) {
+  const consoleId = byName.get(g.platform);
+  if (!consoleId) continue;
+  const key = normKey(g.title);
+  seedByKey.set(key, [...(seedByKey.get(key) ?? []), { id: g.id, consoleId }]);
+}
+const seedTaken = new Set<string>();
+const workId = new Map<number, string>();
+let minted = 0;
+
+for (const w of ranked) {
+  const names = [w.game.name, ...(w.game.alternative_names ?? []).map((a) => a.name)].map(normKey);
+  const seedMatch = names
+    .flatMap((k) => seedByKey.get(k) ?? [])
+    .find((s) => w.editions.has(s.consoleId) && !seedTaken.has(s.id));
+  const candidates = workCandidates.get(w.game.id) ?? [];
+  // Edição do console original (o mais antigo) herda; empate pela ordem dos consoles.
+  const original = [...w.editions.entries()].sort(
+    (a, b) => (a[1] || 9999) - (b[1] || 9999) || consoleOrder.get(a[0])! - consoleOrder.get(b[0])!,
+  )[0][0];
+  const originalEdition = idMap[original]?.[`igdb:${w.game.id}`];
+
+  let id = seedMatch?.id ?? worksMap[`igdb:${w.game.id}`] ?? originalEdition ?? candidates[0];
+  if (!id) {
+    id = mintId(takenIds, randomBytes);
+    minted += 1;
+  }
+  if (seedMatch) seedTaken.add(seedMatch.id);
+  takenIds.add(id);
+  worksMap[`igdb:${w.game.id}`] = id;
+  workId.set(w.game.id, id);
+  for (const candidate of candidates) alias(candidate, id);
+}
+
+/* ---- saída por console + trava de IDs ---- */
+
+const critic = (g: IgdbGame) => ((g.aggregated_rating_count ?? 0) >= 3 ? Math.round(g.aggregated_rating ?? 0) : 0);
+const workRows = new Map<number, Row>();
+for (const w of ranked) {
+  const g = w.game;
+  const platforms = [...w.editions.entries()]
+    .sort((a, b) => (a[1] || 9999) - (b[1] || 9999) || consoleOrder.get(a[0])! - consoleOrder.get(b[0])!)
+    .map(([c]) => consoleIndex.get(c)!);
+  const genres = (g.genres ?? []).map((x) => genreIndex.get(x)).filter((x): x is number => x !== undefined);
+  workRows.set(g.id, [
+    workId.get(g.id)!,
+    g.name,
+    yearOf(g.first_release_date) || Math.min(...[...w.editions.values()].filter(Boolean), 9999) % 9999,
+    `i:${g.cover?.image_id ?? ''}`,
+    w.pop,
+    genres,
+    platforms,
+    critic(g),
+    critic(g) ? (g.aggregated_rating_count ?? 0) : 0,
+    Math.round(g.rating ?? 0),
+    g.rating_count ?? 0,
+  ]);
+}
+
+interface Output {
+  console: ConsoleDef;
+  file: CatalogFileV3;
+  details: Record<string, unknown>;
+}
+
+/* ---- 4ª passada: mesmo nome = um card só (ADR 0005) ---- */
+
+/**
+ * Tudo que vai para a tela: obras da IGDB e jogos do catálogo antigo que a
+ * IGDB não cobriu. Depois, jogos de MESMO TÍTULO com lançamento até
+ * SAME_GAME_YEARS anos de distância viram um card só com todas as plataformas
+ * ("Sonic the Hedgehog" de Mega Drive, Master System e arcade, 1991). Anos
+ * distantes continuam separados (God of War 2005 x 2018).
+ */
+const SAME_GAME_YEARS = 2;
+
+interface Entry {
+  id: string;
+  row: Row;
+  /** console → ano naquele console (0 = desconhecido) */
+  consoles: Map<string, number>;
+  /** Console de origem de uma capa do libretro (a URL base é por console). */
+  home?: string;
+  details?: Record<string, unknown>;
+}
+
+const entries: Entry[] = [];
+for (const w of ranked) {
+  const row = workRows.get(w.game.id)!;
+  const g = w.game;
+  const companies = g.involved_companies ?? [];
+  entries.push({
+    id: row[0],
+    row,
+    consoles: new Map(w.editions),
+    details: {
+      igdb: g.id,
+      slug: g.slug,
+      summary: g.summary,
+      altNames: g.alternative_names?.map((a) => a.name),
+      themes: g.themes,
+      modes: g.game_modes,
+      perspectives: g.player_perspectives,
+      franchises: g.franchises?.map((f) => f.name),
+      developers: companies.filter((c) => c.developer).map((c) => c.company?.name),
+      publishers: companies.filter((c) => c.publisher).map((c) => c.company?.name),
+      similar: g.similar_games?.map((s) => workId.get(s)).filter(Boolean),
+      external: g.external_games?.map((e) => [e.external_game_source, e.uid]),
+    },
+  });
+}
+const legacySeen = new Set<string>();
+for (const console_ of consoles) {
+  for (const row of prevByConsole.get(console_.id)!.rows) {
+    if (!row.legacy || absorbed.has(row.id) || aliases[row.id] || legacySeen.has(row.id)) continue;
+    legacySeen.add(row.id);
+    entries.push({
+      id: row.id,
+      row: [row.id, row.title, row.year, row.cover, row.pop, row.genres, [consoleIndex.get(console_.id)!], 0, 0, 0, 0],
+      consoles: new Map([[console_.id, row.year]]),
+      home: console_.id,
+    });
+  }
+}
+
+const seedIdSet = new Set(seed.map((g) => g.id));
+const byTitle = new Map<string, Entry[]>();
+for (const e of entries) {
+  const key = normKey(e.row[1]);
+  byTitle.set(key, [...(byTitle.get(key) ?? []), e]);
+}
+
+/** Grupos de mesmo jogo: o mais popular (ou o da curadoria) primeiro. */
+const clusters: Entry[][] = [];
+for (const group of byTitle.values()) {
+  if (group.length === 1) {
+    clusters.push(group);
+    continue;
+  }
+  const sorted = [...group].sort(
+    (a, b) =>
+      // Quem já é alias nunca volta a ser o principal: com a popularidade
+      // oscilando entre execuções, o grupo poderia inverter e criar ciclo.
+      Number(Boolean(aliases[a.id])) - Number(Boolean(aliases[b.id])) ||
+      Number(seedIdSet.has(b.id)) - Number(seedIdSet.has(a.id)) ||
+      Number(b.row[3].startsWith('i:')) - Number(a.row[3].startsWith('i:')) ||
+      b.row[4] - a.row[4],
+  );
+  const local: { year: number; members: Entry[] }[] = [];
+  for (const e of sorted) {
+    const year = e.row[2];
+    const home =
+      local.find((c) => !year || !c.year || Math.abs(c.year - year) <= SAME_GAME_YEARS) ?? null;
+    if (home) {
+      home.members.push(e);
+      home.year ||= year;
+    } else {
+      local.push({ year, members: [e] });
+    }
+  }
+  for (const c of local) clusters.push(c.members);
+}
+
+const libretroBase = (consoleId: string) => prevByConsole.get(consoleId)?.covers.l ?? '';
+const merged: Entry[] = [];
+let sameNameMerges = 0;
+for (const cluster of clusters) {
+  const [head, ...rest] = cluster;
+  if (!rest.length) {
+    merged.push(head);
+    continue;
+  }
+  const consolesUnion = new Map(head.consoles);
+  for (const e of rest) {
+    for (const [c, y] of e.consoles) if (!consolesUnion.has(c) || (!consolesUnion.get(c) && y)) consolesUnion.set(c, y);
+    alias(e.id, head.id);
+    sameNameMerges += 1;
+  }
+  const platforms = [...consolesUnion.entries()]
+    .sort((a, b) => (a[1] || 9999) - (b[1] || 9999) || consoleOrder.get(a[0])! - consoleOrder.get(b[0])!)
+    .map(([c]) => consoleIndex.get(c)!);
+  const row: Row = [...head.row];
+  row[6] = platforms;
+  // Sem capa no escolhido? Usa a de outro do grupo.
+  if (row[3].length <= 2) {
+    const withCover = rest.find((e) => e.row[3].length > 2);
+    if (withCover) {
+      row[3] = withCover.row[3];
+      head.home = withCover.home;
+    }
+  }
+  if (!row[5].length) row[5] = rest.find((e) => e.row[5].length)?.row[5] ?? [];
+  merged.push({ ...head, row, consoles: consolesUnion });
+}
+
+const outputs: Output[] = [];
+const emittedIds = new Set<string>();
+/** console → IDs que ele já publicou (verificados contra TODOS os arquivos no fim). */
+const publishedBy = new Map<string, Set<string>>();
+
+for (const console_ of consoles) {
+  const prev = prevByConsole.get(console_.id)!;
+  const rows: Row[] = [];
+  const details: Record<string, unknown> = {};
+  let legacy = 0;
+  for (const e of merged) {
+    if (!e.consoles.has(console_.id)) continue;
+    let row = e.row;
+    // Capa do libretro de OUTRO console: a URL base deste arquivo não serve.
+    if (row[3].startsWith('l:') && e.home && e.home !== console_.id) {
+      row = [...row];
+      row[3] = `u:${libretroBase(e.home)}${encodeURIComponent(row[3].slice(2))}.png`;
+    }
+    rows.push(row);
+    if (e.details) details[e.id] = e.details;
+    if (!e.details) legacy += 1;
+    emittedIds.add(e.id);
+  }
+
+  const published = new Set(Object.values(idMap[console_.id] ?? {}));
+  for (const r of prev.rows) published.add(r.id);
+  publishedBy.set(console_.name, published);
+
+  rows.sort((a, b) => b[4] - a[4] || a[1].localeCompare(b[1], 'en'));
+  outputs.push({ console: console_, file: { v: 3, covers: { i: COVER_BASES.i, ...prev.covers }, games: rows }, details });
+  const withCover = rows.filter((r) => r[3].length > 2).length;
+  console.log(
+    `${console_.name}: ${rows.length} jogos · capa ${Math.round((withCover / rows.length) * 100)}% · ` +
+      `${rows.filter((r) => r[6].length > 1).length} multiplataforma · ${legacy} só no catálogo antigo`,
+  );
+}
+console.log(`${sameNameMerges} jogos de mesmo nome fundidos num card só`);
+
+/* ---- detalhes por jogo para o R2 (página /jogo/[id]), em 256 fatias ---- */
+
+/** Capa como URL absoluta (a página não conhece as bases de cada console). */
+function absoluteCover(cover: string, home?: string): string {
+  const source = cover.slice(0, 1);
+  const value = cover.slice(2);
+  if (!value) return '';
+  if (source === 'i') return `https://images.igdb.com/igdb/image/upload/t_cover_big/${value}.jpg`;
+  if (source === 'u') return value;
+  if (source === 'w') return `${COVER_BASES.w}${value}`;
+  if (source === 'l' && home) return `${libretroBase(home)}${encodeURIComponent(value)}.png`;
+  return '';
+}
+const mergedById = new Map(merged.map((e) => [e.id, e]));
+const shards = new Map<string, Record<string, unknown>>();
+for (const e of merged) {
+  const [id, title, year, cover, , genres, platforms, critic, criticCount, user, userCount] = e.row;
+  const d = e.details ?? {};
+  const similar = ((d.similar as string[] | undefined) ?? [])
+    .map((s) => mergedById.get(resolveAlias(s)))
+    .filter((s): s is Entry => !!s && s.id !== id)
+    .slice(0, 8)
+    .map((s) => [s.id, s.row[1], absoluteCover(s.row[3], s.home), s.row[2]]);
+  const shard = detailShard(id);
+  const bucket = shards.get(shard) ?? {};
+  bucket[id] = {
+    t: title,
+    y: year,
+    c: absoluteCover(cover, e.home),
+    p: platforms.map((i) => allConsoles[i].id),
+    g: genres.map((i) => genreNames[i]).filter(Boolean),
+    cs: critic || undefined,
+    cc: criticCount || undefined,
+    us: user || undefined,
+    uc: userCount || undefined,
+    s: d.summary,
+    dev: d.developers,
+    pub: d.publishers,
+    fr: d.franchises,
+    alt: (d.altNames as string[] | undefined)?.slice(0, 6),
+    sim: similar.length ? similar : undefined,
+    igdb: d.slug ? `https://www.igdb.com/games/${d.slug as string}` : undefined,
+  };
+  shards.set(shard, bucket);
+}
+
+// A trava (ADR 0002), depois de todos os consoles: um ID publicado pode ter ido
+// para o arquivo de outro console (obra multiplataforma) — isso não é sumiço.
+const realViolations: string[] = [];
+for (const [name, published] of publishedBy) {
+  const missing = [...published].filter((id) => !emittedIds.has(id) && !aliases[id]);
+  if (missing.length) realViolations.push(`${name}: ${missing.length} ID(s) sumiriam (ex.: ${missing.slice(0, 5).join(', ')})`);
+}
+
+if (realViolations.length) {
   console.error(`\n${allowRemovals ? 'AVISO' : 'ERRO'}: IDs publicados sumiriam sem alias em data/id-aliases.json:`);
-  for (const v of violations) console.error(`  - ${v}`);
+  for (const v of realViolations) console.error(`  - ${v}`);
   if (!allowRemovals) {
     console.error('Nada foi gravado. Adicione os aliases (idAntigo -> idNovo) ou rode com --allow-removals de propósito.');
     process.exit(1);
@@ -465,50 +725,69 @@ if (violations.length) {
 
 await mkdir(OUT_DIR, { recursive: true });
 await mkdir(DETAILS_DIR, { recursive: true });
+await mkdir(R2_DIR, { recursive: true });
+for (const [shard, bucket] of shards) await writeFile(path.join(R2_DIR, `${shard}.json`), JSON.stringify(bucket));
+// "Cabeça" de cada console: os primeiros em A–Z (a ordem padrão do app), num
+// arquivo minúsculo que desenha a primeira tela antes do arquivo completo
+// chegar. O collator é O MESMO do app (lib/games.ts): se a ordem divergir, o
+// arquivo completo rearranjaria os cards já na tela.
+const headCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
 for (const out of outputs) {
   await writeFile(path.join(OUT_DIR, `${out.console.id}.json`), JSON.stringify(out.file));
+  const head = [...out.file.games].sort((a, b) => headCollator.compare(a[1], b[1])).slice(0, HEAD_SIZE);
+  await writeFile(path.join(OUT_DIR, `${out.console.id}.head.json`), JSON.stringify({ ...out.file, games: head }));
   await writeFile(path.join(DETAILS_DIR, `${out.console.id}.json`), JSON.stringify(out.details));
   index[out.console.id] = out.file.games.length;
 }
-await writeFile(path.join(OUT_DIR, 'meta.json'), JSON.stringify({ v: 2, genres: genreNames }));
-
-// top.json: os mais populares entre TODOS os consoles publicados (inclusive os
-// que não rodaram agora), só com capa da IGDB para caber numa URL base só.
-const topRows: [string, ...Row][] = [];
-for (const c of await readJson<{ id: string }[]>(path.join(ROOT, 'data/consoles.json'), [])) {
-  const file = await readJson<CatalogFileV2 | null>(path.join(OUT_DIR, `${c.id}.json`), null);
-  if (file?.v !== 2) continue;
-  for (const row of file.games) if (row[3].length > 2 && row[3].startsWith('i:')) topRows.push([c.id, ...row]);
-}
-// Mesmo jogo tem a mesma popularidade em todo console: no empate vale a edição
-// lançada primeiro (a original — San Andreas é de PS2, não de Xbox).
-topRows.sort((a, b) => b[5] - a[5] || (a[3] || 9999) - (b[3] || 9999));
-// Um card por jogo na primeira tela: GTA V aparece uma vez (a edição mais
-// popular), não cinco. As outras edições ficam no filtro de cada console.
-// Títulos da curadoria já aparecem na primeira tela pela seed: não repetem aqui.
-const seenTitles = new Set<string>(seed.map((g) => normKey(g.title)));
-const top = topRows.filter((row) => {
-  const key = normKey(row[2]);
-  if (seenTitles.has(key)) return false;
-  seenTitles.add(key);
-  return true;
-});
 await writeFile(
-  path.join(OUT_DIR, 'top.json'),
-  JSON.stringify({ v: 2, covers: { i: COVER_BASES.i }, games: top.slice(0, TOP_SIZE) }),
+  path.join(OUT_DIR, 'meta.json'),
+  JSON.stringify({ v: 3, genres: genreNames, consoles: allConsoles.map((c) => c.id) }),
 );
+
+// top.json: as obras mais populares (uma vez cada), sem as da curadoria (já na tela).
+const seedIds = new Set(seed.map((g) => g.id));
+const seenTop = new Set<string>();
+const top: Row[] = [];
+// Totais SEM repetição (um jogo multiplataforma está no arquivo de cada console).
+const uniqueAll = new Set<string>();
+const uniqueByMaker = new Map<string, Set<string>>();
+for (const c of allConsoles) {
+  const file = await readJson<CatalogFileV3 | null>(path.join(OUT_DIR, `${c.id}.json`), null);
+  if (file?.v !== 3) continue;
+  const maker = (c as ConsoleDef & { maker?: string }).maker ?? 'Outros';
+  const makerSet = uniqueByMaker.get(maker) ?? new Set<string>();
+  uniqueByMaker.set(maker, makerSet);
+  for (const row of file.games) {
+    uniqueAll.add(row[0]);
+    makerSet.add(row[0]);
+    if (seenTop.has(row[0]) || seedIds.has(row[0]) || !row[3].startsWith('i:') || row[3].length <= 2) continue;
+    seenTop.add(row[0]);
+    top.push(row);
+  }
+}
+top.sort((a, b) => b[4] - a[4] || (a[2] || 9999) - (b[2] || 9999));
+await writeFile(path.join(OUT_DIR, 'top.json'), JSON.stringify({ v: 3, covers: { i: COVER_BASES.i }, games: top.slice(0, TOP_SIZE) }));
+
 await writeFile(ID_MAP_FILE, `${JSON.stringify(idMap, null, 1)}\n`);
 await writeFile(ALIASES_FILE, `${JSON.stringify(aliases, null, 1)}\n`);
-if (Object.keys(newAliases).length) console.log(`${Object.keys(newAliases).length} duplicata(s) fundida(s) por alias`);
-const allConsoles = await readJson<{ id: string }[]>(path.join(ROOT, 'data/consoles.json'), []);
-const ordered = Object.fromEntries(allConsoles.filter((c) => index[c.id]).map((c) => [c.id, index[c.id]]));
+// O app não embute os aliases no bundle (55 mil entradas): baixa este arquivo
+// só quando há progresso salvo de uma versão anterior (ver lib/aliases.ts).
+const aliasesJson = JSON.stringify(aliases);
+await writeFile(path.join(OUT_DIR, 'aliases.json'), aliasesJson);
+const aliasesVersion = createHash('sha1').update(aliasesJson).digest('hex').slice(0, 12);
+const ordered: Record<string, unknown> = Object.fromEntries(
+  allConsoles.filter((c) => index[c.id]).map((c) => [c.id, index[c.id]]),
+);
+// Curadoria que não casou com nenhuma obra também conta no total.
+const seedOnly = seed.filter((g) => !uniqueAll.has(g.id)).length;
+ordered._total = uniqueAll.size + seedOnly;
+ordered._aliasesVersion = aliasesVersion;
+ordered._makers = Object.fromEntries([...uniqueByMaker].map(([m, ids]) => [m, ids.size]));
 await writeFile(INDEX_FILE, `${JSON.stringify(ordered, null, 2)}\n`);
 
-const total = Object.values(ordered).reduce((a, b) => a + b, 0);
+const multi = [...workRows.values()].filter((r) => r[6].length > 1).length;
 console.log(
-  `\ntotal: ${total} jogos em ${Object.keys(ordered).length} consoles · ` +
-    `${igdb.requests} requisições à IGDB, ${igdb.cacheHits} do cache · ${Math.round((Date.now() - startedAt) / 1000)} s`,
+  `\n${works.size} obras da IGDB (${multi} multiplataforma) · ${minted} IDs novos · ` +
+    `${Object.keys(newAliases).length} edições/duplicatas viraram alias · ` +
+    `${igdb.requests} requisições, ${igdb.cacheHits} do cache · ${Math.round((Date.now() - startedAt) / 1000)} s`,
 );
-if (!existsSync(path.join(ROOT, '.env.local')) && !process.env.TWITCH_CLIENT_ID) {
-  console.log('(sem credenciais no ambiente: tudo veio do cache)');
-}

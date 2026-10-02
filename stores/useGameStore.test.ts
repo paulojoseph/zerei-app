@@ -58,3 +58,43 @@ describe('filtro "Meus consoles"', () => {
     expect(selectGames({ games: SEED_GAMES, search: '', platform: MINE_FILTER, brazilOnly: false, mine: new Set() })).toEqual([]);
   });
 });
+
+describe('migração de IDs (aliases baixados sob demanda)', () => {
+  it('reaponta o progresso uma vez por versão do catálogo e não baixa de novo', async () => {
+    let downloads = 0;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => {
+      downloads += 1;
+      return new Response(JSON.stringify({ 'ps4--gta-v': 'x360--gta-v' }));
+    }) as typeof fetch;
+    try {
+      useGameStore.setState({
+        progress: { 'ps4--gta-v': { gameId: 'ps4--gta-v', status: 'beaten', updatedAt: '2026-01-01' } },
+        aliasesVersion: undefined,
+      });
+      await store().migrateIds();
+      expect(Object.keys(store().progress)).toEqual(['x360--gta-v']);
+      expect(store().aliasesVersion).toBeTruthy();
+      await store().migrateIds();
+      expect(downloads).toBe(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('quem não tem progresso não baixa o mapa', async () => {
+    let downloads = 0;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => {
+      downloads += 1;
+      return new Response('{}');
+    }) as typeof fetch;
+    try {
+      useGameStore.setState({ progress: {}, aliasesVersion: undefined });
+      await store().migrateIds();
+      expect(downloads).toBe(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});

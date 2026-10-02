@@ -15,6 +15,8 @@ const eslintConfig = [
       'node_modules/**',
       'out/**',
       'next-env.d.ts',
+      // Tipos gerados pelo `npm run cf-typegen`.
+      'cloudflare-env.d.ts',
     ],
   },
   ...coreWebVitals,
