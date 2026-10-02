@@ -190,8 +190,12 @@ export function sortGames(
         const ua = progress[a.id]?.updatedAt ?? '';
         const ub = progress[b.id]?.updatedAt ?? '';
         if (ua !== ub) return ub.localeCompare(ua);
-        // Curadoria (com resumo e capa revisada) antes do catálogo completo.
+        // Curadoria (com resumo e capa revisada) antes do catálogo completo,
+        // e dentro do catálogo o popular antes do obscuro.
         if (!a.isCatalog !== !b.isCatalog) return a.isCatalog ? 1 : -1;
+        const pa = a.popularity ?? 0;
+        const pb = b.popularity ?? 0;
+        if (pa !== pb) return pb - pa;
         const ra = CATEGORY_RANK.get(a.category) ?? 99;
         const rb = CATEGORY_RANK.get(b.category) ?? 99;
         if (ra !== rb) return ra - rb;

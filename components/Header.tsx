@@ -394,6 +394,7 @@ export function Header() {
           <input
             ref={fileInputRef}
             type="file"
+            aria-label="Arquivo de backup para importar (JSON ou CSV)"
             className="hidden"
             accept=".json,.csv,application/json,text/csv"
             onChange={handleFileChange}

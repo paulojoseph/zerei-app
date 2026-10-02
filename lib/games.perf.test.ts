@@ -34,7 +34,9 @@ function statusCountsOld(p: Record<string, UserGameProgress>) {
 describe(`clique em "Zerei!" com ${games.length} jogos`, () => {
   const sorted = sortGames(selectGames({ games, search: '', platform: 'all', brazilOnly: false }), games, 'recent', progress);
 
-  it('fica dentro do orçamento e bem abaixo do caminho antigo', () => {
+  // Tempo limite alto: medir o caminho ANTIGO (centenas de ms por clique com o
+  // catálogo completo) 18 vezes é o que demora — o caminho novo é instantâneo.
+  it('fica dentro do orçamento e bem abaixo do caminho antigo', { timeout: 60_000 }, () => {
     const before = medianMs(() => {
       const next = clickProgress();
       filterGames({ games, progress: next, search: '', platform: 'all', status: 'all', brazilOnly: false, sort: 'recent' });

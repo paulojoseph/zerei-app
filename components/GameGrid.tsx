@@ -6,9 +6,10 @@ import { ChevronDown, Gamepad2, LoaderCircle, RotateCcw, Search, Trophy } from '
 import { GameCard } from '@/components/GameCard';
 import { Button } from '@/components/ui/Button';
 import { filterByStatus, selectGames, sortGames } from '@/lib/games';
-import { MAKER_PREFIX, consoleByName } from '@/lib/consoles';
+import { CONSOLES, MAKER_PREFIX, consoleByName } from '@/lib/consoles';
 import { pluralize } from '@/lib/utils';
 import {
+  progressConsoleIds,
   useAllGames,
   useCatalogStatus,
   useFilters,
@@ -235,12 +236,36 @@ export function GameGrid() {
   const { search, platform, status, brazilOnly, sort } = useFilters();
   const resetFilters = useGameStore((s) => s.resetFilters);
   const loadCatalog = useGameStore((s) => s.loadCatalog);
+  const ensureConsoles = useGameStore((s) => s.ensureConsoles);
 
-  // O catálogo completo (dezenas de milhares de jogos) vem de /public/catalog
-  // depois da primeira pintura; até lá a curadoria da seed ocupa a tela.
+  /*
+   * Baixar só o necessário (o catálogo inteiro passa de 3 MB comprimido):
+   * - sempre: os mais populares (top.json, ~80 KB) para a aba "Todos";
+   * - os consoles onde o usuário tem jogos marcados (contadores e "Zerei!");
+   * - o console ou o fabricante escolhido;
+   * - tudo só quando a pergunta é sobre tudo: busca ou "Não joguei" em "Todos".
+   */
+  const progressConsoles = useMemo(() => progressConsoleIds(progress).join(','), [progress]);
+  const needsEverything = platform === 'all' && (search.trim() !== '' || status === 'unplayed');
   useEffect(() => {
     loadCatalog();
   }, [loadCatalog]);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (needsEverything) {
+      ensureConsoles('all');
+      return;
+    }
+    const wanted = new Set(progressConsoles ? progressConsoles.split(',') : []);
+    if (platform.startsWith(MAKER_PREFIX)) {
+      const maker = platform.slice(MAKER_PREFIX.length);
+      for (const c of CONSOLES) if (c.maker === maker) wanted.add(c.id);
+    } else if (platform !== 'all') {
+      const id = consoleByName(platform)?.id;
+      if (id) wanted.add(id);
+    }
+    ensureConsoles([...wanted]);
+  }, [hydrated, needsEverything, platform, progressConsoles, ensureConsoles]);
 
   // Estado derivado por chave (padrão oficial do React, sem useEffect): quando
   // qualquer filtro muda, a paginação volta para a primeira leva e a ordem é
@@ -318,12 +343,17 @@ export function GameGrid() {
               Zerados
             </span>
           )}
-          {loadingCatalog && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-ink-dim">
-              <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
-              Carregando catálogo completo…
-            </span>
+          {/*
+            A dica existe desde a primeira pintura e o carregamento é só um ícone:
+            texto que aparece depois empurra a grade (CLS) e vira o LCP da página.
+          */}
+          {platform === 'all' && !needsEverything && (
+            <span className="text-xs text-ink-dim">Os mais populares. Escolha um console ou busque para ver todos.</span>
           )}
+          <span className="inline-flex size-3.5 items-center">
+            {loadingCatalog && <LoaderCircle className="size-3.5 animate-spin text-ink-dim" aria-hidden="true" />}
+            <span className="sr-only">{loadingCatalog ? 'Carregando jogos' : ''}</span>
+          </span>
           {catalogStatus === 'error' && (
             <span className="text-xs text-gold">
               Parte do catálogo não carregou. Recarregue a página para tentar de novo.

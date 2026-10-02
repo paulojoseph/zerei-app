@@ -39,7 +39,10 @@ export default function HomePage() {
       <footer className={`${CONTAINER} pt-2 pb-6`}>
         <div className="flex flex-col items-center gap-1.5 border-t border-line-soft pt-6 text-center text-xs text-ink-dim">
           <p>Zerei.app — seus dados ficam salvos neste navegador.</p>
-          <p>Listas e capas: libretro-thumbnails, Wikidata e Wikipédia.</p>
+          <p>
+            Dados e capas de jogos: <a href="https://www.igdb.com" className="underline hover:text-ink">IGDB.com</a>.
+            Projeto pessoal, sem fins lucrativos; marcas e capas pertencem aos respectivos donos.
+          </p>
           <p>
             Catálogo com {pluralize(SEED_GAMES.length + CATALOG_TOTAL, 'jogo')}. Sem conta, sem
             nuvem, sem rastreio.

@@ -21,12 +21,14 @@ const COVER_HOSTS = new Set([
 const DEFAULT_SIZES = '(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 180px';
 
 /**
- * A Wikimedia responde 429 à rajada de requisições que o otimizador do Next
- * dispara do servidor. As miniaturas de lá já vêm no tamanho do card (330px),
- * então o navegador as busca direto, uma a uma, conforme a rolagem.
+ * Capas que o navegador busca direto, sem passar pelo otimizador do Next:
+ * - IGDB: o CDN deles já entrega no tamanho do card (264 px), com cache de um
+ *   ano; passar pelo nosso servidor só gastaria CPU e criaria cópia nossa da
+ *   arte (ADR 0004: hotlink, sem armazenar);
+ * - Wikimedia: responde 429 à rajada que o otimizador dispara do servidor.
  */
 function bypassOptimizer(url: string): boolean {
-  return url.startsWith('https://upload.wikimedia.org/');
+  return url.startsWith('https://images.igdb.com/') || url.startsWith('https://upload.wikimedia.org/');
 }
 
 /** Formato do wrapper — a capa gerada precisa ocupar exatamente o mesmo espaço. */
