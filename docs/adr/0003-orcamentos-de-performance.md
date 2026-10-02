@@ -31,8 +31,23 @@ Linha de base (2026-10-02, build de produção, perfil móvel do Lighthouse 12):
 | `/` | 78 | 100 | 100 | 100 | 0,8 s | 2,6 s | 800 ms | 0 | 2,5 MB |
 | `/?console=snes` | 88 | 100 | 100 | 100 | 0,8 s | 2,5 s | 400 ms | 0 | 2,5 MB |
 
-A nota de performance tem folga (0,70) porque os runners do GitHub são mais
-lentos que a máquina de desenvolvimento.
+### Erro ou aviso
+
+O primeiro run no GitHub (PR #1) mostrou que o runner é ~2–4x mais lento que a
+máquina de desenvolvimento e **muito instável**: a mesma página teve nota 0,44,
+0,66 e 0,68 em três execuções seguidas, com LCP de até 12,9 s e TBT de 3,9 s.
+Trava que passa ou falha por sorte ensina o time a ignorá-la. Então:
+
+- **Erro (determinístico):** acessibilidade = 100, boas práticas ≥ 95, SEO ≥ 95,
+  CLS ≤ 0,02 e bytes transferidos ≤ 2,7 MB.
+- **Aviso (depende da CPU do runner):** nota de performance, LCP e TBT.
+
+Os avisos voltam a ser erro quando a Fase 2 tirar o processamento do catálogo
+da thread principal; sem esse trabalho de CPU, a variação do runner cai.
+
+O número do runner também é um dado real: numa CPU lenta, como a de um Android
+barato, o app trava a tela por quase 4 s processando os 57 mil jogos. É a
+prioridade número um da Fase 2.
 
 ### Metas (Fase 2)
 
