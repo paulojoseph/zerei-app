@@ -16,6 +16,15 @@
  * Jogos que já estão em data/seed-games.json (curadoria com resumo e capa
  * local) não são repetidos no catálogo.
  *
+ * IDs estáveis (ADR 0002): o ID de um jogo é cunhado uma vez e guardado em
+ * data/id-map.json, indexado pela chave de origem (título normalizado no
+ * libretro, item do Wikidata no moderno). O build FALHA se um ID já publicado
+ * sumir sem um alias em data/id-aliases.json — é o que impede que o progresso
+ * salvo dos usuários fique órfão. `--allow-removals` libera de propósito.
+ *
+ * A publicação é atômica: tudo é calculado em memória e só vai para o disco se a
+ * trava de IDs passar.
+ *
  * As respostas remotas ficam em cache em `.cache/catalog/`; use `--fresh`
  * para ignorar o cache, ou `--only=nes,snes` para gerar só alguns consoles.
  *
@@ -23,7 +32,7 @@
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -31,6 +40,8 @@ const CONSOLES = JSON.parse(await readFile(path.join(ROOT, 'data/consoles.json')
 const SEED = JSON.parse(await readFile(path.join(ROOT, 'data/seed-games.json'), 'utf8'));
 const OUT_DIR = path.join(ROOT, 'public/catalog');
 const INDEX_FILE = path.join(ROOT, 'data/catalog-index.json');
+const ID_MAP_FILE = path.join(ROOT, 'data/id-map.json');
+const ALIASES_FILE = path.join(ROOT, 'data/id-aliases.json');
 const CACHE_DIR = path.join(ROOT, '.cache/catalog');
 
 const UA = 'zerei.app/1.0 (aplicativo pessoal de catalogo de jogos; contato via repositorio local)';
@@ -43,6 +54,7 @@ const WIKIMEDIA_BASE = 'https://upload.wikimedia.org/wikipedia/';
 const THUMB_WIDTH = 330;
 
 const fresh = process.argv.includes('--fresh');
+const allowRemovals = process.argv.includes('--allow-removals');
 const onlyArg = process.argv.find((a) => a.startsWith('--only='));
 const only = onlyArg ? new Set(onlyArg.slice(7).split(',')) : null;
 
@@ -227,6 +239,7 @@ async function fromLibretro(console_, wikiYears) {
 
   return [...groups.entries()].map(([key, g]) => ({
     key,
+    sources: [`lr:${key}`],
     title: g.title,
     year: datYears.get(key) || g.year || wikiYears.get(key) || 0,
     cover: g.cover,
@@ -262,6 +275,7 @@ SELECT ?g ?article ?label (MIN(YEAR(?d)) AS ?y) WHERE {
     const article = decodeURIComponent(row.article.value.split('/wiki/')[1]).replace(/_/g, ' ');
     const label = row.label?.value || article.replace(/ \([^)]*\)$/, '');
     byItem.set(id, {
+      qid: id.split('/').pop(),
       article,
       title: label,
       year: Number(row.y?.value) || 0,
@@ -315,7 +329,10 @@ async function fromWikidata(console_) {
     const cover = covers.get(g.article) ?? '';
     const current = groups.get(key);
     if (!current || (!current.cover && cover)) {
-      groups.set(key, { key, title: g.title, year: plausibleYear(g.year, console_), cover });
+      const sources = [...(current?.sources ?? []), `wd:${g.qid}`];
+      groups.set(key, { key, title: g.title, year: plausibleYear(g.year, console_), cover, sources });
+    } else {
+      current.sources.push(`wd:${g.qid}`);
     }
   }
   return [...groups.values()];
@@ -330,18 +347,49 @@ function plausibleYear(year, console_) {
 }
 
 /* -------------------------------------------------------------------------- */
+/*  IDs estáveis                                                               */
+/* -------------------------------------------------------------------------- */
+
+async function readJson(file, fallback) {
+  try {
+    return JSON.parse(await readFile(file, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+const BASE32 = 'abcdefghijkmnpqrstuvwxyz23456789';
+
+/** ID novo, curto e sem significado: "g_" + 8 caracteres (~10^12 combinações). */
+function mintId(taken) {
+  for (;;) {
+    const id = `g_${[...randomBytes(8)].map((b) => BASE32[b % BASE32.length]).join('')}`;
+    if (!taken.has(id)) return id;
+  }
+}
+
+/** IDs que o arquivo publicado anterior deste console expunha (formato antigo ou novo). */
+async function previousIds(consoleId) {
+  const prev = await readJson(path.join(OUT_DIR, `${consoleId}.json`), { games: [] });
+  return new Set(prev.games.map((row) => (row[3].includes('--') || row[3].startsWith('g_') ? row[3] : `${consoleId}--${row[3]}`)));
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Montagem                                                                   */
 /* -------------------------------------------------------------------------- */
 
 await mkdir(OUT_DIR, { recursive: true });
 await mkdir(CACHE_DIR, { recursive: true });
 
-let index = {};
-try {
-  index = JSON.parse(await readFile(INDEX_FILE, 'utf8'));
-} catch {
-  /* primeiro build */
-}
+const index = await readJson(INDEX_FILE, {});
+/** { console: { chaveDeOrigem: id } } — todo ID que já foi publicado. */
+const idMap = await readJson(ID_MAP_FILE, {});
+/** { idAntigo: idNovo } — fusões e remoções conscientes. */
+const aliases = await readJson(ALIASES_FILE, {});
+const takenIds = new Set(Object.values(idMap).flatMap((m) => Object.values(m)));
+const violations = [];
+/** Saídas em memória: só vão para o disco se a trava passar (tudo ou nada). */
+const outputs = [];
 
 for (const console_ of CONSOLES) {
   if (only && !only.has(console_.id)) continue;
@@ -371,24 +419,54 @@ for (const console_ of CONSOLES) {
     base = WIKIMEDIA_BASE;
   }
 
-  const used = new Set();
+  const consoleMap = (idMap[console_.id] ??= {});
+  const published = new Set(Object.values(consoleMap));
+  const legacy = await previousIds(console_.id);
+  const usedSlugs = new Set();
+  const usedIds = new Set();
   const games = entries
     .filter((e) => !seedKeys.has(e.key))
     .sort((a, b) => a.title.localeCompare(b.title, 'en'))
     .map((e) => {
+      // Slug no formato antigo: só serve para adotar IDs publicados antes do id-map.
       let slug = slugify(e.title) || 'jogo';
-      while (used.has(slug)) slug += '-2';
-      used.add(slug);
-      return [e.title, e.year, e.cover, slug];
+      while (usedSlugs.has(slug)) slug += '-2';
+      usedSlugs.add(slug);
+      const legacyId = `${console_.id}--${slug}`;
+
+      let id = e.sources.map((source) => consoleMap[source]).find((known) => known && !usedIds.has(known));
+      if (!id) id = legacy.has(legacyId) && !usedIds.has(legacyId) ? legacyId : mintId(takenIds);
+      usedIds.add(id);
+      takenIds.add(id);
+      for (const source of e.sources) consoleMap[source] ??= id;
+      return [e.title, e.year, e.cover, id];
     });
 
-  await writeFile(path.join(OUT_DIR, `${console_.id}.json`), JSON.stringify({ base, games }), 'utf8');
-  index[console_.id] = games.length;
+  // A trava: todo ID já publicado continua existindo ou tem alias.
+  const missing = [...published].filter((id) => !usedIds.has(id) && !aliases[id]);
+  if (missing.length) {
+    violations.push(`${console_.name}: ${missing.length} ID(s) sumiriam (ex.: ${missing.slice(0, 5).join(', ')})`);
+    console.log(`BLOQUEADO — ${missing.length} ID(s) publicados sumiriam`);
+  }
+
+  outputs.push({ id: console_.id, base, games });
   const withCover = games.filter((g) => g[2]).length;
   const withYear = games.filter((g) => g[1]).length;
   console.log(`${games.length} jogos (capa: ${withCover}, ano: ${withYear})`);
-  // Gravado a cada console: uma execução interrompida não perde o que já fez.
-  await writeIndex();
+}
+
+if (violations.length) {
+  console.error(`\n${allowRemovals ? 'AVISO' : 'ERRO'}: IDs publicados sumiriam sem alias em data/id-aliases.json:`);
+  for (const v of violations) console.error(`  - ${v}`);
+  if (!allowRemovals) {
+    console.error('Nada foi gravado. Adicione os aliases (idAntigo -> idNovo) ou rode com --allow-removals de propósito.');
+    process.exit(1);
+  }
+}
+
+for (const out of outputs) {
+  await writeFile(path.join(OUT_DIR, `${out.id}.json`), JSON.stringify({ base: out.base, games: out.games }), 'utf8');
+  index[out.id] = out.games.length;
 }
 
 async function writeIndex() {
@@ -397,5 +475,6 @@ async function writeIndex() {
   return ordered;
 }
 
+await writeFile(ID_MAP_FILE, `${JSON.stringify(idMap, null, 1)}\n`, 'utf8');
 const ordered = await writeIndex();
 console.log(`\ntotal: ${Object.values(ordered).reduce((a, b) => a + b, 0)} jogos em ${Object.keys(ordered).length} consoles`);

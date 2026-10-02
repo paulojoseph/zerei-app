@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
+import { remapProgress } from '@/lib/aliases';
 import { loadCatalog } from '@/lib/catalog';
 import { SEED_GAMES, countByStatus } from '@/lib/games';
 import type {
@@ -298,7 +299,8 @@ export const useGameStore = create<GameStore>()(
       },
 
       importBackup: (payload, mode) => {
-        const incoming = sanitizeProgress(payload?.progress);
+        // Backups antigos podem trazer IDs que viraram alias: reaponta antes de mesclar.
+        const incoming = remapProgress(sanitizeProgress(payload?.progress));
         const incomingCount = Object.keys(incoming).length;
         const incomingGames = Array.isArray(payload?.customGames) ? payload.customGames : [];
 
@@ -370,6 +372,16 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'zerei-app-storage',
       version: 1,
+      // Toda leitura do LocalStorage passa pelos aliases de ID (ADR 0002): se o
+      // catálogo fundiu ou renomeou um jogo, o progresso salvo segue o jogo.
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<PersistedState>;
+        return {
+          ...current,
+          ...saved,
+          progress: remapProgress(saved.progress ?? current.progress),
+        };
+      },
       storage: createJSONStorage(() => localStorage),
       partialize: (state): PersistedState => ({
         progress: state.progress,

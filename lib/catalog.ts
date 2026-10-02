@@ -1,7 +1,7 @@
 import type { Game } from '@/types/game';
 import { CATALOG_COUNTS, CONSOLES, type ConsoleMeta } from '@/lib/consoles';
 
-/** [título, ano, capa, slug] — formato compacto gerado por scripts/build-catalog.mjs. */
+/** [título, ano, capa, id estável] — formato compacto gerado por scripts/build-catalog.mjs (ADR 0002). */
 type CatalogRow = [string, number, string, string];
 
 export interface CatalogFile {
@@ -17,8 +17,8 @@ function coverUrl(console_: ConsoleMeta, base: string, cover: string): string {
 
 /** Converte um arquivo de catálogo em jogos. Puro: usado no app, nos testes e nos benchmarks. */
 export function catalogToGames(console_: ConsoleMeta, data: CatalogFile): Game[] {
-  return data.games.map(([title, year, cover, slug]) => ({
-    id: `${console_.id}--${slug}`,
+  return data.games.map(([title, year, cover, id]) => ({
+    id,
     title,
     platform: console_.name,
     category: console_.category,
