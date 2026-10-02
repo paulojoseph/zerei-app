@@ -28,6 +28,8 @@ export interface Game {
   isCustom?: boolean;
   /** Veio do catálogo completo (public/catalog), não da curadoria da seed. */
   isCatalog?: boolean;
+  /** 0–999: visitas na IGDB + número de avaliações. Ordena o clássico antes do obscuro. */
+  popularity?: number;
   /** Gêneros (opcional; a IGDB devolve, a seed usa para busca textual). */
   genres?: string[];
 }
@@ -39,6 +41,8 @@ export interface UserGameProgress {
   /** 1 a 5 estrelas. */
   rating?: number;
   notes?: string;
+  /** Console do jogo (id de data/consoles.json): diz qual arquivo do catálogo carregar. */
+  consoleId?: string;
   /** ISO string. */
   updatedAt: string;
 }

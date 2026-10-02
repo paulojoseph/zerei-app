@@ -410,7 +410,9 @@ function FilterChip({
     <button
       type="button"
       aria-pressed={active}
-      aria-label={`${chip.hint} — ${pluralize(chip.count, 'jogo')}`}
+      // O nome acessível começa pelo texto visível ("SNES"): quem usa comando
+      // de voz diz o que vê ("clicar em SNES") e o leitor de tela continua.
+      aria-label={chip.hint === chip.label ? `${chip.label} — ${pluralize(chip.count, 'jogo')}` : `${chip.label} (${chip.hint}) — ${pluralize(chip.count, 'jogo')}`}
       title={chip.hint}
       onClick={onClick}
       style={
@@ -418,7 +420,9 @@ function FilterChip({
           ? {
               color: chip.color,
               borderColor: chip.color,
-              backgroundColor: `color-mix(in oklab, ${chip.color} 14%, transparent)`,
+              // Fundo opaco: com transparência sobre o blur da barra, o contraste
+              // do texto não é garantido (nem verificável pelas ferramentas).
+              backgroundColor: `color-mix(in oklab, ${chip.color} 14%, var(--color-bg))`,
               boxShadow: `0 0 18px -10px ${chip.color}`,
             }
           : partial

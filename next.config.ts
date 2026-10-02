@@ -7,14 +7,14 @@ const isDev = process.env.NODE_ENV === 'development';
  * página e desliga o HTML estático/ISR, que é a base da velocidade do app
  * (docs do Next 16, "Content Security Policy > Without Nonces"). Ainda assim
  * bloqueia script de terceiros, frames, plugins e envio de formulário para fora.
- * As capas remotas passam pelo /_next/image (mesma origem), exceto as da
- * Wikimedia, que o navegador busca direto (ver CoverImage).
+ * As capas remotas passam pelo /_next/image (mesma origem), exceto as da IGDB
+ * e da Wikimedia, que o navegador busca direto (ver CoverImage).
  */
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' blob: data: https://upload.wikimedia.org",
+  "img-src 'self' blob: data: https://images.igdb.com https://upload.wikimedia.org",
   "font-src 'self'",
   "connect-src 'self'",
   "object-src 'none'",

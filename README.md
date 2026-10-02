@@ -78,6 +78,7 @@ As decisões importantes ficam registradas em [`docs/adr/`](docs/adr/):
 - [0001 — Hospedagem em Cloudflare Workers com OpenNext](docs/adr/0001-hospedagem-cloudflare-workers-opennext.md)
 - [0002 — IDs estáveis para os jogos](docs/adr/0002-ids-estaveis.md)
 - [0003 — Orçamentos de performance com catraca no CI](docs/adr/0003-orcamentos-de-performance.md)
+- [0004 — IGDB como fonte principal e o modelo Obra/Edição](docs/adr/0004-dados-igdb-modelo-edicao.md)
 
 ---
 
@@ -118,7 +119,6 @@ zerei-app/
 │   ├── covers/                 # capas da curadoria, servidas localmente
 │   └── icons/                  # icon.svg, maskable.svg e os PNGs gerados
 ├── scripts/
-│   ├── build-catalog.mjs       # gera o catálogo completo por console
 │   ├── fetch-covers.mjs        # resolve as capas da curadoria na Wikipédia
 │   ├── download-covers.mjs     # baixa as capas da curadoria para public/covers
 │   └── gen-icons.mjs           # gera os PNGs do PWA
@@ -174,7 +174,7 @@ Os ícones vetoriais (`icon.svg` e `maskable.svg`) são a arte de referência; o
 | `npm run preview` | Builda com OpenNext e roda o Worker localmente no `workerd` (runtime da Cloudflare) |
 | `npm run deploy` | Builda e publica na Cloudflare (precisa de conta e `wrangler login`) |
 | `npm run icons` | Gera os PNGs do PWA em `public/icons/` |
-| `npm run catalog` | Regera o catálogo completo (`public/catalog/`). Aceita `-- --only=nes,snes` e `-- --fresh` |
+| `npm run catalog` | Regera o catálogo a partir da IGDB (`public/catalog/`). Aceita `-- --only=nes,snes` e `-- --fresh` |
 | `npm run covers` | Busca na Wikipédia as capas da curadoria que ainda estão sem `coverUrl` e baixa para `public/covers/` |
 | `npm run covers:all` | Revalida a capa de **todos** os jogos da curadoria |
 | `npm run covers:download` | Só baixa para `public/covers/` as capas que ainda apontam para fora |
@@ -183,14 +183,18 @@ Os ícones vetoriais (`icon.svg` e `maskable.svg`) são a arte de referência; o
 
 ## De onde vem o catálogo
 
-`npm run catalog` lê `data/consoles.json` e, para cada console:
+`npm run catalog` (`pipeline/build.mts`, [ADR 0004](docs/adr/0004-dados-igdb-modelo-edicao.md)) monta o catálogo a partir da [IGDB](https://www.igdb.com) — uso gratuito e não comercial, com crédito. Precisa de `TWITCH_CLIENT_ID` e `TWITCH_CLIENT_SECRET` no `.env.local` (passo a passo no topo do `.env.example`).
 
-- **Retrô** (campo `libretro` preenchido): a lista vem do acervo de box art do [libretro-thumbnails](https://thumbnails.libretro.com) — só entra jogo que tem capa. Versões beta, demo, protótipo, pirata, hack e duplicatas regionais são descartadas; entre as regiões, vale Brasil > EUA > Mundo > Europa > Japão. O ano vem do libretro-database e, na falta, do Wikidata.
-- **Moderno** (sem `libretro`): a lista são os jogos do console no Wikidata que têm artigo na Wikipédia em inglês; a capa é a imagem principal do artigo. Jogo sem imagem no artigo usa a capa gerada pelo app.
+- **Edição = jogo × console.** É onde o usuário marca "zerei". O console do Zerei pode juntar plataformas da IGDB (NES = NES + Famicom).
+- **Só o que é um jogo:** principal, remake, remaster, port, expanded e standalone. DLC, bundle, mod e episódio ficam de fora.
+- **Relançamento não é edição:** jogo muito anterior ao console (Virtual Console, PS one Classics, Arcade Archives) não entra na lista daquele console.
+- **Popularidade** (visitas na IGDB + avaliações) ordena o clássico antes do obscuro. No PC entram só jogos com avaliação (são 180 mil no total).
+- **IDs estáveis** ([ADR 0002](docs/adr/0002-ids-estaveis.md)): edição que casa com um jogo do catálogo anterior herda o ID dele; duplicatas regionais ("Rockman 5" = "Mega Man 5") viram alias e o progresso migra; o que a IGDB não tem continua com a fonte antiga.
+- **Saída:** `public/catalog/<console>.json` (lista enxuta), `top.json` (os mais populares, para a primeira tela), `meta.json` (gêneros em PT-BR) e, fora do git, `.cache/pipeline/details/` (resumo, empresas, jogos similares, IDs externos — base das próximas fases).
 
-As respostas ficam em cache em `.cache/catalog/`, então rodar de novo é rápido. A API da Wikipédia bloqueia o IP por alguns minutos se for chamada rápido demais; o script espaça as chamadas e espera sozinho quando toma 429.
+As respostas da IGDB ficam em cache em `.cache/igdb/`: rodar de novo leva segundos. `--only=nes,snes` gera só alguns consoles; `--fresh` ignora o cache; `--allow-removals` aceita, de propósito, que um ID publicado suma.
 
-O progresso de um jogo do catálogo é salvo pelo id `<console>--<slug-do-título>`.
+O app baixa sob demanda: a primeira tela só traz `top.json` (~84 KB); cada console chega quando é escolhido ou quando o usuário tem jogos marcados nele.
 
 ---
 

@@ -49,6 +49,19 @@ O número do runner também é um dado real: numa CPU lenta, como a de um Androi
 barato, o app trava a tela por quase 4 s processando os 57 mil jogos. É a
 prioridade número um da Fase 2.
 
+### Catraca apertada na Fase 1 (2026-10-02)
+
+Catálogo 2,5x maior (145 mil jogos) e, mesmo assim, melhor: a primeira tela
+baixa só os mais populares (`top.json`, ~84 KB) e cada console sob demanda.
+
+| Página | Perf | A11y | LCP | TBT | CLS | Bytes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/` | 94 | 100 | 2,7 s | 160–180 ms | 0 | 1,1 MB |
+| `/?console=snes` | 95 | 100 | 2,7 s | 120–130 ms | 0 | 1,7 MB |
+
+Novos limites: bytes ≤ 2,0 MB (erro); nota ≥ 0,85 e TBT ≤ 400 ms (aviso, com
+folga para o runner).
+
 ### Metas (Fase 2)
 
 | Métrica | Meta |
