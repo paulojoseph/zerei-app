@@ -2,7 +2,8 @@
   "name": "zerei-app",
   "version": "1.0.0",
   "private": true,
-  "description": "Zerei.app — catalogue, busque e marque os jogos que voce zerou na vida.",
+  "description": "Zerei.app — catalog, search and mark every game you've ever beaten.",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
