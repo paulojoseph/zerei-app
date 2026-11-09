@@ -1,49 +1,50 @@
-# ADR 0001 — Hospedagem em Cloudflare Workers com OpenNext
+# ADR 0001 — Hosting on Cloudflare Workers with OpenNext
 
-- **Status:** aceito
-- **Data:** 2026-10-02
+- **Status:** accepted
+- **Date:** 2026-10-02
 
-## Contexto
+## Context
 
-O Zerei precisa de uma página real (HTML indexável) para cada jogo — dezenas de
-milhares hoje, centenas de milhares com a IGDB — e, nas próximas fases, de
-servidor para contas, imagens de compartilhamento (OG) e a busca com IA. O
-projeto é gratuito e não comercial, então o custo precisa ficar em US$ 0, com
-no máximo US$ 5/mês de seguro para picos.
+Zerei needs a real page (indexable HTML) for each game, tens of thousands
+today and hundreds of thousands with IGDB, and in the next phases a server for
+accounts, share images (OG) and AI search. The project is free and
+non-commercial, so the cost has to stay at US$0, with at most US$5/month as
+insurance for traffic spikes.
 
-Opções avaliadas:
+Options considered:
 
-1. **Cloudflare Pages com export estático.** Limite de 20 mil arquivos por
-   deploy: não cabe uma página por jogo. Sem servidor para OG, contas e IA.
-2. **Vercel.** Integração nativa, mas o plano gratuito limita banda (100 GB/mês),
-   arriscado para um site de imagens com tráfego viral.
-3. **Cloudflare Workers com o adaptador OpenNext.** Páginas geradas sob demanda
-   na borda e cacheadas; assets estáticos servidos pelo CDN; mesmo código roda
-   na Vercel e na AWS (OpenNext/SST).
+1. **Cloudflare Pages with static export.** 20k file limit per deploy, so one
+   page per game doesn't fit. No server for OG, accounts or AI.
+2. **Vercel.** Native integration, but the free plan caps bandwidth
+   (100GB/month), which is risky for an image-heavy site with viral traffic.
+3. **Cloudflare Workers with the OpenNext adapter.** Pages rendered on demand
+   at the edge and cached; static assets served by the CDN; the same code runs
+   on Vercel and AWS (OpenNext/SST).
 
-## Decisão
+## Decision
 
-Opção 3. Teste de viabilidade feito em 2026-10-02 com Next 16.3.8,
-`@opennextjs/cloudflare` 1.20.7 e `wrangler` 4.146.0, rodando localmente no
+Option 3. Feasibility test run on 2026-10-02 with Next 16.3.8,
+`@opennextjs/cloudflare` 1.20.7 and `wrangler` 4.146.0, running locally on
 `workerd`:
 
-| Verificação | Resultado |
+| Check | Result |
 | --- | --- |
-| `opennextjs-cloudflare build` | ok, 12,5 s |
-| `GET /` (estático) | 200, 46 ms |
-| `GET /api/igdb/search` (rota dinâmica) | 200, 41 ms |
-| `GET /catalog/*.json` (asset) | 200, 4 ms |
-| `GET /_next/image` local e remoto | 200 |
-| Tamanho do Worker | 4,9 MB / **1,05 MB gzip** (limite gratuito: 3 MB) |
+| `opennextjs-cloudflare build` | ok, 12.5s |
+| `GET /` (static) | 200, 46ms |
+| `GET /api/igdb/search` (dynamic route) | 200, 41ms |
+| `GET /catalog/*.json` (asset) | 200, 4ms |
+| `GET /_next/image` local and remote | 200 |
+| Worker size | 4.9MB / **1.05MB gzip** (free limit: 3MB) |
 
-O adaptador exige `next >= 16.3.6`, por isso o Next subiu de 16.3.3 para 16.3.8.
+The adapter requires `next >= 16.3.6`, so Next went from 16.3.3 to 16.3.8.
 
-## Consequências
+## Consequences
 
-- `npm run preview` builda e roda o Worker localmente; `npm run deploy` publica.
-- O cache incremental (ISR) em R2 fica comentado em `open-next.config.ts` até a
-  conta Cloudflare existir.
-- Risco: o adaptador pode atrasar em relação a recursos novos do Next. Mitigação:
-  versões fixadas e o build do OpenNext rodando no CI a cada PR.
-- Plano B, se o adaptador travar uma atualização: export estático das páginas
-  principais + um Worker separado para API, OG e páginas de jogo.
+- `npm run preview` builds and runs the Worker locally; `npm run deploy`
+  publishes it.
+- The incremental cache (ISR) on R2 stays commented out in
+  `open-next.config.ts` until the Cloudflare account exists.
+- Risk: the adapter may lag behind new Next features. Mitigation: pinned
+  versions and the OpenNext build running in CI on every PR.
+- Plan B, if the adapter blocks an upgrade: static export of the main pages
+  plus a separate Worker for the API, OG and game pages.

@@ -1,32 +1,33 @@
 # Roadmap
 
-Ordem definida pela prioridade do produto: **encontrar e marcar rápido** os
-jogos zerados vem antes de tudo; o painel de gráficos vem logo depois.
+Order set by product priority: **finding and marking beaten games fast** comes
+before anything else; the charts panel comes right after.
 
-## Fase 0 — Fundação ✅ (PR #1)
+## Phase 0 — Foundation ✅ (PR #1)
 
-Hospedagem em Workers + OpenNext, clique em "Zerei!" de 164 ms para 0,04 ms,
-IDs estáveis, testes, cabeçalhos de segurança, CI com orçamento de performance.
+Hosting on Workers + OpenNext, "Beat it!" click from 164ms down to 0.04ms,
+stable IDs, tests, security headers, CI with a performance budget.
 
-## Fase 1 — Dados ✅ (PR #2)
+## Phase 1 — Data ✅ (PR #2)
 
-145 mil jogos da IGDB no modelo de Edição, popularidade, relançamentos fora,
-carregamento sob demanda.
+145k IGDB games in the Edition model, popularity, re-releases left out,
+on-demand loading.
 
-## Fase 2 — MVP (em andamento)
+## Phase 2 — MVP (in progress)
 
-| Marco | Entrega | Por quê |
+| Milestone | Deliverable | Why |
 | --- | --- | --- |
-| **M1 — Marcar rápido** | Onboarding "quais consoles você teve?", filtro "Meus consoles", atalhos de teclado (setas + Z/J/Q/N), seleção múltipla com barra de ações | Registrar 200 jogos na primeira visita é o momento de ativação |
-| **M2 — Painel** | Gráficos de zerados por gênero, console, geração e década; linha do tempo da vida gamer | Pedido central do produto; os gêneros já existem desde a Fase 1 |
-| **M3 — Compartilhar** | Card "Gamer DNA" (imagem para stories e prévia de link), rótulos com humor brasileiro, botões de compartilhamento | Motor de viralização |
-| **M4 — Página do jogo** | URL própria por jogo e por console, renderizada na borda; jogos similares; compartilhar "zerei este jogo" | SEO e links compartilháveis |
-| **M5 — Escala** | Índice de busca em Web Worker, grade virtualizada, página pública `/status` com métricas reais (RUM) | LCP ≤ 1,8 s e INP ≤ 100 ms no Android intermediário |
+| **M1 — Mark fast** | "Which consoles did you own?" onboarding, "My consoles" filter, keyboard shortcuts (arrows + B/P/W/N), multi-select with an action bar | Logging 200 games on the first visit is the activation moment |
+| **M2 — Panel** | Charts of beaten games by genre, console, generation and decade; a gaming life timeline | Core product request; genres exist since Phase 1 |
+| **M3 — Share** | "Gamer DNA" card (image for stories and link previews), labels with Brazilian humor, share buttons | Growth engine |
+| **M4 — Game page** | Own URL per game and per console, rendered at the edge; similar games; share "I beat this game" | SEO and shareable links |
+| **M5 — Scale** | Search index in a Web Worker, virtualized grid, public `/status` page with real metrics (RUM) | LCP ≤1.8s and INP ≤100ms on a mid-range Android |
+| **M6 — Localization** | Brazilian Portuguese locale (pt-BR) alongside English, with locale-aware genre names and summaries | The core audience is Brazilian; the UI moved to English first so the codebase is shared in one language |
 
-## Fase 3 — Crescimento
+## Phase 3 — Growth
 
-Contas e sincronização (login Google, sem senha), perfis públicos, comparar
-com um amigo, importação da Steam e do RetroAchievements (como sugestões que o
-usuário confirma), comunidade em degraus (primeiro sem texto livre, depois
-clubes com moderação), recomendador "quem zerou X também zerou Y", recordes de
-speedrun (speedrun.com) e a IA para achar o jogo perdido da infância.
+Accounts and sync (Google login, no password), public profiles, compare with a
+friend, Steam and RetroAchievements import (as suggestions the user confirms),
+a community in steps (first without free text, then moderated clubs), a "who
+beat X also beat Y" recommender, speedrun records (speedrun.com) and AI to find
+that lost childhood game.

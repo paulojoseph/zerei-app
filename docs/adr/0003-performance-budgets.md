@@ -1,83 +1,84 @@
-# ADR 0003 — Orçamentos de performance com catraca no CI
+# ADR 0003 — Performance budgets with a CI ratchet
 
-- **Status:** aceito
-- **Data:** 2026-10-02
+- **Status:** accepted
+- **Date:** 2026-10-02
 
-## Contexto
+## Context
 
-Velocidade é o produto: o Zerei precisa parecer instantâneo num Android
-intermediário em 4G, que é o aparelho típico do público no Brasil. Orçamento que
-não reprova build vira decoração.
+Speed is the product: Zerei has to feel instant on a mid-range Android phone on
+4G, which is the typical device of its audience in Brazil. A budget that never
+fails a build is just decoration.
 
-## Decisão
+## Decision
 
-Três travas no CI (`.github/workflows/ci.yml`):
+Three guards in CI (`.github/workflows/ci.yml`):
 
-1. **Teste de desempenho do clique em "Zerei!"** (`lib/games.perf.test.ts`), com
-   o catálogo completo: ≤ 10 ms na máquina de CI (≈ 50 ms num Android
-   intermediário) e lista idêntica à do caminho completo.
-2. **Tamanho do Worker** ≤ 3 MB gzip (limite do plano gratuito da Cloudflare).
-3. **Lighthouse CI** (`lighthouserc.json`, perfil móvel, mediana de 3 execuções).
+1. **Performance test for the "Beat it!" click** (`lib/games.perf.test.ts`),
+   with the full catalog: ≤10ms on the CI machine (≈50ms on a mid-range
+   Android) and a list identical to the full code path.
+2. **Worker size** ≤3MB gzip (Cloudflare free plan limit).
+3. **Lighthouse CI** (`lighthouserc.json`, mobile profile, median of 3 runs).
 
-### Catraca
+### Ratchet
 
-Os limites do Lighthouse partem da linha de base medida e só sobem: nenhum PR
-pode piorar, e cada melhoria aperta o limite no mesmo PR.
+Lighthouse limits start from the measured baseline and only move up: no PR can
+make things worse, and every improvement tightens the limit in the same PR.
 
-Linha de base (2026-10-02, build de produção, perfil móvel do Lighthouse 12):
+Baseline (2026-10-02, production build, Lighthouse 12 mobile profile):
 
-| Página | Perf | A11y | Boas práticas | SEO | FCP | LCP | TBT | CLS | Bytes |
+| Page | Perf | A11y | Best practices | SEO | FCP | LCP | TBT | CLS | Bytes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `/` | 78 | 100 | 100 | 100 | 0,8 s | 2,6 s | 800 ms | 0 | 2,5 MB |
-| `/?console=snes` | 88 | 100 | 100 | 100 | 0,8 s | 2,5 s | 400 ms | 0 | 2,5 MB |
+| `/` | 78 | 100 | 100 | 100 | 0.8s | 2.6s | 800ms | 0 | 2.5MB |
+| `/?console=snes` | 88 | 100 | 100 | 100 | 0.8s | 2.5s | 400ms | 0 | 2.5MB |
 
-### Erro ou aviso
+### Error or warning
 
-O primeiro run no GitHub (PR #1) mostrou que o runner é ~2–4x mais lento que a
-máquina de desenvolvimento e **muito instável**: a mesma página teve nota 0,44,
-0,66 e 0,68 em três execuções seguidas, com LCP de até 12,9 s e TBT de 3,9 s.
-Trava que passa ou falha por sorte ensina o time a ignorá-la. Então:
+The first GitHub run (PR #1) showed the runner is about 2 to 4 times slower
+than the dev machine and **very unstable**: the same page scored 0.44, 0.66
+and 0.68 in three runs in a row, with LCP up to 12.9s and TBT of 3.9s. A guard
+that passes or fails by luck teaches the team to ignore it. So:
 
-- **Erro (determinístico):** acessibilidade = 100, boas práticas ≥ 95, SEO ≥ 95,
-  CLS ≤ 0,02 e bytes transferidos ≤ 2,7 MB.
-- **Aviso (depende da CPU do runner):** nota de performance, LCP e TBT.
+- **Error (deterministic):** accessibility = 100, best practices ≥95,
+  SEO ≥95, CLS ≤0.02 and transferred bytes ≤2.7MB.
+- **Warning (depends on the runner CPU):** performance score, LCP and TBT.
 
-Os avisos voltam a ser erro quando a Fase 2 tirar o processamento do catálogo
-da thread principal; sem esse trabalho de CPU, a variação do runner cai.
+The warnings go back to errors once Phase 2 moves catalog processing off the
+main thread. Without that CPU work, the runner's variance drops.
 
-O número do runner também é um dado real: numa CPU lenta, como a de um Android
-barato, o app trava a tela por quase 4 s processando os 57 mil jogos. É a
-prioridade número um da Fase 2.
+The runner number is also real data. On a slow CPU, like a cheap Android
+phone's, the app freezes the screen for almost 4s processing the 57k games.
+That's the top priority of Phase 2.
 
-### Catraca apertada na Fase 1 (2026-10-02)
+### Ratchet tightened in Phase 1 (2026-10-02)
 
-Catálogo 2,5x maior (145 mil jogos) e, mesmo assim, melhor: a primeira tela
-baixa só os mais populares (`top.json`, ~84 KB) e cada console sob demanda.
+The catalog is 2.5 times bigger (145k games) and still faster, because the
+first screen only downloads the most popular games (`top.json`, ~84KB) and
+each console loads on demand.
 
-| Página | Perf | A11y | LCP | TBT | CLS | Bytes |
+| Page | Perf | A11y | LCP | TBT | CLS | Bytes |
 | --- | --- | --- | --- | --- | --- | --- |
-| `/` | 94 | 100 | 2,7 s | 160–180 ms | 0 | 1,1 MB |
-| `/?console=snes` | 95 | 100 | 2,7 s | 120–130 ms | 0 | 1,7 MB |
+| `/` | 94 | 100 | 2.7s | 160–180ms | 0 | 1.1MB |
+| `/?console=snes` | 95 | 100 | 2.7s | 120–130ms | 0 | 1.7MB |
 
-Novos limites: bytes ≤ 2,0 MB (erro); nota ≥ 0,85 e TBT ≤ 400 ms (aviso, com
-folga para o runner).
+New limits: bytes ≤2.0MB (error); score ≥0.85 and TBT ≤400ms (warning, with
+room for the runner).
 
-### Metas (Fase 2)
+### Targets (Phase 2)
 
-| Métrica | Meta |
+| Metric | Target |
 | --- | --- |
-| LCP (p75 de campo, móvel) | ≤ 1,8 s |
-| INP (p75) / clique em "Zerei!" | ≤ 100 ms / ≤ 50 ms |
-| CLS | ≤ 0,02 |
-| JS inicial | ≤ 110 KB br |
-| Primeira carga de uma página de console | ≤ 300 KB e ≤ 25 requisições |
+| LCP (field p75, mobile) | ≤1.8s |
+| INP (p75) / "Beat it!" click | ≤100ms / ≤50ms |
+| CLS | ≤0.02 |
+| Initial JS | ≤110KB br |
+| First load of a console page | ≤300KB and ≤25 requests |
 
-O que separa a linha de base das metas é conhecido: o app baixa e processa os
-57 mil jogos (2,5 MB) na thread principal. A Fase 2 resolve com catálogo
-fatiado por console, Web Worker para busca e grade virtualizada.
+What separates the baseline from the targets is known: the app downloads and
+processes the 57k games (2.5MB) on the main thread. Phase 2 fixes that with a
+per-console catalog, a Web Worker for search and a virtualized grid.
 
-## Consequências
+## Consequences
 
-- Regressão de performance aparece no PR, com relatório do Lighthouse.
-- A página pública `/status` (Fase 2) vai mostrar os números de campo (RUM)
-  ao lado destes, de laboratório.
+- Performance regressions show up in the PR, with a Lighthouse report.
+- The public `/status` page (Phase 2) will show field numbers (RUM) next to
+  these lab numbers.

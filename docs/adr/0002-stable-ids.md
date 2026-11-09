@@ -1,38 +1,37 @@
-# ADR 0002 — IDs estáveis para os jogos
+# ADR 0002 — Stable game IDs
 
-- **Status:** aceito
-- **Data:** 2026-10-02
+- **Status:** accepted
+- **Date:** 2026-10-02
 
-## Contexto
+## Context
 
-O progresso do usuário ("zerei", nota, anotações) é guardado por ID de jogo.
-Até aqui o ID era derivado do título (`snes--chrono-trigger`): qualquer
-correção de título na fonte, troca de fonte (libretro/Wikidata → IGDB) ou
-fusão de duplicatas regionais mudaria o ID e deixaria o progresso órfão, sem
-erro nenhum — o jogo só "desmarcaria" sozinho.
+User progress ("beaten", score, notes) is stored by game ID. Until now the ID
+was derived from the title (`snes--chrono-trigger`): any title fix at the
+source, a source switch (libretro/Wikidata → IGDB) or a merge of regional
+duplicates would change the ID and orphan the progress with no error at all.
+The game would just "unmark" itself.
 
-## Decisão
+## Decision
 
-1. **O ID é cunhado uma vez e nunca recalculado.** `data/id-map.json` guarda,
-   por console, `chave de origem → ID`. Chaves de origem: `lr:<título
-   normalizado>` (libretro) e `wd:<item do Wikidata>` (moderno); na Fase 1
-   entram as chaves da IGDB.
-2. **IDs já publicados foram adotados como estão** (57.579 de 57.579
-   preservados na migração). Jogos novos recebem `g_` + 8 caracteres
-   aleatórios, sem significado.
-3. **A trava:** o build do catálogo falha se um ID que já esteve no `id-map`
-   não aparecer na saída nem tiver alias em `data/id-aliases.json`
-   (`idAntigo → idNovo`). A publicação é atômica: bloqueado, nada é gravado.
-   `--allow-removals` existe para remoções conscientes.
-4. **O app reaponta o progresso pelos aliases** (`lib/aliases.ts`) em toda
-   leitura do LocalStorage e em toda importação de backup. Em fusões, vence o
-   registro mais recente.
+1. **The ID is minted once and never recomputed.** `data/id-map.json` stores,
+   per console, `source key → ID`. Source keys: `lr:<normalized title>`
+   (libretro) and `wd:<Wikidata item>` (modern); Phase 1 adds the IGDB keys.
+2. **IDs already published were adopted as they are** (57,579 of 57,579 kept
+   in the migration). New games get `g_` plus 8 random characters with no
+   meaning.
+3. **The guard:** the catalog build fails if an ID that was ever in `id-map`
+   doesn't show up in the output and has no alias in `data/id-aliases.json`
+   (`oldId → newId`). Publishing is atomic: when blocked, nothing is written.
+   `--allow-removals` exists for deliberate removals.
+4. **The app repoints progress through the aliases** (`lib/aliases.ts`) on
+   every LocalStorage read and every backup import. On merges, the most recent
+   record wins.
 
-## Consequências
+## Consequences
 
-- Fusões de duplicatas (Rockman 2 → Mega Man 2) viram uma linha em
-  `id-aliases.json`, sem perda para ninguém.
-- `data/id-map.json` cresce para sempre (3,4 MB hoje, texto com uma chave por
-  linha — diffs legíveis no PR). Não vai para o navegador.
-- O modelo Obra/Edição/Lançamento da Fase 1 parte daqui: o ID estável é o da
-  **Edição** (jogo × plataforma), que é onde o usuário marca "zerei".
+- Merging duplicates (Rockman 2 → Mega Man 2) becomes one line in
+  `id-aliases.json`, with no loss for anyone.
+- `data/id-map.json` grows forever (3.4MB now, text with one key per line, so
+  diffs stay readable in the PR). It never ships to the browser.
+- The Phase 1 Work/Edition/Release model starts here: the stable ID belongs to
+  the **Edition** (game × platform), which is where the user marks "beaten".
