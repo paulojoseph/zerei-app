@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Zerei.app — baixa as capas remotas para `public/covers/`.
+ * Zerei.app — downloads remote covers to `public/covers/`.
  *
- * O otimizador do next/image busca dezenas de capas em paralelo no
- * upload.wikimedia.org e toma 429 (rate limit). Servindo as capas localmente,
- * o app não depende mais da Wikimedia em runtime.
+ * The next/image optimizer fetches dozens of covers in parallel from
+ * upload.wikimedia.org and gets 429s (rate limit). Serving covers locally,
+ * the app no longer depends on Wikimedia at runtime.
  *
- * Para cada jogo de `data/seed-games.json` com `coverUrl` remota, baixa a
- * imagem (devagar e com User-Agent identificado, como pede a política da
- * Wikimedia) e reescreve o campo para `/covers/<id>.<ext>`.
+ * For each game in `data/seed-games.json` with a remote `coverUrl`, downloads the
+ * image (slowly and with an identified User-Agent, as Wikimedia's policy asks)
+ * and rewrites the field to `/covers/<id>.<ext>`.
  *
  *   node scripts/download-covers.mjs
  */
@@ -20,7 +20,7 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const SEED = path.join(ROOT, 'data/seed-games.json');
 const OUT_DIR = path.join(ROOT, 'public/covers');
 
-const UA = 'zerei.app/1.0 (aplicativo pessoal de catalogo de jogos; contato via repositorio local)';
+const UA = 'zerei.app/1.0 (personal game catalog app; contact via local repository)';
 const DELAY_MS = 700;
 const MAX_RETRIES = 6;
 
@@ -31,7 +31,7 @@ const EXT_BY_TYPE = {
   'image/gif': 'gif',
 };
 
-/** GET com retry exponencial para o 429 da Wikimedia. */
+/** GET with exponential retry for Wikimedia's 429. */
 async function download(url) {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
     let res;
@@ -84,7 +84,7 @@ for (const game of games) {
 await writeFile(SEED, `${JSON.stringify(games, null, 2)}\n`, 'utf8');
 
 console.log('\n─────────────────────────────────────────────');
-console.log(`capas baixadas agora   : ${saved}`);
-console.log(`já locais / sem capa   : ${skipped}`);
+console.log(`covers downloaded now  : ${saved}`);
+console.log(`already local / none   : ${skipped}`);
 console.log(`falhas (URL mantida)   : ${failures.length}`);
 for (const f of failures) console.log(`  - ${f}`);

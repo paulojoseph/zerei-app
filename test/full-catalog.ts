@@ -6,7 +6,7 @@ import { CATALOG_COUNTS, CONSOLES } from '@/lib/consoles';
 import { SEED_GAMES } from '@/lib/games';
 import type { Game } from '@/types/game';
 
-/** O catálogo inteiro (seed + public/catalog), montado exatamente como o app monta. */
+/** The whole catalog (seed + public/catalog), built exactly the way the app builds it. */
 export function loadFullCatalog(): Game[] {
   const dir = path.join(process.cwd(), 'public/catalog');
   const meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8')) as CatalogMeta;

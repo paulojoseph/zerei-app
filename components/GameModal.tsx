@@ -12,22 +12,22 @@ import { cn, currentYear, formatDate, timeAgo } from '@/lib/utils';
 import { useAllGames, useGameProgress, useGameStore } from '@/stores/useGameStore';
 import type { Game, GameStatus } from '@/types/game';
 
-/** Pong é de 1972 — antes disso não tem o que zerar. */
+/** Pong is from 1972, so before that there's nothing to beat. */
 const MIN_YEAR = 1972;
 const NOTES_MAX = 2000;
-/** Duração da micro-celebração e do selo "Salvo". */
+/** Duration of the micro-celebration and the "Saved" badge. */
 const CELEBRATION_MS = 1100;
 const SAVED_MS = 2000;
 
 const RATING_HINT: Record<number, string> = {
-  1: 'Não curti',
+  1: "Didn't like it",
   2: 'Ok',
-  3: 'Bom',
-  4: 'Ótimo',
-  5: 'Inesquecível',
+  3: 'Good',
+  4: 'Great',
+  5: 'Unforgettable',
 };
 
-/** Anel + brilho na cor do status/geração (cores vêm em hex, não em classe). */
+/** Ring + glow in the status/generation color (colors come as hex, not classes). */
 function accentRing(color: string): CSSProperties {
   return {
     boxShadow: `0 0 0 1px color-mix(in oklab, ${color} 60%, transparent), 0 0 22px -10px ${color}`,
@@ -51,7 +51,7 @@ export function GameModal() {
 
   return (
     <Modal open={!!game} onClose={closeGame} labelledBy="game-modal-title" className="sm:max-w-3xl">
-      {/* `key` remonta o conteúdo a cada jogo: os rascunhos locais recarregam sozinhos. */}
+      {/* `key` remounts the content for each game: local drafts reload on their own. */}
       {game ? <GameModalContent key={game.id} game={game} /> : null}
     </Modal>
   );
@@ -66,7 +66,7 @@ function GameModalContent({ game }: { game: Game }) {
   const pushToast = useGameStore((s) => s.pushToast);
   const removeCustomGame = useGameStore((s) => s.removeCustomGame);
 
-  // `new Date()` só no cliente e uma única vez — nada de HTML instável.
+  // `new Date()` only on the client and only once, so no unstable HTML.
   const maxYear = useMemo(() => currentYear(), []);
 
   const meta = categoryMeta(game.category);
@@ -80,7 +80,7 @@ function GameModalContent({ game }: { game: Game }) {
   const [celebrating, setCelebrating] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
 
-  /** Último texto de ano já processado — evita gravar/avisar duas vezes (Enter + blur). */
+  /** Last year text already processed, so we don't save/notify twice (Enter + blur). */
   const lastYearCommit = useRef(yearDraft);
   const celebrationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,10 +94,10 @@ function GameModalContent({ game }: { game: Game }) {
   );
 
   /**
-   * Fechar no Escape desmonta o campo que ainda estava focado, e o navegador não
-   * dispara `blur` em elemento removido do DOM — sem este flush o ano e a memória
-   * afetiva recém-digitados sumiriam calados. O ref é atualizado a cada render
-   * (efeito sem deps) para o cleanup enxergar sempre o rascunho mais novo.
+   * Closing on Escape unmounts the field that was still focused, and the browser
+   * doesn't fire `blur` on an element removed from the DOM. Without this flush, a
+   * freshly typed year and memory would vanish silently. The ref updates on every
+   * render (effect with no deps) so the cleanup always sees the newest draft.
    */
   const flushDrafts = useRef<() => void>(undefined);
   useEffect(() => {
@@ -115,18 +115,18 @@ function GameModalContent({ game }: { game: Game }) {
     setGameStatus(game.id, next);
 
     if (next === 'beaten') {
-      pushToast('Zerado! Mais um pra conta.');
+      pushToast('Beaten! One more for the count.');
       if (celebrationTimer.current) clearTimeout(celebrationTimer.current);
       setCelebrating(true);
       celebrationTimer.current = setTimeout(() => setCelebrating(false), CELEBRATION_MS);
     }
   }
 
-  /* ------------------------------------------------------------------- ano */
+  /* ------------------------------------------------------------------ year */
 
   /**
-   * A store mescla `undefined` como "mantém o valor atual", então apagar o ano
-   * exige derrubar o registro e regravar o resto do progresso sem ele.
+   * The store merges `undefined` as "keep the current value", so clearing the year
+   * means dropping the record and writing back the rest of the progress without it.
    */
   function clearCompletedYear() {
     if (!progress || progress.completedYear === undefined) return;
@@ -150,8 +150,8 @@ function GameModalContent({ game }: { game: Game }) {
 
     const parsed = Number.parseInt(raw, 10);
     if (!Number.isFinite(parsed) || parsed < MIN_YEAR || parsed > maxYear) {
-      pushToast(`Informe um ano entre ${MIN_YEAR} e ${maxYear}.`, 'error');
-      return; // fora da faixa não grava — o texto fica lá pro usuário corrigir
+      pushToast(`Enter a year between ${MIN_YEAR} and ${maxYear}.`, 'error');
+      return; // out of range doesn't save; the text stays there for the user to fix
     }
 
     const completedYear = parsed;
@@ -165,9 +165,9 @@ function GameModalContent({ game }: { game: Game }) {
     updateProgress(game.id, { completedYear: maxYear });
   }
 
-  /* ---------------------------------------------------------------- notas */
+  /* ----------------------------------------------------------------- notes */
 
-  /** Grava as notas se mudaram. Devolve `true` quando houve escrita. */
+  /** Saves the notes if they changed. Returns `true` when something was written. */
   function persistNotes(): boolean {
     const notes = notesDraft.trim();
     if (notes === storedNotes) return false;
@@ -183,15 +183,15 @@ function GameModalContent({ game }: { game: Game }) {
     savedTimer.current = setTimeout(() => setNotesSaved(false), SAVED_MS);
   }
 
-  /** Jogo que veio da busca online pode sair do catálogo — senão a adição é via de mão única. */
+  /** A game from online search can leave the catalog; otherwise adding is a one-way street. */
   function handleRemoveCustom() {
     clearProgress(game.id);
     removeCustomGame(game.id);
     closeGame();
-    pushToast(`${game.title} saiu do seu catálogo.`, 'info');
+    pushToast(`${game.title} left your catalog.`, 'info');
   }
 
-  /* ---------------------------------------------------------------- limpar */
+  /* ----------------------------------------------------------------- clear */
 
   function handleClear() {
     clearProgress(game.id);
@@ -199,17 +199,17 @@ function GameModalContent({ game }: { game: Game }) {
     setNotesDraft('');
     lastYearCommit.current = '';
     setNotesSaved(false);
-    pushToast('Registro apagado. Esse jogo voltou pra estaca zero.', 'info');
+    pushToast('Record deleted. This game is back to square one.', 'info');
   }
 
-  // O campo de ano vive junto do "Zerei!", mas nunca esconde um ano já gravado.
+  // The year field lives next to "Beat it!", but never hides a year already saved.
   const showYear = status === 'beaten' || storedYear !== undefined;
 
   return (
     <div className="flex flex-col">
-      {/* Fechar sempre ao alcance, mesmo com o painel rolado. */}
+      {/* Close always within reach, even with the panel scrolled. */}
       <div className="sticky top-0 z-20 flex justify-end bg-panel/95 px-3 py-2 backdrop-blur-sm sm:px-4 sm:py-3">
-        <Button variant="ghost" size="icon" aria-label="Fechar" onClick={closeGame}>
+        <Button variant="ghost" size="icon" aria-label="Close" onClick={closeGame}>
           <X aria-hidden className="size-5" />
         </Button>
       </div>
@@ -247,10 +247,10 @@ function GameModalContent({ game }: { game: Game }) {
             {game.isBrazilClassic && (
               <span
                 className="inline-flex items-center gap-1 rounded-md border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-gold uppercase"
-                title="Marcou época nas locadoras e fliperamas do Brasil"
+                title="A landmark of Brazilian rental stores and arcades"
               >
                 <Flame aria-hidden className="size-3" />
-                Clássico BR
+                BR Classic
               </span>
             )}
           </div>
@@ -263,7 +263,7 @@ function GameModalContent({ game }: { game: Game }) {
 
       {/* ------------------------------------------------------------ status */}
       <section className={cn(SECTION, 'relative')}>
-        <h3 className={SECTION_TITLE}>Situação</h3>
+        <h3 className={SECTION_TITLE}>Status</h3>
 
         {celebrating && (
           <span
@@ -279,7 +279,7 @@ function GameModalContent({ game }: { game: Game }) {
 
         <div
           role="radiogroup"
-          aria-label="Situação do jogo"
+          aria-label="Game status"
           className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4"
         >
           {STATUS_ORDER.map((option) => {
@@ -309,7 +309,7 @@ function GameModalContent({ game }: { game: Game }) {
         </div>
       </section>
 
-      {/* --------------------------------------------------------------- ano */}
+      {/* ------------------------------------------------------------------ year */}
       <div
         aria-hidden={!showYear}
         className={cn(
@@ -320,7 +320,7 @@ function GameModalContent({ game }: { game: Game }) {
         <div className="min-h-0 overflow-hidden">
           <section className={SECTION}>
             <label htmlFor="zerei-completed-year" className={SECTION_TITLE}>
-              Em que ano você zerou?
+              What year did you beat it?
             </label>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <input
@@ -330,7 +330,7 @@ function GameModalContent({ game }: { game: Game }) {
                 min={MIN_YEAR}
                 max={maxYear}
                 step={1}
-                placeholder="Ex.: 1996"
+                placeholder="E.g. 1996"
                 disabled={!showYear}
                 value={yearDraft}
                 onChange={(event) => setYearDraft(event.target.value)}
@@ -349,19 +349,19 @@ function GameModalContent({ game }: { game: Game }) {
                 disabled={!showYear}
                 onClick={fillCurrentYear}
               >
-                Este ano
+                This year
               </Button>
             </div>
             <p className="mt-2 text-xs text-ink-dim">
-              Não lembra a data exata? Chute honesto vale — é a sua linha do tempo.
+              Don&apos;t remember the exact date? An honest guess is fine, it&apos;s your timeline.
             </p>
           </section>
         </div>
       </div>
 
-      {/* ---------------------------------------------------------- avaliação */}
+      {/* ---------------------------------------------------------------- rating */}
       <section className={SECTION}>
-        <h3 className={SECTION_TITLE}>Sua nota</h3>
+        <h3 className={SECTION_TITLE}>Your score</h3>
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
           <StarRating
             value={rating}
@@ -370,22 +370,22 @@ function GameModalContent({ game }: { game: Game }) {
             className="-ml-1"
           />
           <span className={cn('text-sm', rating > 0 ? 'text-ink' : 'text-ink-dim')}>
-            {rating > 0 ? RATING_HINT[rating] : 'Toque nas estrelas'}
+            {rating > 0 ? RATING_HINT[rating] : 'Tap the stars'}
           </span>
         </div>
       </section>
 
-      {/* ------------------------------------------------------------- notas */}
+      {/* ----------------------------------------------------------------- notes */}
       <section className={SECTION}>
         <div className="flex items-center justify-between gap-3">
           <label htmlFor="zerei-notes" className={SECTION_TITLE}>
-            Memórias afetivas / anotações
+            Memories / notes
           </label>
           <span role="status" aria-live="polite" className="text-xs text-neon">
             {notesSaved && (
               <span className="animate-fade-in inline-flex items-center gap-1">
                 <Check aria-hidden className="size-3.5" />
-                Salvo
+                Saved
               </span>
             )}
           </span>
@@ -395,7 +395,7 @@ function GameModalContent({ game }: { game: Game }) {
           id="zerei-notes"
           rows={4}
           maxLength={NOTES_MAX}
-          placeholder="Alugava na locadora de sexta a segunda..."
+          placeholder="Rented it at the video store from Friday to Monday..."
           value={notesDraft}
           onChange={(event) => setNotesDraft(event.target.value)}
           onBlur={commitNotes}
@@ -409,39 +409,39 @@ function GameModalContent({ game }: { game: Game }) {
         </p>
       </section>
 
-      {/* ------------------------------------------------------------ rodapé */}
+      {/* ---------------------------------------------------------------- footer */}
       {(progress || game.isCustom) && (
         <footer
           className={cn(
             SECTION,
-            // Um valor só: `.safe-bottom` fica na mesma cascade layer das utilities
-            // do Tailwind e é declarada depois, então venceria o `sm:pb-6`.
+            // A single value: `.safe-bottom` sits in the same cascade layer as Tailwind's
+            // utilities and is declared later, so it would beat `sm:pb-6`.
             'flex flex-wrap items-center justify-between gap-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-6',
           )}
         >
           {progress ? (
             <span className="inline-flex items-center gap-1.5 text-xs text-ink-dim">
               <Clock aria-hidden className="size-3.5" />
-              Atualizado{' '}
+              Updated{' '}
               <time dateTime={progress.updatedAt} title={formatDate(progress.updatedAt)}>
                 {timeAgo(progress.updatedAt)}
               </time>
             </span>
           ) : (
-            <span className="text-xs text-ink-dim">Adicionado por você pela busca online.</span>
+            <span className="text-xs text-ink-dim">Added by you through online search.</span>
           )}
 
           <div className="flex flex-wrap items-center gap-2">
             {game.isCustom && (
               <Button type="button" variant="outline" size="sm" onClick={handleRemoveCustom}>
                 <Trash2 aria-hidden className="size-4" />
-                Remover do catálogo
+                Remove from catalog
               </Button>
             )}
             {progress && (
               <Button type="button" variant="danger" size="sm" onClick={handleClear}>
                 <Trash2 aria-hidden className="size-4" />
-                Limpar registro
+                Clear record
               </Button>
             )}
           </div>

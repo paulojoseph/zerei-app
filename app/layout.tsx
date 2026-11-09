@@ -5,14 +5,14 @@ import { Inter, Press_Start_2P } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import './globals.css';
 
-/* Corpo de texto do app. A variável alimenta `--font-sans` no globals.css. */
+/* Body text font. The variable feeds `--font-sans` in globals.css. */
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 });
 
-/* Fonte pixel usada só em logo, badges e números de destaque (`font-display`). */
+/* Pixel font used only for the logo, badges and highlight numbers (`font-display`). */
 const pressStart = Press_Start_2P({
   weight: '400',
   subsets: ['latin'],
@@ -22,9 +22,9 @@ const pressStart = Press_Start_2P({
 
 const SITE_URL = 'https://zerei.app';
 const SITE_NAME = 'Zerei.app';
-const SITE_TITLE = 'Zerei.app — seu diário de jogos zerados';
+const SITE_TITLE = 'Zerei.app — your log of beaten games';
 const SITE_DESCRIPTION =
-  'Catalogue todos os jogos que você zerou na vida, do Master System da locadora ao PS5. Memórias afetivas, notas, estatísticas e muita nostalgia — funciona offline e guarda tudo no seu navegador.';
+  "Log every game you've ever beaten, from the rental store Master System to the PS5. Memories, scores, stats and plenty of nostalgia. Works offline and keeps everything in your browser.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -50,19 +50,19 @@ export const metadata: Metadata = {
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   keywords: [
-    'jogos zerados',
+    'beaten games',
     'zerei',
-    'diário de jogos',
-    'catálogo de jogos',
-    'retrô',
+    'game log',
+    'game catalog',
+    'retro',
     'retrogaming',
     'nostalgia',
     'Mega Drive',
     'Master System',
     'Super Nintendo',
     'Tec Toy',
-    'fliperama',
-    'locadora',
+    'arcade',
+    'rental store',
     'backlog',
     'PlayStation 2',
     'games',
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
-    locale: 'pt_BR',
+    locale: 'en_US',
     url: SITE_URL,
     siteName: SITE_NAME,
     title: SITE_TITLE,
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
         url: '/icons/icon-512.png',
         width: 512,
         height: 512,
-        alt: 'Zerei.app — check em pixel art sobre fundo escuro',
+        alt: 'Zerei.app — pixel art check mark on a dark background',
       },
     ],
   },
@@ -108,7 +108,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className={cn(inter.variable, pressStart.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn(inter.variable, pressStart.variable)} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );

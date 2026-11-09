@@ -14,12 +14,12 @@ import { MAKER_PREFIX, MINE_FILTER, consoleByName, makerOf } from '@/lib/console
 import { normalize } from '@/lib/utils';
 
 /* -------------------------------------------------------------------------- */
-/*  Base local                                                                 */
+/*  Local database                                                             */
 /* -------------------------------------------------------------------------- */
 
 const VALID_CATEGORIES = new Set<string>(CATEGORY_ORDER);
 
-/** Normaliza o JSON cru da seed em `Game[]` (descarta linhas inválidas). */
+/** Normalizes the raw seed JSON into `Game[]` (drops invalid rows). */
 function loadSeed(raw: unknown): Game[] {
   if (!Array.isArray(raw)) return [];
   const seen = new Set<string>();
@@ -40,7 +40,7 @@ function loadSeed(raw: unknown): Game[] {
       id,
       title,
       platform,
-      // A geração segue o console quando ele é conhecido (cores e estatísticas).
+      // The generation follows the console when it's known (colors and stats).
       category: consoleByName(platform)?.category ?? (category as PlatformCategory),
       releaseYear: typeof item.releaseYear === 'number' ? item.releaseYear : 0,
       coverUrl: typeof item.coverUrl === 'string' ? item.coverUrl : '',
@@ -56,12 +56,12 @@ function loadSeed(raw: unknown): Game[] {
 export const SEED_GAMES: Game[] = loadSeed(seedData);
 
 /* -------------------------------------------------------------------------- */
-/*  Busca                                                                      */
+/*  Search                                                                     */
 /* -------------------------------------------------------------------------- */
 
 const searchIndex = new Map<string, string>();
 
-/** Texto pesquisável: título + plataforma + apelidos + gêneros + ano. */
+/** Searchable text: title + platform + nicknames + genres + year. */
 export function searchTextOf(game: Game): string {
   const cached = searchIndex.get(game.id);
   if (cached) return cached;
@@ -72,7 +72,7 @@ export function searchTextOf(game: Game): string {
   return text;
 }
 
-/** Busca tolerante: todos os termos precisam aparecer (AND), sem acento/caixa. */
+/** Forgiving search: every term must appear (AND), ignoring accents and case. */
 export function matchesSearch(game: Game, query: string): boolean {
   const q = normalize(query);
   if (!q) return true;
@@ -90,7 +90,7 @@ export function statusOf(progress: Record<string, UserGameProgress>, gameId: str
 
 
 /* -------------------------------------------------------------------------- */
-/*  Filtro + ordenação                                                         */
+/*  Filter + sorting                                                           */
 /* -------------------------------------------------------------------------- */
 
 export interface FilterOptions {
@@ -104,11 +104,11 @@ export interface FilterOptions {
 }
 
 const SORT_LABEL: Record<SortMode, string> = {
-  recent: 'Atualizados primeiro',
-  title: 'Título (A–Z)',
-  'year-desc': 'Lançamento (novos)',
-  'year-asc': 'Lançamento (antigos)',
-  rating: 'Melhor nota',
+  recent: 'Recently updated',
+  title: 'Title (A–Z)',
+  'year-desc': 'Release (newest)',
+  'year-asc': 'Release (oldest)',
+  rating: 'Best score',
 };
 
 export const SORT_OPTIONS = (Object.keys(SORT_LABEL) as SortMode[]).map((id) => ({
@@ -118,12 +118,12 @@ export const SORT_OPTIONS = (Object.keys(SORT_LABEL) as SortMode[]).map((id) => 
 
 const CATEGORY_RANK = new Map(CATEGORY_ORDER.map((c, i) => [c, i]));
 
-const collator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
 
 /**
- * Posição de cada jogo na ordem alfabética, calculada uma vez por catálogo.
- * Com dezenas de milhares de jogos, comparar strings a cada clique em "Zerei!"
- * travaria a tela; comparar inteiros não.
+ * Position of each game in alphabetical order, computed once per catalog.
+ * With tens of thousands of games, comparing strings on every "Beat it!" click
+ * would freeze the screen; comparing integers doesn't.
  */
 const titleRankCache = new WeakMap<Game[], Map<string, number>>();
 
@@ -137,13 +137,13 @@ function titleRanks(games: Game[]): Map<string, number> {
 }
 
 export type SelectionOptions = Pick<FilterOptions, 'games' | 'search' | 'platform' | 'brazilOnly'> & {
-  /** Nomes de plataforma dos "Meus consoles" (filtro MINE_FILTER). */
+  /** Platform names of "My consoles" (MINE_FILTER). */
   mine?: ReadonlySet<string>;
 };
 
 /**
- * Recorte que NÃO depende do progresso do usuário (console, busca, preset).
- * Separado de propósito: marcar "Zerei!" não pode refazer este trabalho.
+ * The slice that does NOT depend on user progress (console, search, preset).
+ * Kept apart on purpose: marking "Beat it!" must not redo this work.
  */
 export function selectGames({ games, search, platform, brazilOnly, mine }: SelectionOptions): Game[] {
   const maker = platform.startsWith(MAKER_PREFIX) ? platform.slice(MAKER_PREFIX.length) : null;
@@ -161,8 +161,8 @@ export function selectGames({ games, search, platform, brazilOnly, mine }: Selec
 }
 
 /**
- * Ordena uma seleção (cópia nova). `games` é o catálogo inteiro, usado só para
- * o ranking alfabético em cache; `progress` alimenta "recentes" e "nota".
+ * Sorts a selection (new copy). `games` is the whole catalog, used only for
+ * the cached alphabetical ranking; `progress` feeds "recent" and "score".
  */
 export function sortGames(
   list: Game[],
@@ -173,7 +173,7 @@ export function sortGames(
   const result = [...list];
   const ranks = titleRanks(games);
   const byTitle = (a: Game, b: Game) => (ranks.get(a.id) ?? 0) - (ranks.get(b.id) ?? 0);
-  // Ano 0 = desconhecido: vai para o fim nas duas direções.
+  // Year 0 = unknown: goes to the end in both directions.
   const year = (g: Game, fallback: number) => g.releaseYear || fallback;
 
   switch (sort) {
@@ -195,8 +195,8 @@ export function sortGames(
         const ua = progress[a.id]?.updatedAt ?? '';
         const ub = progress[b.id]?.updatedAt ?? '';
         if (ua !== ub) return ub.localeCompare(ua);
-        // Curadoria (com resumo e capa revisada) antes do catálogo completo,
-        // e dentro do catálogo o popular antes do obscuro.
+        // Curated games (with summary and reviewed cover) before the full catalog,
+        // and inside the catalog, popular before obscure.
         if (!a.isCatalog !== !b.isCatalog) return a.isCatalog ? 1 : -1;
         const pa = a.popularity ?? 0;
         const pb = b.popularity ?? 0;
@@ -213,9 +213,9 @@ export function sortGames(
 }
 
 /**
- * Índices em cache por array (WeakMap: somem junto com o array). Com eles, o
- * custo dos passos que olham o progresso depende de quantos jogos o usuário
- * marcou (centenas), não do tamanho do catálogo (dezenas de milhares).
+ * Indexes cached per array (WeakMap: they go away with the array). With them,
+ * the steps that look at progress cost as much as the games the user marked
+ * (hundreds), not the size of the catalog (tens of thousands).
  */
 const positionCache = new WeakMap<Game[], Map<string, number>>();
 const idSetCache = new WeakMap<Game[], Set<string>>();
@@ -238,14 +238,14 @@ function idsOf(games: Game[]): Set<string> {
   return set;
 }
 
-/** Filtro de status: o único passo que olha o progresso ao vivo. Mantém a ordem de `list`. */
+/** Status filter: the only step that looks at live progress. Keeps the order of `list`. */
 export function filterByStatus(
   list: Game[],
   progress: Record<string, UserGameProgress>,
   status: StatusFilter,
 ): Game[] {
   if (status === 'all') return list;
-  // "Não joguei" é quase o catálogo inteiro: aqui não há atalho.
+  // "Not played" is almost the whole catalog, so there's no shortcut here.
   if (status === 'unplayed') return list.filter((game) => statusOf(progress, game.id) === 'unplayed');
 
   const positions = positionsOf(list);
@@ -260,8 +260,8 @@ export function filterByStatus(
 }
 
 /**
- * Quantos jogos do catálogo estão em cada status. Percorre só o progresso;
- * registros órfãos (jogo que saiu do catálogo) não entram na conta.
+ * How many catalog games are in each status. Walks only the progress;
+ * orphan records (a game that left the catalog) don't count.
  */
 export function countByStatus(
   games: Game[],
@@ -276,7 +276,7 @@ export function countByStatus(
   return counts;
 }
 
-/** Tudo de uma vez: seleção → ordenação → status. */
+/** Everything at once: selection → sorting → status. */
 export function filterGames({ games, progress, search, platform, status, brazilOnly, sort }: FilterOptions): Game[] {
   const selected = selectGames({ games, search, platform, brazilOnly });
   return filterByStatus(sortGames(selected, games, sort, progress), progress, status);

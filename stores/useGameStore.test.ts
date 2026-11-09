@@ -11,8 +11,8 @@ beforeEach(() => {
   useGameStore.setState({ progress: {}, selection: [], myConsoles: [] });
 });
 
-describe('marcação em lote', () => {
-  it('marca vários jogos numa atualização só', () => {
+describe('bulk marking', () => {
+  it('marks several games in a single update', () => {
     let updates = 0;
     const unsubscribe = useGameStore.subscribe(() => (updates += 1));
     expect(store().setManyStatus([a.id, b.id, c.id], 'beaten')).toBe(3);
@@ -21,22 +21,22 @@ describe('marcação em lote', () => {
     expect(Object.values(store().progress).map((p) => p.status)).toEqual(['beaten', 'beaten', 'beaten']);
   });
 
-  it('"Não joguei" em lote apaga só o que não tem nada para preservar', () => {
+  it('bulk "Not played" only removes what has nothing to keep', () => {
     store().setManyStatus([a.id, b.id], 'beaten');
-    store().updateProgress(a.id, { rating: 5, notes: 'zerei na locadora' });
+    store().updateProgress(a.id, { rating: 5, notes: 'beat it at the rental store' });
     store().setManyStatus([a.id, b.id], 'unplayed');
-    expect(store().progress[a.id]).toMatchObject({ status: 'unplayed', rating: 5, notes: 'zerei na locadora' });
+    expect(store().progress[a.id]).toMatchObject({ status: 'unplayed', rating: 5, notes: 'beat it at the rental store' });
     expect(store().progress[b.id]).toBeUndefined();
   });
 
-  it('não muda nada (nem dispara re-render) quando o status já é o pedido', () => {
+  it('changes nothing (and triggers no re-render) when the status is already the requested one', () => {
     store().setManyStatus([a.id], 'beaten');
     const before = store().progress;
     store().setManyStatus([a.id], 'beaten');
     expect(store().progress).toBe(before);
   });
 
-  it('seleção alterna e limpa', () => {
+  it('selection toggles and clears', () => {
     store().toggleSelected(a.id);
     store().toggleSelected(b.id);
     store().toggleSelected(a.id);
@@ -46,15 +46,15 @@ describe('marcação em lote', () => {
   });
 });
 
-describe('filtro "Meus consoles"', () => {
-  it('mostra só os jogos dos consoles escolhidos', () => {
+describe('"My consoles" filter', () => {
+  it('shows only games from the picked consoles', () => {
     const mine = new Set(['Master System', 'Mega Drive']);
     const list = selectGames({ games: SEED_GAMES, search: '', platform: MINE_FILTER, brazilOnly: false, mine });
     expect(list.length).toBeGreaterThan(0);
     expect(list.every((g) => mine.has(g.platform))).toBe(true);
   });
 
-  it('sem consoles escolhidos, não mostra nada (em vez de tudo)', () => {
+  it('with no consoles picked, shows nothing (instead of everything)', () => {
     expect(selectGames({ games: SEED_GAMES, search: '', platform: MINE_FILTER, brazilOnly: false, mine: new Set() })).toEqual([]);
   });
 });

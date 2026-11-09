@@ -14,20 +14,20 @@ import type { Game, GameStatus, UserGameProgress } from '@/types/game';
 export interface GameCardProps {
   game: Game;
   priority?: boolean;
-  /** Posição na grade (navegação por teclado). */
+  /** Position in the grid (keyboard navigation). */
   index?: number;
-  /** Só o card com foco entra na ordem do Tab (roving tabindex). */
+  /** Only the focused card enters the Tab order (roving tabindex). */
   focusable?: boolean;
   onFocusCard?: (index: number) => void;
 }
 
-/** Tempo de toque longo que seleciona o card no celular. */
+/** Long-press duration that selects the card on phones. */
 const LONG_PRESS_MS = 450;
 
-/** Sem progresso salvo o card cai no mesmo caminho de `statusOf` do resto do app. */
+/** With no saved progress, the card goes down the same `statusOf` path as the rest of the app. */
 const NO_PROGRESS: Record<string, UserGameProgress> = {};
 
-/** Borda/brilho por status — Tailwind não aceita classe montada em runtime. */
+/** Border/glow per status, since Tailwind doesn't accept classes built at runtime. */
 const CARD_STATUS_CLASS: Record<GameStatus, string> = {
   beaten: 'border-neon/70 glow-neon',
   playing: 'border-cyan/60',
@@ -55,7 +55,7 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
   const beaten = status === 'beaten';
   const accent = categoryMeta(game.category).color;
   const rating = progress?.rating ?? 0;
-  // O ano sobrevive à troca de status (o dado fica guardado), mas só faz sentido exibir em jogo zerado.
+  // The year survives status changes (the data stays stored), but it only makes sense to show it on beaten games.
   const completedYear = beaten ? progress?.completedYear : undefined;
 
   const closeMenu = useCallback((restoreFocus: boolean) => {
@@ -63,7 +63,7 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
     if (restoreFocus) triggerRef.current?.focus();
   }, []);
 
-  // Menu aberto fecha no Escape e no clique fora (gatilho e menu contam como "dentro").
+  // An open menu closes on Escape and on outside click (trigger and menu count as "inside").
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -96,7 +96,7 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
       data-card-index={index}
       data-game-id={game.id}
       tabIndex={focusable ? 0 : -1}
-      aria-label={`${game.title}, ${game.platform}${game.releaseYear ? `, ${game.releaseYear}` : ''} — ${STATUS_META[status].label}${selected ? ', selecionado' : ''}`}
+      aria-label={`${game.title}, ${game.platform}${game.releaseYear ? `, ${game.releaseYear}` : ''} — ${STATUS_META[status].label}${selected ? ', selected' : ''}`}
       onFocus={(e) => {
         if (e.target === e.currentTarget) onFocusCard?.(index);
       }}
@@ -107,17 +107,17 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
         selected && 'ring-2 ring-gold ring-offset-2 ring-offset-bg',
       )}
     >
-      {/* Região da capa: âncora dos elementos flutuantes e recorte do zoom no hover. */}
+      {/* Cover area: anchor for the floating elements and clip for the hover zoom. */}
       <div className="relative overflow-hidden">
         <button
           type="button"
           onClick={(e) => {
-            // Toque longo já selecionou: o "click" que vem depois não abre o jogo.
+            // A long press already selected it: the "click" that follows doesn't open the game.
             if (longPress.current.fired) {
               longPress.current.fired = false;
               return;
             }
-            // Shift+clique (ou qualquer clique com a seleção ativa) seleciona em vez de abrir.
+            // Shift+click (or any click while selection is active) selects instead of opening.
             if (e.shiftKey || selectionMode) toggleSelected(game.id);
             else openGame(game.id);
           }}
@@ -134,11 +134,11 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
           onPointerLeave={() => clearTimeout(longPress.current.timer ?? undefined)}
           onPointerCancel={() => clearTimeout(longPress.current.timer ?? undefined)}
           onContextMenu={(e) => {
-            // O menu de contexto do celular disputaria com o toque longo.
+            // The phone context menu would compete with the long press.
             if (longPress.current.fired) e.preventDefault();
           }}
           tabIndex={-1}
-          aria-label={`Abrir detalhes de ${game.title}`}
+          aria-label={`Open details for ${game.title}`}
           className="relative block w-full text-left"
         >
           <CoverImage
@@ -174,7 +174,7 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
           ref={triggerRef}
           type="button"
           tabIndex={focusable ? 0 : -1}
-          aria-label={`Mudar status de ${game.title}`}
+          aria-label={`Change status of ${game.title}`}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-controls={menuOpen ? menuId : undefined}
@@ -185,8 +185,8 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
           }}
           className={cn(
             'absolute top-1 right-1 z-10 grid size-8 place-items-center rounded-lg transition-colors duration-200',
-            // Fundo escurecido permanente: sem ele o ícone some sobre capa clara
-            // (Alex Kidd, Top Gear e boa parte das box arts de SNES).
+            // Permanent dark background: without it the icon disappears on light covers
+            // (Alex Kidd, Top Gear and a good share of SNES box art).
             'bg-bg/55 text-ink-soft backdrop-blur-sm hover:bg-bg/80 hover:text-ink',
             menuOpen && 'bg-bg/85 text-ink',
           )}
@@ -194,19 +194,19 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
           <EllipsisVertical className="size-4 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]" />
         </button>
 
-        {/* "Zerei!" no polegar: sempre visível no celular, revelado no hover no desktop. */}
+        {/* "Beat it!" under the thumb: always visible on phones, revealed on hover on desktop. */}
         <button
           type="button"
           aria-pressed={beaten}
           tabIndex={focusable ? 0 : -1}
-          aria-label={beaten ? 'Desmarcar zerado' : 'Marcar como zerado'}
-          title={beaten ? 'Desmarcar zerado' : 'Marcar como zerado'}
+          aria-label={beaten ? 'Unmark as beaten' : 'Mark as beaten'}
+          title={beaten ? 'Unmark as beaten' : 'Mark as beaten'}
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
             toggleBeaten(game.id);
             pushToast(
-              beaten ? `${game.title} → ${STATUS_META.unplayed.label}` : `${game.title} → Zerei!`,
+              beaten ? `${game.title} → ${STATUS_META.unplayed.label}` : `${game.title} → Beat it!`,
               beaten ? 'info' : 'success',
             );
           }}
@@ -217,11 +217,11 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
               : cn(
                   'border-line bg-bg/80 text-ink-soft backdrop-blur',
                   'hover:border-neon/60 hover:text-neon active:scale-95',
-                  // Esconder por LARGURA deixaria a ação primária invisível — mas
-                  // ainda clicável — em tablet e celular deitado, virando armadilha
-                  // (o toque vira "zerei" em vez de abrir os detalhes). O gatilho
-                  // certo é a capacidade de hover: só quem tem mouse vê o botão
-                  // aparecer no hover.
+                  // Hiding by WIDTH would leave the primary action invisible, but
+                  // still clickable, on tablets and landscape phones, which becomes a trap
+                  // (the tap turns into "beaten" instead of opening the details). The right
+                  // trigger is hover capability: only mouse users see the button
+                  // appear on hover.
                   '[@media(hover:hover)_and_(pointer:fine)]:opacity-0',
                   'group-hover:opacity-100 focus-visible:opacity-100',
                 ),
@@ -231,13 +231,13 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
         </button>
       </div>
 
-      {/* Fora da capa para o `overflow-hidden` dela não cortar o menu em card estreito. */}
+      {/* Outside the cover so its `overflow-hidden` doesn't clip the menu on narrow cards. */}
       {menuOpen && (
         <div
           ref={menuRef}
           id={menuId}
           role="menu"
-          aria-label={`Status de ${game.title}`}
+          aria-label={`Status of ${game.title}`}
           className="animate-fade-in absolute top-9 right-1 z-30 w-40 max-w-[calc(100%_-_0.5rem)] rounded-xl border border-line bg-panel-2 p-1 shadow-2xl"
         >
           {STATUS_ORDER.map((option) => {
@@ -296,12 +296,12 @@ export function GameCard({ game, priority, index = 0, focusable = false, onFocus
         {(rating > 0 || completedYear !== undefined) && (
           <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1">
             {rating > 0 && (
-              // O `size="sm"` do primitivo (size-4) é largo demais pro rodapé em 2 colunas de celular:
-              // encolhe o ícone aqui, sem tocar no StarRating.
+              // The primitive's `size="sm"` (size-4) is too wide for the footer in a 2-column phone layout:
+              // shrink the icon here, without touching StarRating.
               <StarRating value={rating} readOnly size="sm" className="gap-px [&_svg]:size-2.5" />
             )}
             {completedYear !== undefined && (
-              <span className="ml-auto text-[10px] text-neon/80">Zerado em {completedYear}</span>
+              <span className="ml-auto text-[10px] text-neon/80">Beaten in {completedYear}</span>
             )}
           </div>
         )}

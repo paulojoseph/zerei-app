@@ -23,7 +23,7 @@ const ICON_SIZE: Record<StarSize, string> = {
   lg: 'size-8',
 };
 
-/** Área de toque: no md/lg o botão ganha folga pra dedo. */
+/** Touch area: on md/lg the button gets finger-friendly padding. */
 const BUTTON_PADDING: Record<StarSize, string> = {
   sm: 'p-0.5',
   md: 'p-1',
@@ -31,11 +31,11 @@ const BUTTON_PADDING: Record<StarSize, string> = {
 };
 
 function ratingLabel(value: number): string {
-  if (value <= 0) return 'Sem nota';
-  return `Nota: ${value} de 5 estrelas`;
+  if (value <= 0) return 'No score';
+  return `Score: ${value} of 5 stars`;
 }
 
-/** Nota de 1 a 5 estrelas. Sem `onChange` (ou com `readOnly`) vira só leitura. */
+/** Score from 1 to 5 stars. Without `onChange` (or with `readOnly`) it becomes read-only. */
 export function StarRating({
   value = 0,
   onChange,
@@ -68,7 +68,7 @@ export function StarRating({
     );
   }
 
-  // Durante o hover/foco a régua mostra o valor que será gravado no clique.
+  // During hover/focus the bar shows the value that will be saved on click.
   const preview = hovered ?? current;
 
   return (
@@ -82,9 +82,9 @@ export function StarRating({
           <button
             key={star}
             type="button"
-            aria-label={`${star} estrela(s)`}
+            aria-label={`${star} star(s)`}
             aria-pressed={star <= current}
-            title={isCurrent ? 'Clique de novo para remover a nota' : `Dar ${star} estrela(s)`}
+            title={isCurrent ? 'Click again to remove the score' : `Give ${star} star(s)`}
             onMouseEnter={() => setHovered(star)}
             onFocus={() => setHovered(star)}
             onBlur={() => setHovered(null)}

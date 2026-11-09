@@ -14,18 +14,18 @@ export default function HomePage() {
     <main className="min-h-dvh pb-[max(4rem,env(safe-area-inset-bottom))]">
       <Header />
 
-      {/* Hero só no desktop: no celular a tela é do catálogo, não do discurso. */}
+      {/* Hero on desktop only: on phones the screen belongs to the catalog, not the pitch. */}
       <div className="hidden md:block">
         <div className={`${CONTAINER} pt-8 pb-5`}>
           <h1 className="text-2xl font-semibold tracking-tight text-ink lg:text-[28px]">
-            Sua vida em jogos{' '}
+            Every game you&apos;ve{' '}
             <span className="font-display text-glow text-[17px] text-neon lg:text-[19px]">
-              zerados
+              beaten
             </span>
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Do Phantom System da sala ao PS5 da TV grande: marque o que você terminou, dê nota,
-            guarde a memória afetiva e veja a coleção de uma vida inteira em um lugar só.
+            From the living room Phantom System to the big TV PS5: mark what you finished, give it a score,
+            keep the memory and see a whole lifetime collection in one place.
           </p>
         </div>
       </div>
@@ -38,14 +38,14 @@ export default function HomePage() {
 
       <footer className={`${CONTAINER} pt-2 pb-6`}>
         <div className="flex flex-col items-center gap-1.5 border-t border-line-soft pt-6 text-center text-xs text-ink-dim">
-          <p>Zerei.app — seus dados ficam salvos neste navegador.</p>
+          <p>Zerei.app — your data stays saved in this browser.</p>
           <p>
-            Dados e capas de jogos: <a href="https://www.igdb.com" className="underline hover:text-ink">IGDB.com</a>.
-            Projeto pessoal, sem fins lucrativos; marcas e capas pertencem aos respectivos donos.
+            Game data and covers: <a href="https://www.igdb.com" className="underline hover:text-ink">IGDB.com</a>.
+            Personal non-profit project; trademarks and covers belong to their respective owners.
           </p>
           <p>
-            Catálogo com {pluralize(SEED_GAMES.length + CATALOG_TOTAL, 'jogo')}. Sem conta, sem
-            nuvem, sem rastreio.
+            Catalog with {pluralize(SEED_GAMES.length + CATALOG_TOTAL, 'game')}. No account, no
+            cloud, no tracking.
           </p>
         </div>
       </footer>

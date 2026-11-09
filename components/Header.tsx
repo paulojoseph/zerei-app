@@ -16,10 +16,10 @@ import { cn, debounce, pluralize, CONTAINER } from '@/lib/utils';
 import { useAllGames, useBeatenCount, useGameStore, useHydrated } from '@/stores/useGameStore';
 import type { BackupPayload, ImportMode } from '@/types/game';
 
-/** Espera antes de empurrar o texto digitado para a store (a tela responde na hora). */
+/** Delay before pushing typed text to the store (the screen responds right away). */
 const SEARCH_DEBOUNCE_MS = 220;
 
-/** Backup lido do arquivo, aguardando o usuário escolher como aplicar. */
+/** Backup read from the file, waiting for the user to choose how to apply it. */
 interface PendingImport {
   payload: BackupPayload;
   filename: string;
@@ -38,28 +38,28 @@ export function Header() {
   const importBackup = useGameStore((s) => s.importBackup);
   const pushToast = useGameStore((s) => s.pushToast);
 
-  /* ------------------------------------------------------------ elementos -- */
+  /* ------------------------------------------------------------- elements -- */
   const headerRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const exportButtonRef = useRef<HTMLButtonElement>(null);
 
-  /* --------------------------------------------------------------- estado -- */
+  /* ---------------------------------------------------------------- state -- */
   const [text, setText] = useState(storeSearch);
   const [syncedSearch, setSyncedSearch] = useState(storeSearch);
   const [exportOpen, setExportOpen] = useState(false);
   const [pendingImport, setPendingImport] = useState<PendingImport | null>(null);
 
-  /* ------------------------------------------------------- busca (debounce) -- */
+  /* ----------------------------------------------------- search (debounce) -- */
 
-  // Uma única instância do debounce por montagem; recriar a cada tecla zeraria o timer.
+  // A single debounce instance per mount; recreating it on every key would reset the timer.
   const pushSearch = useMemo(() => debounce(setSearch, SEARCH_DEBOUNCE_MS), [setSearch]);
 
   /**
-   * Publica a altura real do cabeçalho em `--header-h`. A barra de filtros gruda
-   * nesse offset — fixar o valor na mão desalinha assim que o header quebra em
-   * duas linhas (celular e tablet), escondendo as abas de geração atrás dele.
+   * Publishes the real header height in `--header-h`. The filter bar sticks to
+   * that offset. Hardcoding the value breaks alignment as soon as the header wraps
+   * to two lines (phone and tablet), hiding the generation tabs behind it.
    */
   useEffect(() => {
     const el = headerRef.current;
@@ -74,12 +74,12 @@ export function Header() {
 
   useEffect(() => () => pushSearch.cancel(), [pushSearch]);
 
-  // Estado derivado com chave: se a store for limpa por fora (`resetFilters`, botão
-  // "limpar filtros"), o input local acompanha — sem useEffect de espelho.
+  // Keyed derived state: if the store is cleared from outside (`resetFilters`, the
+  // "clear filters" button), the local input follows along, with no mirror useEffect.
   if (storeSearch !== syncedSearch) {
     setSyncedSearch(storeSearch);
     setText(storeSearch);
-    // Um envio pendente escreveria o texto antigo de volta logo em seguida.
+    // A pending submit would write the old text back right after.
     pushSearch.cancel();
   }
 
@@ -93,12 +93,12 @@ export function Header() {
     [pushSearch, setSearch],
   );
 
-  // Atalho "/" para cair na busca de qualquer lugar da página.
+  // "/" shortcut to jump into search from anywhere on the page.
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
 
-      // Quem já está escrevendo em algum campo continua escrevendo uma barra.
+      // Someone already typing in a field keeps typing a slash.
       const target = event.target;
       if (target instanceof HTMLElement) {
         const tag = target.tagName;
@@ -106,7 +106,7 @@ export function Header() {
           return;
         }
       }
-      // Diálogo aberto tem prioridade: a busca está atrás dele.
+      // An open dialog takes priority: search is behind it.
       if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
 
       event.preventDefault();
@@ -118,9 +118,9 @@ export function Header() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  /* ------------------------------------------------------- menu de backup -- */
+  /* ------------------------------------------------------------ backup menu -- */
 
-  // Fecha no clique fora e no Escape enquanto o popover estiver aberto.
+  // Closes on outside click and on Escape while the popover is open.
   useEffect(() => {
     if (!exportOpen) return;
 
@@ -153,7 +153,7 @@ export function Header() {
       const records = Object.keys(payload.progress).length;
 
       if (records === 0) {
-        pushToast('Nada para exportar ainda. Marque seu primeiro "Zerei!".', 'info');
+        pushToast('Nothing to export yet. Mark your first "Beat it!".', 'info');
         return;
       }
 
@@ -163,18 +163,18 @@ export function Header() {
         downloadTextFile(backupFilename('csv'), 'text/csv', backupToCsv(payload, games));
       }
 
-      pushToast(`Backup exportado: ${records} registro(s).`);
+      pushToast(`Backup exported: ${records} record(s).`);
     },
     [games, pushToast],
   );
 
-  /* ---------------------------------------------------------- importação -- */
+  /* ----------------------------------------------------------------- import -- */
 
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const input = event.target;
       const file = input.files?.[0];
-      // Zerar o valor agora permite escolher o mesmo arquivo de novo depois.
+      // Resetting the value now lets the same file be picked again later.
       input.value = '';
       if (!file) return;
 
@@ -191,7 +191,7 @@ export function Header() {
           customGames: result.payload.customGames.length,
         });
       } catch {
-        pushToast('Não foi possível ler esse arquivo. Tente exportar de novo.', 'error');
+        pushToast("Couldn't read that file. Try exporting it again.", 'error');
       }
     },
     [pushToast],
@@ -207,16 +207,16 @@ export function Header() {
     [importBackup, pendingImport, pushToast],
   );
 
-  /* -------------------------------------------------------- contador vivo -- */
+  /* ----------------------------------------------------------- live counter -- */
 
-  // `pluralize` devolve "12 jogos zerados"; o número sai fora para ganhar a fonte pixel.
-  const phrase = pluralize(beatenCount, 'jogo zerado', 'jogos zerados');
+  // `pluralize` returns "12 games beaten"; the number is pulled out to get the pixel font.
+  const phrase = pluralize(beatenCount, 'game beaten', 'games beaten');
   const beatenNoun = phrase.slice(phrase.indexOf(' ') + 1);
 
-  // O `key={beatenCount}` remonta o badge a cada número novo e a classe `animate-pop`
-  // reinicia junto. Guardar o valor anterior em estado (padrão oficial de "ajustar
-  // estado quando uma prop muda") segura a animação na primeira pintura e na chegada
-  // da hidratação, quando não houve mudança nenhuma para comemorar.
+  // `key={beatenCount}` remounts the badge on every new number and the `animate-pop`
+  // class restarts with it. Keeping the previous value in state (the official "adjust
+  // state when a prop changes" pattern) holds the animation on first paint and when
+  // hydration arrives, when nothing changed that's worth celebrating.
   const [shownCount, setShownCount] = useState<number | null>(null);
   const [popped, setPopped] = useState(false);
   if (hydrated && shownCount !== beatenCount) {
@@ -243,9 +243,9 @@ export function Header() {
             <span className="text-ink-soft">.app</span>
           </span>
 
-          {/* badge ao vivo */}
+          {/* live badge */}
           <div
-            title="Jogos que você já zerou"
+            title="Games you've beaten"
             className="ml-auto flex h-8 min-w-0 items-center rounded-xl border border-line bg-panel-2/60 px-2.5"
           >
             {hydrated ? (
@@ -256,19 +256,19 @@ export function Header() {
                   popped && 'animate-pop',
                 )}
               >
-                {/* `font-normal`: a Press Start 2P só tem um peso, o negrito sintético borra. */}
+                {/* `font-normal`: Press Start 2P has a single weight; synthetic bold blurs it. */}
                 <b className="shrink-0 font-display font-normal text-neon">{beatenCount}</b>
                 <span className="truncate">{beatenNoun}</span>
               </span>
             ) : (
-              // Esqueleto no lugar do número: evita piscar "0" e o mismatch de hidratação.
+              // Skeleton in place of the number: avoids flashing "0" and the hydration mismatch.
               <span aria-hidden="true" className="h-3.5 w-24 rounded bg-panel-3 animate-shimmer" />
             )}
           </div>
         </div>
 
-        {/* ---------------------------------------------------------- busca -- */}
-        {/* No celular a marca ocupa a faixa inteira, então busca e ações caem na de baixo. */}
+        {/* --------------------------------------------------------- search -- */}
+        {/* On phones the logo takes the whole row, so search and actions drop to the one below. */}
         <div className="relative min-w-0 flex-1 lg:max-w-2xl">
           <Search
             aria-hidden="true"
@@ -285,14 +285,14 @@ export function Header() {
             }}
             onKeyDown={(event) => {
               if (event.key !== 'Escape') return;
-              // Escape aqui não pode subir e fechar outra coisa: o foco é da busca.
+              // Escape here must not bubble up and close something else: focus belongs to search.
               event.preventDefault();
               event.stopPropagation();
               clearSearch(false);
               inputRef.current?.blur();
             }}
-            aria-label="Buscar jogos por título ou console"
-            placeholder="Buscar por título ou console... (Mega Drive, PS1, fliperama)"
+            aria-label="Search games by title or console"
+            placeholder="Search by title or console... (Mega Drive, PS1, arcade)"
             enterKeyHint="search"
             autoComplete="off"
             autoCorrect="off"
@@ -308,7 +308,7 @@ export function Header() {
             <button
               type="button"
               onClick={() => clearSearch(true)}
-              aria-label="Limpar busca"
+              aria-label="Clear search"
               className="absolute inset-y-0 right-0 grid w-10 place-items-center rounded-r-xl text-ink-dim transition-colors duration-200 hover:text-ink"
             >
               <X aria-hidden="true" className="size-4" />
@@ -316,39 +316,39 @@ export function Header() {
           ) : null}
         </div>
 
-        {/* ---------------------------------------------------------- ações -- */}
+        {/* -------------------------------------------------------- actions -- */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-auto">
           <Button
             variant="outline"
             size="icon"
             onClick={() => setStatsOpen(true)}
-            aria-label="Ver estatísticas"
+            aria-label="View stats"
             className="text-ink hover:border-cyan/50 hover:text-cyan sm:w-auto sm:px-3"
           >
             <ChartColumn aria-hidden="true" className="size-4" />
-            <span className="hidden text-sm sm:inline">Estatísticas</span>
+            <span className="hidden text-sm sm:inline">Stats</span>
           </Button>
 
-          {/* menu de exportação */}
+          {/* export menu */}
           <div ref={exportMenuRef} className="relative">
             <Button
               ref={exportButtonRef}
               variant="outline"
               size="icon"
               onClick={() => setExportOpen((open) => !open)}
-              aria-label="Exportar backup"
+              aria-label="Export backup"
               aria-haspopup="menu"
               aria-expanded={exportOpen}
               className={cn('sm:w-auto sm:px-3', exportOpen && 'border-neon/50 text-neon')}
             >
               <Download aria-hidden="true" className="size-4" />
-              <span className="hidden text-sm sm:inline">Exportar</span>
+              <span className="hidden text-sm sm:inline">Export</span>
             </Button>
 
             {exportOpen ? (
               <div
                 role="menu"
-                aria-label="Formato do backup"
+                aria-label="Backup format"
                 className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-line bg-panel-2 p-1 shadow-2xl animate-fade-in"
               >
                 <button
@@ -359,8 +359,8 @@ export function Header() {
                 >
                   <Save aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-neon" />
                   <span className="min-w-0">
-                    <span className="block text-sm text-ink">Exportar JSON</span>
-                    <span className="block text-xs text-ink-dim">Backup completo, restaura tudo</span>
+                    <span className="block text-sm text-ink">Export JSON</span>
+                    <span className="block text-xs text-ink-dim">Full backup, restores everything</span>
                   </span>
                 </button>
 
@@ -372,8 +372,8 @@ export function Header() {
                 >
                   <FileText aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-cyan" />
                   <span className="min-w-0">
-                    <span className="block text-sm text-ink">Exportar CSV</span>
-                    <span className="block text-xs text-ink-dim">Abre direto na planilha</span>
+                    <span className="block text-sm text-ink">Export CSV</span>
+                    <span className="block text-xs text-ink-dim">Opens straight in a spreadsheet</span>
                   </span>
                 </button>
               </div>
@@ -384,17 +384,17 @@ export function Header() {
             variant="outline"
             size="icon"
             onClick={() => fileInputRef.current?.click()}
-            aria-label="Importar backup"
+            aria-label="Import backup"
             className="sm:w-auto sm:px-3"
           >
             <Upload aria-hidden="true" className="size-4" />
-            <span className="hidden text-sm sm:inline">Importar</span>
+            <span className="hidden text-sm sm:inline">Import</span>
           </Button>
 
           <input
             ref={fileInputRef}
             type="file"
-            aria-label="Arquivo de backup para importar (JSON ou CSV)"
+            aria-label="Backup file to import (JSON or CSV)"
             className="hidden"
             accept=".json,.csv,application/json,text/csv"
             onChange={handleFileChange}
@@ -402,7 +402,7 @@ export function Header() {
         </div>
       </div>
 
-      {/* ------------------------------------------- como aplicar o backup -- */}
+      {/* ------------------------------------------ how to apply the backup -- */}
       <Modal
         open={pendingImport !== null}
         onClose={() => setPendingImport(null)}
@@ -411,18 +411,18 @@ export function Header() {
       >
         <div className="p-5 sm:p-6">
           <h2 id="import-mode-title" className="font-display text-xs leading-relaxed text-ink sm:text-sm">
-            Importar backup
+            Import backup
           </h2>
 
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-            Encontramos{' '}
+            We found{' '}
             <b className="font-semibold text-ink">
-              {pluralize(pendingImport?.records ?? 0, 'registro')}
+              {pluralize(pendingImport?.records ?? 0, 'record')}
             </b>{' '}
-            no arquivo{' '}
+            in the file{' '}
             <span className="break-all text-ink-dim">{pendingImport?.filename}</span>.
             {pendingImport && pendingImport.customGames > 0
-              ? ` Também vêm ${pluralize(pendingImport.customGames, 'jogo do catálogo pessoal', 'jogos do catálogo pessoal')}.`
+              ? ` It also brings ${pluralize(pendingImport.customGames, 'game from the personal catalog', 'games from the personal catalog')}.`
               : ''}
           </p>
 
@@ -433,13 +433,13 @@ export function Header() {
               className="h-auto w-full flex-col items-start justify-start gap-1 border-neon/40 px-4 py-3 text-left hover:border-neon hover:text-ink"
             >
               <span className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-ink">Mesclar com meus dados</span>
+                <span className="text-sm font-semibold text-ink">Merge with my data</span>
                 <span className="rounded-md border border-neon/30 bg-neon/10 px-1.5 py-0.5 text-[10px] font-medium text-neon">
-                  recomendado
+                  recommended
                 </span>
               </span>
               <span className="text-xs font-normal text-ink-soft">
-                Mantém o que já está aqui. Em caso de conflito, vence o registro mais recente.
+                Keeps what&apos;s already here. On conflict, the most recent record wins.
               </span>
             </Button>
 
@@ -448,9 +448,9 @@ export function Header() {
               onClick={() => applyImport('replace')}
               className="h-auto w-full flex-col items-start justify-start gap-1 px-4 py-3 text-left"
             >
-              <span className="text-sm font-semibold">Substituir tudo</span>
+              <span className="text-sm font-semibold">Replace everything</span>
               <span className="text-xs font-normal text-danger/80">
-                Apaga o progresso atual e deixa só o que está no arquivo.
+                Deletes current progress and keeps only what&apos;s in the file.
               </span>
             </Button>
           </div>
@@ -460,7 +460,7 @@ export function Header() {
             onClick={() => setPendingImport(null)}
             className="mt-2 w-full"
           >
-            Cancelar
+            Cancel
           </Button>
         </div>
       </Modal>

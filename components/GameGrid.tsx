@@ -28,14 +28,14 @@ import type {
   StatusFilter,
 } from '@/types/game';
 
-/** Quantos cards entram a cada "página" da renderização progressiva. */
+/** How many cards go in on each "page" of progressive rendering. */
 const PAGE_SIZE = 72;
 
-/** Grade única do catálogo — o esqueleto usa exatamente a mesma classe. */
+/** The single catalog grid; the skeleton uses exactly the same class. */
 const GRID =
   'grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9 sm:gap-3';
 
-/** Chaves fixas: nada de índice aleatório durante o render. */
+/** Fixed keys: no random index during render. */
 const SKELETON_KEYS = Array.from({ length: 12 }, (_, index) => `esqueleto-${index}`);
 
 interface EmptyCopy {
@@ -45,26 +45,26 @@ interface EmptyCopy {
 
 const STATUS_EMPTY: Record<GameStatus, EmptyCopy> = {
   beaten: {
-    title: 'Nenhum jogo zerado ainda',
-    subtitle: 'Você ainda não marcou nenhum jogo como zerado. Bora começar?',
+    title: 'No beaten games yet',
+    subtitle: "You haven't marked any game as beaten yet. Shall we start?",
   },
   playing: {
-    title: 'Nada em andamento',
+    title: 'Nothing in progress',
     subtitle:
-      'Marque um jogo como "Jogando" e ele aparece aqui, esperando a próxima virada de noite.',
+      'Mark a game as "Playing" and it shows up here, waiting for the next all-nighter.',
   },
   backlog: {
-    title: 'A fila está vazia',
+    title: 'Your backlog is empty',
     subtitle:
-      'Guarde na fila aqueles clássicos que você jurou terminar um dia. Eles aparecem nesta aba.',
+      'Put in your backlog those classics you swore you would finish one day. They show up in this tab.',
   },
   unplayed: {
-    title: 'Nenhum jogo sem marcação',
-    subtitle: 'Todos os jogos desta seleção já têm alguma marcação sua. Nada mal.',
+    title: 'No unmarked games',
+    subtitle: 'Every game in this selection already has a mark from you. Not bad.',
   },
 };
 
-/** Copy do estado vazio conforme o motivo real de a lista ter zerado. */
+/** Empty state copy based on the real reason the list ended up empty. */
 function emptyCopy(
   term: string,
   status: StatusFilter,
@@ -73,23 +73,23 @@ function emptyCopy(
 ): EmptyCopy {
   if (term) {
     return {
-      title: `Nenhum jogo encontrado para "${term}"`,
+      title: `No games found for "${term}"`,
       subtitle:
-        'Tente o nome do console (mega drive, snes, fliperama), parte do título ou o ano de lançamento.',
+        'Try the console name (mega drive, snes, arcade), part of the title or the release year.',
     };
   }
   if (status !== 'all') return STATUS_EMPTY[status];
   if (brazilOnly) {
     return {
-      title: 'Nenhum clássico nacional por aqui',
+      title: 'No Brazilian classics here',
       subtitle:
-        'O filtro de clássicos brasileiros não achou nada com a seleção atual. Desligue o filtro para ver o catálogo inteiro.',
+        'The Brazilian classics filter found nothing in the current selection. Turn the filter off to see the whole catalog.',
     };
   }
   if (platform === MINE_FILTER) {
     return {
-      title: 'Nada nos seus consoles',
-      subtitle: 'Nenhum jogo dos consoles que você escolheu bate com os filtros de agora.',
+      title: 'Nothing on your consoles',
+      subtitle: 'No game from the consoles you picked matches the current filters.',
     };
   }
   if (platform !== 'all') {
@@ -97,21 +97,21 @@ function emptyCopy(
       ? platform.slice(MAKER_PREFIX.length)
       : (consoleByName(platform)?.label ?? platform);
     return {
-      title: `Nada em ${name}`,
-      subtitle: 'Nenhum jogo deste console bate com os filtros de agora.',
+      title: `Nothing on ${name}`,
+      subtitle: 'No game from this console matches the current filters.',
     };
   }
   return {
-    title: 'Catálogo vazio',
-    subtitle: 'Nenhum jogo para mostrar agora. Limpe os filtros e comece de novo.',
+    title: 'Empty catalog',
+    subtitle: 'No games to show right now. Clear the filters and start over.',
   };
 }
 
-const SEARCH_ERROR = 'Não foi possível buscar agora. Tente de novo.';
+const SEARCH_ERROR = "Couldn't search right now. Try again.";
 
 /**
- * Única porta de entrada da rota `/api/igdb/search`. Sem credenciais da Twitch
- * a rota ainda responde: devolve a base local com um aviso em `notice`.
+ * The single entry point to the `/api/igdb/search` route. Without Twitch credentials
+ * the route still answers: it returns the local database with a message in `notice`.
  */
 function OnlineSearch({ term }: { term: string }) {
   const addCustomGames = useGameStore((s) => s.addCustomGames);
@@ -121,10 +121,10 @@ function OnlineSearch({ term }: { term: string }) {
   const [notice, setNotice] = useState('');
   const abortRef = useRef<AbortController | null>(null);
 
-  // Busca em voo morre com o componente: resposta atrasada não vira setState nem toast.
+  // An in-flight search dies with the component: a late response won't setState or toast.
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const buscar = async () => {
+  const searchOnline = async () => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -138,7 +138,7 @@ function OnlineSearch({ term }: { term: string }) {
       const data = (await res.json()) as IgdbSearchResponse;
       if (controller.signal.aborted) return;
 
-      // O aviso explica de onde vieram os resultados (ou por que não vieram).
+      // The notice explains where the results came from (or why they didn't).
       setNotice(data.notice ?? '');
 
       if (!res.ok) {
@@ -146,15 +146,15 @@ function OnlineSearch({ term }: { term: string }) {
         return;
       }
 
-      const encontrados = Array.isArray(data.results) ? data.results : [];
-      if (encontrados.length === 0) {
-        pushToast(`Nada encontrado para "${term}".`, 'info');
+      const found = Array.isArray(data.results) ? data.results : [];
+      if (found.length === 0) {
+        pushToast(`Nothing found for "${term}".`, 'info');
         return;
       }
 
-      const novos = addCustomGames(encontrados);
-      if (novos > 0) pushToast(`${novos} jogo(s) adicionado(s) ao seu catálogo.`);
-      else pushToast('Esses jogos já estão no seu catálogo.', 'info');
+      const added = addCustomGames(found);
+      if (added > 0) pushToast(`${added} game(s) added to your catalog.`);
+      else pushToast('These games are already in your catalog.', 'info');
     } catch {
       if (controller.signal.aborted) return;
       pushToast(SEARCH_ERROR, 'error');
@@ -165,13 +165,13 @@ function OnlineSearch({ term }: { term: string }) {
 
   return (
     <div className="mt-6 flex w-full max-w-md flex-col items-center gap-2 border-t border-line-soft pt-6">
-      <Button variant="cyan" disabled={loading} onClick={() => void buscar()}>
+      <Button variant="cyan" disabled={loading} onClick={() => void searchOnline()}>
         {loading ? (
           <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
         ) : (
           <Search className="size-4" aria-hidden="true" />
         )}
-        {loading ? 'Buscando…' : 'Procurar na base online'}
+        {loading ? 'Searching…' : 'Search the online database'}
       </Button>
       {notice !== '' && (
         <p role="status" className="text-xs leading-relaxed text-ink-dim">
@@ -200,25 +200,25 @@ function EmptyState({
       <p className="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">{copy.subtitle}</p>
       <Button variant="outline" className="mt-6" onClick={onReset}>
         <RotateCcw className="size-4" aria-hidden="true" />
-        Limpar filtros
+        Clear filters
       </Button>
       {term !== '' && <OnlineSearch term={term} />}
     </div>
   );
 }
 
-/** Placeholder exibido até o LocalStorage ser lido (evita mismatch e piscada). */
+/** Placeholder shown until LocalStorage is read (avoids mismatch and flicker). */
 function GridSkeleton() {
   return (
     <div aria-busy="true">
-      <p className="sr-only">Carregando seu catálogo de jogos.</p>
-      {/* h-5 = altura da linha do `text-sm` do contador real que entra aqui. */}
+      <p className="sr-only">Loading your game catalog.</p>
+      {/* h-5 = line height of the `text-sm` of the real counter that goes here. */}
       <div className="mb-4 h-5 w-28 animate-shimmer rounded-full bg-panel-2" />
       <div className={GRID}>
         {SKELETON_KEYS.map((key) => (
-          // Mesma caixa e mesmas medidas do GameCard (painel + capa 3/4 + rodapé
-          // p-2.5 com título de 2 linhas e a linha de ano/plataforma): quando os
-          // cards reais entram no lugar, nada na página se mexe.
+          // Same box and measurements as GameCard (panel + 3/4 cover + p-2.5 footer
+          // with a 2-line title and the year/platform line): when the real cards
+          // take their place, nothing on the page moves.
           <div key={key} className="overflow-hidden rounded-xl border border-line bg-panel">
             <div className="aspect-[3/4] w-full animate-shimmer bg-panel-2" />
             <div className="p-2">
@@ -255,11 +255,11 @@ export function GameGrid() {
   );
 
   /*
-   * Baixar só o necessário (o catálogo inteiro passa de 3 MB comprimido):
-   * - sempre: os mais populares (top.json, ~80 KB) para a aba "Todos";
-   * - os consoles onde o usuário tem jogos marcados (contadores e "Zerei!");
-   * - o console ou o fabricante escolhido;
-   * - tudo só quando a pergunta é sobre tudo: busca ou "Não joguei" em "Todos".
+   * Download only what's needed (the whole catalog is over 3MB compressed):
+   * - always: the most popular (top.json, ~80KB) for the "All" tab;
+   * - consoles where the user has marked games (counters and "Beat it!");
+   * - the picked console or maker;
+   * - everything only when the question is about everything: search or "Not played" under "All".
    */
   const progressConsoles = useMemo(() => progressConsoleIds(progress).join(','), [progress]);
   const needsEverything = platform === 'all' && (search.trim() !== '' || status === 'unplayed');
@@ -285,9 +285,9 @@ export function GameGrid() {
     ensureConsoles([...wanted]);
   }, [hydrated, needsEverything, platform, progressConsoles, myConsoles, ensureConsoles]);
 
-  // Estado derivado por chave (padrão oficial do React, sem useEffect): quando
-  // qualquer filtro muda, a paginação volta para a primeira leva e a ordem é
-  // recalculada com uma fotografia do progresso daquele momento.
+  // Keyed derived state (the official React pattern, no useEffect): when any
+  // filter changes, pagination goes back to the first batch and the order is
+  // recomputed with a snapshot of the progress at that moment.
   const filterKey = `${search}|${platform}|${status}|${brazilOnly}|${sort}|${hydrated}|${myConsoles.join()}`;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [pagedKey, setPagedKey] = useState(filterKey);
@@ -306,11 +306,11 @@ export function GameGrid() {
     focused = 0;
   }
 
-  // Três passos com custos bem diferentes. Seleção e ordenação (dezenas de
-  // milhares de jogos) NÃO dependem do progresso ao vivo: um clique em
-  // "Zerei!" só refaz o filtro de status, que é O(n) e sem ordenar. A ordem
-  // fica congelada até o próximo filtro, então o card também não pula de
-  // lugar embaixo do dedo. Medido em lib/games.perf.test.ts.
+  // Three steps with very different costs. Selection and sorting (tens of
+  // thousands of games) do NOT depend on live progress: a "Beat it!" click
+  // only redoes the status filter, which is O(n) with no sorting. The order
+  // stays frozen until the next filter, so the card doesn't jump out from
+  // under the finger either. Measured in lib/games.perf.test.ts.
   const selected = useMemo(
     () => selectGames({ games, search, platform, brazilOnly, mine }),
     [games, search, platform, brazilOnly, mine],
@@ -318,7 +318,7 @@ export function GameGrid() {
   const sorted = useMemo(() => sortGames(selected, games, sort, snapshot), [selected, games, sort, snapshot]);
   const visible = useMemo(() => filterByStatus(sorted, progress, status), [sorted, progress, status]);
 
-  /* ------------------------------------------------------------ teclado -- */
+  /* ----------------------------------------------------------- keyboard -- */
 
   const gridRef = useRef<HTMLDivElement>(null);
   const setGameStatus = useGameStore((s) => s.setGameStatus);
@@ -329,7 +329,7 @@ export function GameGrid() {
   const pushToast = useGameStore((s) => s.pushToast);
   const pendingFocus = useRef<number | null>(null);
 
-  // Foco pedido pelo teclado num card que só existe depois do próximo render.
+  // Focus requested by the keyboard on a card that only exists after the next render.
   useEffect(() => {
     if (pendingFocus.current === null) return;
     const node = gridRef.current?.querySelector<HTMLElement>(`[data-card-index="${pendingFocus.current}"]`);
@@ -339,12 +339,12 @@ export function GameGrid() {
     }
   });
 
-  const STATUS_KEYS: Record<string, GameStatus> = { j: 'playing', q: 'backlog', n: 'unplayed' };
+  const STATUS_KEYS: Record<string, GameStatus> = { p: 'playing', w: 'backlog', n: 'unplayed' };
 
   /**
-   * Marcar sem mouse: setas navegam, Z zera, J/Q/N mudam o status, Espaço/X
-   * seleciona, Enter abre, Esc limpa a seleção. Só age com o foco num card
-   * (nunca dentro da busca, do menu do card ou com Ctrl/⌘).
+   * Marking without a mouse: arrows move, B toggles beaten, P/W/N change the status,
+   * Space/X selects, Enter opens, Esc clears the selection. Only acts with focus on a card
+   * (never inside search, the card menu or with Ctrl/⌘).
    */
   const onGridKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, list: Game[], total: number) => {
     const target = event.target as HTMLElement;
@@ -375,7 +375,7 @@ export function GameGrid() {
       gridRef.current?.querySelector<HTMLElement>(`[data-card-index="${next}"]`)?.focus();
       return;
     }
-    if (key === 'z') {
+    if (key === 'b') {
       event.preventDefault();
       const wasBeaten = progress[game.id]?.status === 'beaten';
       toggleBeaten(game.id);
@@ -395,8 +395,8 @@ export function GameGrid() {
     }
   };
 
-  // Rolagem infinita: o sentinela no fim da grade puxa a próxima leva antes de
-  // o usuário chegar lá. O botão "Carregar mais" continua como alternativa.
+  // Infinite scroll: the sentinel at the end of the grid pulls the next batch before
+  // the user gets there. The "Load more" button stays as an alternative.
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hasMore = count < visible.length;
   useEffect(() => {
@@ -432,37 +432,37 @@ export function GameGrid() {
           role="status"
           aria-live="polite"
         >
-          <h2 className="text-sm font-semibold text-ink">{pluralize(total, 'jogo')}</h2>
+          <h2 className="text-sm font-semibold text-ink">{pluralize(total, 'game')}</h2>
           {term !== '' && (
             <span className="text-sm text-ink-soft">
-              resultados para <span className="text-ink">&ldquo;{term}&rdquo;</span>
+              results for <span className="text-ink">&ldquo;{term}&rdquo;</span>
             </span>
           )}
           {status === 'beaten' && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-neon/40 bg-neon/15 px-2.5 py-1 text-[11px] font-medium text-neon">
               <Trophy className="size-3.5" aria-hidden="true" />
-              Zerados
+              Beaten
             </span>
           )}
           {/*
-            A dica existe desde a primeira pintura e o carregamento é só um ícone:
-            texto que aparece depois empurra a grade (CLS) e vira o LCP da página.
+            The hint is there from the first paint and loading is just an icon:
+            text that shows up later pushes the grid (CLS) and becomes the page's LCP.
           */}
           {platform === 'all' && !needsEverything && (
-            <span className="text-xs text-ink-dim">Os mais populares. Escolha um console ou busque para ver todos.</span>
+            <span className="text-xs text-ink-dim">The most popular games. Pick a console or search to see them all.</span>
           )}
           <span className="inline-flex size-3.5 items-center">
             {loadingCatalog && <LoaderCircle className="size-3.5 animate-spin text-ink-dim" aria-hidden="true" />}
-            <span className="sr-only">{loadingCatalog ? 'Carregando jogos' : ''}</span>
+            <span className="sr-only">{loadingCatalog ? 'Loading games' : ''}</span>
           </span>
           {catalogStatus === 'error' && (
             <span className="text-xs text-gold">
-              Parte do catálogo não carregou. Recarregue a página para tentar de novo.
+              Part of the catalog didn&apos;t load. Reload the page to try again.
             </span>
           )}
           {remaining > 0 && (
             <span className="ml-auto text-xs text-ink-dim">
-              Mostrando {shown} de {total}
+              Showing {shown} of {total}
             </span>
           )}
         </div>
@@ -480,7 +480,7 @@ export function GameGrid() {
         <>
           <div ref={gridRef} className={GRID} onKeyDown={(e) => onGridKeyDown(e, visible, total)}>
             {cards.map((game, index) => (
-              // As 6 primeiras capas são o LCP provável do celular.
+              // The first 6 covers are the likely LCP on phones.
               <GameCard
                 key={game.id}
                 game={game}
@@ -492,9 +492,9 @@ export function GameGrid() {
             ))}
           </div>
           <p className="mt-4 hidden text-center text-[11px] text-ink-dim [@media(hover:hover)_and_(pointer:fine)]:block">
-            Teclado: setas navegam · <kbd className="font-display">Z</kbd> zerei · <kbd className="font-display">J</kbd> jogando ·{' '}
-            <kbd className="font-display">Q</kbd> quero jogar · <kbd className="font-display">N</kbd> não joguei ·{' '}
-            <kbd className="font-display">Espaço</kbd> seleciona · Shift+clique seleciona vários
+            Keyboard: arrows move · <kbd className="font-display">B</kbd> beat it · <kbd className="font-display">P</kbd> playing ·{' '}
+            <kbd className="font-display">W</kbd> want to play · <kbd className="font-display">N</kbd> not played ·{' '}
+            <kbd className="font-display">Space</kbd> selects · Shift+click selects several
           </p>
           <div ref={sentinelRef} aria-hidden="true" />
 
@@ -506,12 +506,12 @@ export function GameGrid() {
                 onClick={() => setVisibleCount((current) => current + PAGE_SIZE)}
               >
                 <ChevronDown className="size-4" aria-hidden="true" />
-                Carregar mais ({pluralize(remaining, 'restante')})
+                Load more ({pluralize(remaining, 'remaining', 'remaining')})
               </Button>
             </div>
           ) : (
             <p className="mt-8 text-center text-xs text-ink-dim">
-              Fim da lista — {pluralize(total, 'jogo')} {narrowed ? 'nesta seleção' : 'no catálogo'}
+              End of the list: {pluralize(total, 'game')} {narrowed ? 'in this selection' : 'in the catalog'}
             </p>
           )}
         </>

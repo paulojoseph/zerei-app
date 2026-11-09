@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Zerei.app — resolvedor de capas.
+ * Zerei.app — cover resolver.
  *
- * Lê `data/cover-sources.json` ({ idDoJogo: ["Titulo na Wikipedia", ...] }),
- * consulta a API REST da Wikipédia e grava a URL real da box art em
- * `data/seed-games.json` (campo `coverUrl`).
+ * Reads `data/cover-sources.json` ({ gameId: ["Wikipedia title", ...] }),
+ * queries the Wikipedia REST API and writes the real box art URL to
+ * `data/seed-games.json` (`coverUrl` field).
  *
- * Jogos sem capa encontrada ficam com `coverUrl: ""` — o componente
- * <CoverImage /> desenha uma capa gerada localmente nesse caso.
+ * Games with no cover found keep `coverUrl: ""`, and the <CoverImage />
+ * component draws a locally generated cover in that case.
  *
- *   node scripts/fetch-covers.mjs            # só os que estão sem capa
- *   node scripts/fetch-covers.mjs --all      # revalida todo mundo
+ *   node scripts/fetch-covers.mjs            # only the ones without a cover
+ *   node scripts/fetch-covers.mjs --all      # revalidates everyone
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -20,11 +20,11 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const SEED = path.join(ROOT, 'data/seed-games.json');
 const SOURCES = path.join(ROOT, 'data/cover-sources.json');
 
-const UA = 'zerei.app/1.0 (aplicativo pessoal de catalogo de jogos; contato via repositorio local)';
+const UA = 'zerei.app/1.0 (personal game catalog app; contact via local repository)';
 const DELAY_MS = 900;
 const MAX_RETRIES = 6;
 
-/** GET com retry exponencial para o 429 da Wikipédia. */
+/** GET with exponential retry for Wikipedia's 429. */
 async function getJson(url) {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
     let res;
@@ -46,7 +46,7 @@ async function getJson(url) {
   return null;
 }
 
-/** Resolve um título de artigo em URL de imagem do upload.wikimedia.org. */
+/** Resolves an article title to an upload.wikimedia.org image URL. */
 async function resolveTitle(rawTitle) {
   const isPt = rawTitle.startsWith('pt:');
   const title = isPt ? rawTitle.slice(3) : rawTitle;
@@ -61,12 +61,12 @@ async function resolveTitle(rawTitle) {
 
   const clean = source.split('?')[0];
   if (!clean.startsWith('https://upload.wikimedia.org/')) return null;
-  // Ignora ícones/logos genéricos que às vezes vêm no lugar da capa.
+  // Ignores generic icons/logos that sometimes come instead of the cover.
   if (/\.svg$/i.test(clean)) return null;
   return clean;
 }
 
-/** Confirma que a imagem realmente responde 200 antes de gravar. */
+/** Confirms the image really answers 200 before writing it. */
 async function headOk(url) {
   try {
     const res = await fetch(url, { method: 'HEAD', headers: { 'User-Agent': UA } });
@@ -94,7 +94,7 @@ for (const game of games) {
   if (!Array.isArray(candidates) || candidates.length === 0) {
     game.coverUrl = '';
     missing += 1;
-    failures.push(`${game.id} (sem candidato em cover-sources.json)`);
+    failures.push(`${game.id} (no candidate in cover-sources.json)`);
     continue;
   }
 
@@ -122,11 +122,11 @@ for (const game of games) {
 await writeFile(SEED, `${JSON.stringify(games, null, 2)}\n`, 'utf8');
 
 console.log('\n─────────────────────────────────────────────');
-console.log(`capas resolvidas agora : ${resolved}`);
-console.log(`capas já existentes    : ${kept}`);
-console.log(`sem capa (fallback)    : ${missing}`);
-console.log(`total de jogos         : ${games.length}`);
+console.log(`covers resolved now    : ${resolved}`);
+console.log(`covers already present : ${kept}`);
+console.log(`no cover (fallback)    : ${missing}`);
+console.log(`total games            : ${games.length}`);
 if (failures.length) {
-  console.log('\nSem capa (usarão a capa gerada localmente):');
+  console.log('\nNo cover (will use the locally generated cover):');
   for (const f of failures) console.log(`  - ${f}`);
 }

@@ -40,5 +40,5 @@ node_modules
 /.wrangler/
 .dev.vars
 
-# relatórios locais do Lighthouse CI
+# local Lighthouse CI reports
 /.lighthouseci/

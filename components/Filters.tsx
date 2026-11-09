@@ -30,15 +30,15 @@ import {
 } from '@/stores/useGameStore';
 import type { Game, GameStatus, PlatformFilter, SortMode, StatusFilter } from '@/types/game';
 
-/** Acento de "Todos" e dos fabricantes (verde neon do design system). */
+/** Accent for "All" and the makers (design system neon green). */
 const NEON = '#39ff9e';
-/** Acento de "Meus consoles" (dourado do design system). */
+/** Accent for "My consoles" (design system gold). */
 const GOLD = '#fbbf24';
 
 interface ChipItem {
   id: PlatformFilter;
   label: string;
-  /** Nome completo — vira `title` e rótulo acessível. */
+  /** Full name, used as `title` and accessible label. */
   hint: string;
   color: string;
   count: number;
@@ -50,16 +50,16 @@ interface MakerGroup {
   consoles: ChipItem[];
 }
 
-/** "1234" → "1,2k": cabe no chip sem empurrar a barra. */
+/** "1234" → "1.2k": fits the chip without pushing the bar. */
 function compactCount(n: number): string {
   if (n < 1000) return String(n);
-  return `${(n / 1000).toFixed(n < 10000 ? 1 : 0).replace('.', ',')}k`;
+  return `${(n / 1000).toFixed(n < 10000 ? 1 : 0)}k`;
 }
 
 /**
- * Consoles agrupados por fabricante, com a contagem de cada um. A contagem vem
- * do índice do catálogo + seed + jogos da IGDB, então aparece certa antes de o
- * catálogo completo terminar de baixar.
+ * Consoles grouped by maker, with each one's count. The count comes from the
+ * catalog index + seed + IGDB games, so it's right before the full catalog
+ * finishes downloading.
  */
 function buildGroups(customGames: Game[]): MakerGroup[] {
   const extra = new Map<string, number>();
@@ -81,7 +81,7 @@ function buildGroups(customGames: Game[]): MakerGroup[] {
       count,
     });
   }
-  // Plataformas que só existem em jogos importados da IGDB.
+  // Platforms that only exist in games imported from IGDB.
   for (const [platform, count] of extra) {
     if (known.has(platform)) continue;
     groups.get(makerOf(platform))?.push({
@@ -107,22 +107,22 @@ interface StatusChip {
 }
 
 /**
- * Nome completo dos chips cujo rótulo foi encurtado para caber na barra. O chip
- * diz "Fila", mas o menu do card e o modal dizem "Quero jogar": sem o nome longo
- * no hover e no leitor de tela, parecem dois filtros diferentes.
+ * Full name of chips whose label was shortened to fit the bar. The chip says
+ * "Backlog", but the card menu and the modal say "Want to play": without the long
+ * name on hover and in screen readers, they look like two different filters.
  */
 const STATUS_CHIP_FULL_LABEL: Partial<Record<StatusFilter, string>> = {
   backlog: STATUS_META.backlog.label,
 };
 
-/** Status aceitos em `?status=` — impede que lixo da URL entre na store. */
+/** Statuses accepted in `?status=`, so URL garbage never gets into the store. */
 const DEEP_LINK_STATUS: ReadonlySet<string> = new Set<string>(STATUS_ORDER);
 
 function isKnownStatus(value: string): value is GameStatus {
   return DEEP_LINK_STATUS.has(value);
 }
 
-/** "Todos" + os quatro status na ordem canônica do design system. */
+/** "All" + the four statuses in the design system's canonical order. */
 const STATUS_CHIPS: StatusChip[] = [
   {
     id: 'all',
@@ -139,8 +139,8 @@ const STATUS_CHIPS: StatusChip[] = [
 ];
 
 /**
- * Barra de segmentação: fabricantes e consoles, status, preset "Nostalgia BR" e ordenação.
- * Fica grudada logo abaixo do header — por isso o `top` casa com a altura dele.
+ * Segmentation bar: makers and consoles, statuses, the "BR Nostalgia" preset and sorting.
+ * It sticks right below the header, which is why `top` matches its height.
  */
 export function Filters() {
   const games = useAllGames();
@@ -161,11 +161,11 @@ export function Filters() {
   const resetFilters = useGameStore((s) => s.resetFilters);
 
   /*
-   * Atalhos do PWA (manifest.json) e links compartilhados: `/?status=beaten`,
-   * `/?preset=brasil`, `/?q=<termo>` e `/?console=<id>` (ids de data/consoles.json). Sem isto os atalhos instalados abrem a
-   * home sem filtro nenhum, porque nada no app lê a query string. Roda uma vez
-   * na montagem e só no cliente — nada de `useSearchParams`, que obrigaria a
-   * página (estática) a nascer dentro de um <Suspense>.
+   * PWA shortcuts (manifest.json) and shared links: `/?status=beaten`,
+   * `/?preset=brasil`, `/?q=<term>` and `/?console=<id>` (ids from data/consoles.json). Without this, installed shortcuts open the
+   * home page with no filter at all, because nothing in the app reads the query string. Runs once
+   * on mount and only on the client, with no `useSearchParams`, which would force the
+   * (static) page to be born inside a <Suspense>.
    */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -194,17 +194,17 @@ export function Filters() {
       applied = true;
     }
 
-    // A query já virou estado: apagá-la da barra de endereços evita que o filtro
-    // "volte sozinho" quando o usuário limpar os filtros e recarregar a página.
+    // The query already became state: removing it from the address bar keeps the filter
+    // from "coming back on its own" when the user clears filters and reloads the page.
     if (applied) window.history.replaceState({}, '', window.location.pathname);
-    // Ações do Zustand têm referência estável — o efeito é de montagem.
+    // Zustand actions have stable references, so this is a mount effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const groups = useMemo(() => buildGroups(customGames), [customGames]);
   const total = groups.reduce((sum, g) => sum + g.count, 0);
 
-  // Fabricante em destaque: o escolhido ou o dono do console escolhido.
+  // Highlighted maker: the picked one or the owner of the picked console.
   const myNames = useMemo(
     () => new Set(CONSOLES.filter((c) => myConsoles.includes(c.id)).map((c) => c.name)),
     [myConsoles],
@@ -212,7 +212,7 @@ export function Filters() {
   const allConsoleChips = useMemo(() => groups.flatMap((g) => g.consoles), [groups]);
   const mineActive = platform === MINE_FILTER;
 
-  // Fabricante em destaque: o escolhido ou o dono do console escolhido.
+  // Highlighted maker: the picked one or the owner of the picked console.
   const activeMaker =
     platform === 'all' || mineActive
       ? null
@@ -229,8 +229,8 @@ export function Filters() {
     ? [
         {
           id: MINE_FILTER,
-          label: 'Meus consoles',
-          hint: 'Os consoles que você teve',
+          label: 'My consoles',
+          hint: 'The consoles you owned',
           color: GOLD,
           count: allConsoleChips.filter((c) => myNames.has(c.id)).reduce((sum, c) => sum + c.count, 0),
         },
@@ -238,24 +238,24 @@ export function Filters() {
     : [];
 
   const makerChips: ChipItem[] = [
-    { id: 'all', label: 'Todos', hint: 'Todos os consoles', color: NEON, count: total },
+    { id: 'all', label: 'All', hint: 'All consoles', color: NEON, count: total },
     ...mineChip,
     ...groups.map((g) => ({
       id: `${MAKER_PREFIX}${g.maker}`,
       label: g.maker,
-      hint: `Todos os consoles ${g.maker}`,
+      hint: `All ${g.maker} consoles`,
       color: NEON,
       count: g.count,
     })),
   ];
 
   /*
-   * Contadores dos chips de status. `countByStatus` percorre só o progresso do
-   * usuário (centenas de registros), não o catálogo: roda a cada clique.
+   * Status chip counters. `countByStatus` walks only the user's progress
+   * (hundreds of records), not the catalog, so it runs on every click.
    */
   const statusCount = useMemo<Record<StatusFilter, number>>(() => {
     const counts = countByStatus(games, progress);
-    // Antes de o catálogo completo chegar, "Não joguei" usa o tamanho do índice.
+    // Before the full catalog arrives, "Not played" uses the index size.
     const pending = Math.max(0, total - games.length);
     return { ...counts, unplayed: counts.unplayed + pending, all: games.length + pending };
   }, [games, progress, total]);
@@ -264,15 +264,15 @@ export function Filters() {
     <div className="sticky top-[var(--header-h)] z-30 border-b border-line bg-bg/85 backdrop-blur-xl">
       <div className={cn(CONTAINER, 'py-2.5 sm:py-3')}>
         {/*
-          1. Fabricante e console — cada linha rola na horizontal no celular, sem
-          quebrar. Visualmente são abas, mas não há `tabpanel` nem navegação por
-          setas: é um grupo de botões que alternam, como os chips de status.
-          As faixas sangram exatamente o padding do `.app-container`
-          (`--app-pad`): sangrar mais empurraria rolagem horizontal na página.
+          1. Maker and console. On phones each row scrolls horizontally without
+          wrapping. Visually they're tabs, but there's no `tabpanel` or arrow
+          navigation: it's a group of toggle buttons, like the status chips.
+          The strips bleed exactly the `.app-container` padding
+          (`--app-pad`): bleeding more would add horizontal scroll to the page.
         */}
         <div
           role="group"
-          aria-label="Filtrar por fabricante"
+          aria-label="Filter by maker"
           className="mx-[calc(var(--app-pad)*-1)] flex gap-1.5 overflow-x-auto px-[var(--app-pad)] no-scrollbar"
         >
           {makerChips.map((chip) => (
@@ -280,7 +280,7 @@ export function Filters() {
               key={chip.id}
               chip={chip}
               active={platform === chip.id}
-              // Console escolhido: o fabricante dele fica marcado de leve.
+              // Picked console: its maker gets a light highlight.
               partial={chip.id === `${MAKER_PREFIX}${activeMaker}`}
               onClick={() => setPlatform(chip.id)}
               strong
@@ -290,7 +290,7 @@ export function Filters() {
 
         <div
           role="group"
-          aria-label="Filtrar por console"
+          aria-label="Filter by console"
           className="mx-[calc(var(--app-pad)*-1)] mt-1.5 flex gap-1.5 overflow-x-auto px-[var(--app-pad)] no-scrollbar [mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)]"
         >
           {visibleConsoles.map((chip) => (
@@ -298,7 +298,7 @@ export function Filters() {
               key={chip.id}
               chip={chip}
               active={platform === chip.id}
-              // Segundo clique no console ativo volta para o grupo de onde veio.
+              // A second click on the active console goes back to the group it came from.
               onClick={() =>
                 setPlatform(
                   platform === chip.id
@@ -316,19 +316,19 @@ export function Filters() {
               onClick={reopenOnboarding}
               className="flex h-8 shrink-0 items-center rounded-lg border border-dashed border-line px-2.5 text-xs text-ink-dim transition-colors duration-200 hover:border-gold/60 hover:text-gold"
             >
-              {myNames.size ? 'Editar meus consoles' : '+ Meus consoles'}
+              {myNames.size ? 'Edit my consoles' : '+ My consoles'}
             </button>
           )}
         </div>
 
-        {/* No celular status, preset e ordenação dividem uma faixa só, com rolagem
-            lateral: empilhados, comiam um terço da tela na barra fixa. */}
+        {/* On phones, status, preset and sorting share a single scrolling strip:
+            stacked, they ate a third of the screen in the sticky bar. */}
         <div className="mx-[calc(var(--app-pad)*-1)] mt-2 flex items-center gap-2 overflow-x-auto px-[var(--app-pad)] no-scrollbar lg:mx-0 lg:justify-between lg:overflow-visible lg:px-0">
-          {/* 2. Chips de status, cada um com sua contagem */}
+          {/* 2. Status chips, each with its count */}
           <div className="flex shrink-0 gap-2">
             {STATUS_CHIPS.map((chip) => {
               const active = status === chip.id;
-              // "Todos" só conta o catálogo; os demais dependem do progresso salvo.
+              // "All" only counts the catalog; the others depend on saved progress.
               const showCount = chip.id === 'all' || hydrated;
               const fullLabel = STATUS_CHIP_FULL_LABEL[chip.id];
               const spokenLabel = fullLabel ?? chip.label;
@@ -340,7 +340,7 @@ export function Filters() {
                   title={fullLabel}
                   aria-label={
                     showCount
-                      ? `${spokenLabel} — ${pluralize(statusCount[chip.id], 'jogo')}`
+                      ? `${spokenLabel} — ${pluralize(statusCount[chip.id], 'game')}`
                       : spokenLabel
                   }
                   onClick={() => setStatusFilter(chip.id)}
@@ -374,7 +374,7 @@ export function Filters() {
             })}
           </div>
 
-          {/* 3. Preset nostalgia + ordenação + limpar */}
+          {/* 3. Nostalgia preset + sorting + clear */}
           <div className="flex shrink-0 items-center gap-2">
             <Button
               type="button"
@@ -389,8 +389,8 @@ export function Filters() {
               )}
             >
               <Flame aria-hidden="true" className="size-4" />
-              <span className="sm:hidden">Nostalgia BR</span>
-              <span className="hidden sm:inline">Clássicos de Locadora &amp; Brasil</span>
+              <span className="sm:hidden">BR Nostalgia</span>
+              <span className="hidden sm:inline">Rental Store &amp; Brazil Classics</span>
             </Button>
 
             <div className="relative">
@@ -399,7 +399,7 @@ export function Filters() {
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-dim"
               />
               <select
-                aria-label="Ordenar por"
+                aria-label="Sort by"
                 value={sort}
                 onChange={(event) => setSort(event.target.value as SortMode)}
                 className="h-9 cursor-pointer appearance-none rounded-xl border border-line bg-panel-2 pl-9 pr-8 text-[16px] text-ink transition-colors duration-200 hover:border-line-soft sm:text-sm"
@@ -424,7 +424,7 @@ export function Filters() {
                 className="h-9 shrink-0 px-3 text-sm whitespace-nowrap"
               >
                 <RotateCcw aria-hidden="true" className="size-4" />
-                Limpar filtros
+                Clear filters
               </Button>
             ) : null}
           </div>
@@ -451,9 +451,9 @@ function FilterChip({
     <button
       type="button"
       aria-pressed={active}
-      // O nome acessível começa pelo texto visível ("SNES"): quem usa comando
-      // de voz diz o que vê ("clicar em SNES") e o leitor de tela continua.
-      aria-label={chip.hint === chip.label ? `${chip.label} — ${pluralize(chip.count, 'jogo')}` : `${chip.label} (${chip.hint}) — ${pluralize(chip.count, 'jogo')}`}
+      // The accessible name starts with the visible text ("SNES"): voice control
+      // users say what they see ("click SNES") and screen readers keep working.
+      aria-label={chip.hint === chip.label ? `${chip.label} — ${pluralize(chip.count, 'game')}` : `${chip.label} (${chip.hint}) — ${pluralize(chip.count, 'game')}`}
       title={chip.hint}
       onClick={onClick}
       style={
@@ -461,8 +461,8 @@ function FilterChip({
           ? {
               color: chip.color,
               borderColor: chip.color,
-              // Fundo opaco: com transparência sobre o blur da barra, o contraste
-              // do texto não é garantido (nem verificável pelas ferramentas).
+              // Opaque background: with transparency over the bar's blur, text contrast
+              // isn't guaranteed (or checkable by the tools).
               backgroundColor: `color-mix(in oklab, ${chip.color} 14%, var(--color-bg))`,
               boxShadow: `0 0 18px -10px ${chip.color}`,
             }

@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { filterGames, matchesSearch, SEED_GAMES } from '@/lib/games';
 import type { Game } from '@/types/game';
 
-// O índice de busca faz cache por ID: cada jogo de teste precisa do seu.
+// The search index caches by ID: each test game needs its own.
 let seq = 0;
 const game = (over: Partial<Game>): Game => ({
   id: over.id ?? `teste-${(seq += 1)}`,
-  title: 'Jogo',
+  title: 'Game',
   platform: 'Mega Drive',
   category: '16-bit',
   releaseYear: 1992,
@@ -15,14 +15,14 @@ const game = (over: Partial<Game>): Game => ({
   ...over,
 });
 
-describe('busca', () => {
-  it('ignora acento e caixa', () => {
+describe('search', () => {
+  it('ignores accents and case', () => {
     const monica = game({ title: 'Mônica no Castelo do Dragão', platform: 'Master System' });
     expect(matchesSearch(monica, 'monica dragao')).toBe(true);
     expect(matchesSearch(monica, 'MÔNICA')).toBe(true);
   });
 
-  it('entende apelidos de console', () => {
+  it('understands console nicknames', () => {
     const sonic = game({ title: 'Sonic the Hedgehog 2' });
     expect(matchesSearch(sonic, 'sonic megadrive')).toBe(true);
     expect(matchesSearch(sonic, 'sonic genesis')).toBe(true);
@@ -30,16 +30,16 @@ describe('busca', () => {
     expect(matchesSearch(mario, 'mario nintendinho')).toBe(true);
   });
 
-  it('todos os termos precisam bater (E, não OU)', () => {
+  it('every term must match (AND, not OR)', () => {
     const sonic = game({ title: 'Sonic the Hedgehog 2' });
     expect(matchesSearch(sonic, 'sonic playstation')).toBe(false);
   });
 
-  it('acha pelo ano de lançamento', () => {
+  it('finds by release year', () => {
     expect(matchesSearch(game({ title: 'Street Fighter II', releaseYear: 1991 }), 'street 1991')).toBe(true);
   });
 
-  it('filtra por fabricante ("maker:Sega") e por console', () => {
+  it('filters by maker ("maker:Sega") and by console', () => {
     const sega = filterGames({ games: SEED_GAMES, progress: {}, search: '', platform: 'maker:Sega', status: 'all', brazilOnly: false, sort: 'title' });
     expect(sega.length).toBeGreaterThan(0);
     expect(sega.every((g) => ['Master System', 'Mega Drive', 'Sega Saturn', 'Dreamcast', 'Game Gear', 'Sega CD', '32X'].includes(g.platform))).toBe(true);

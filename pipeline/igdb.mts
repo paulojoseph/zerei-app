@@ -1,14 +1,14 @@
 /**
- * Cliente da IGDB para o pipeline (ADR 0004). Roda só na máquina de build ou
- * no CI, nunca no navegador.
+ * IGDB client for the pipeline (ADR 0004). Runs only on the build machine or
+ * in CI, never in the browser.
  *
- * - Token OAuth da Twitch (client_credentials), lido do ambiente ou do .env.local.
- * - Ritmo: 1 requisição a cada 260 ms (limite da IGDB: 4/s).
- * - Retentativa com espera exponencial em 429 e 5xx.
- * - Toda resposta fica em cache em disco (.cache/igdb), indexada pela consulta:
- *   reexecutar o pipeline não gasta a cota. `fresh: true` ignora o cache.
+ * - Twitch OAuth token (client_credentials), read from the environment or .env.local.
+ * - Pace: 1 request every 260ms (IGDB limit: 4/s).
+ * - Retry with exponential backoff on 429 and 5xx.
+ * - Every response is cached on disk (.cache/igdb), keyed by the query:
+ *   rerunning the pipeline doesn't spend the quota. `fresh: true` ignores the cache.
  *
- * As credenciais nunca aparecem em log nem em mensagem de erro.
+ * Credentials never show up in logs or error messages.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -40,7 +40,7 @@ function readCredentials(): Credentials {
     }
   }
   if (!clientId || !clientSecret) {
-    throw new Error('Defina TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET (ambiente ou .env.local).');
+    throw new Error('Set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET (environment or .env.local).');
   }
   return { clientId, clientSecret };
 }
@@ -68,12 +68,12 @@ export class IgdbClient {
         grant_type: 'client_credentials',
       }),
     });
-    if (!res.ok) throw new Error(`Twitch recusou a autenticação (HTTP ${res.status})`);
+    if (!res.ok) throw new Error(`Twitch rejected authentication (HTTP ${res.status})`);
     this.token = ((await res.json()) as { access_token: string }).access_token;
     return this.token;
   }
 
-  /** Uma consulta Apicalypse. `body` é a consulta inteira (fields, where, limit...). */
+  /** One Apicalypse query. `body` is the whole query (fields, where, limit...). */
   async query<T>(endpoint: string, body: string): Promise<T[]> {
     const key = createHash('sha1').update(`${endpoint}\n${body}`).digest('hex');
     const file = path.join(CACHE_DIR, `${key}.json`);
@@ -112,10 +112,10 @@ export class IgdbClient {
       await writeFile(file, JSON.stringify(data));
       return data;
     }
-    throw new Error(`IGDB ${endpoint}: falhou depois de várias tentativas`);
+    throw new Error(`IGDB ${endpoint}: failed after several attempts`);
   }
 
-  /** Todas as páginas de uma consulta. `body` sem limit/offset; precisa de `sort` estável. */
+  /** Every page of a query. `body` without limit/offset; needs a stable `sort`. */
   async queryAll<T>(endpoint: string, body: string): Promise<T[]> {
     const out: T[] = [];
     for (let offset = 0; ; offset += PAGE) {

@@ -1,12 +1,12 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-/** Padrão shadcn: junta classes condicionais e resolve conflitos do Tailwind. */
+/** shadcn pattern: joins conditional classes and resolves Tailwind conflicts. */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Remove acentos e caixa para busca tolerante ("coracao" acha "Coração"). */
+/** Strips accents and case for forgiving search ("pokemon" finds "Pokémon"). */
 export function normalize(value: string): string {
   return value
     .normalize('NFD')
@@ -16,28 +16,28 @@ export function normalize(value: string): string {
 }
 
 
-/** Plural pt-BR simples: pluralize(1, 'jogo') -> '1 jogo'. */
+/** Simple English plural: pluralize(1, 'game') -> '1 game'. */
 export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
   return `${count} ${count === 1 ? singular : plural}`;
 }
 
-/** Data ISO -> "12 de mar. de 2024". */
+/** ISO date -> "Mar 12, 2024". */
 export function formatDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('pt-BR', {
+  return new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
   }).format(date);
 }
 
-/** Data ISO -> "há 3 dias". */
+/** ISO date -> "3 days ago". */
 export function timeAgo(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
   const seconds = Math.round((Date.now() - date.getTime()) / 1000);
-  const rtf = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat('en-US', { numeric: 'auto' });
   const table: Array<[Intl.RelativeTimeFormatUnit, number]> = [
     ['year', 31536000],
     ['month', 2592000],
@@ -51,10 +51,10 @@ export function timeAgo(iso: string): string {
       return rtf.format(-Math.trunc(seconds / secondsInUnit), unit);
     }
   }
-  return 'agora mesmo';
+  return 'just now';
 }
 
-/** Debounce genérico com cancelamento (usado na busca global). */
+/** Generic debounce with cancel (used by the global search). */
 export function debounce<A extends unknown[]>(fn: (...args: A) => void, wait = 220) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const debounced = (...args: A) => {
@@ -68,19 +68,19 @@ export function debounce<A extends unknown[]>(fn: (...args: A) => void, wait = 2
   return debounced;
 }
 
-/** Ano atual — evita `new Date()` espalhado pelos componentes. */
+/** Current year, so `new Date()` isn't scattered across components. */
 export function currentYear(): number {
   return new Date().getFullYear();
 }
 
-/** Garante um número dentro de um intervalo. */
+/** Keeps a number inside a range. */
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
 /**
- * Faixa horizontal compartilhada por cabeçalho, filtros e conteúdo. Se as três
- * não usarem exatamente a mesma classe, o logo desalinha da primeira coluna de
- * capas em telas largas. A classe vive em `app/globals.css`.
+ * Horizontal band shared by the header, filters and content. If the three don't
+ * use exactly the same class, the logo drifts away from the first cover column
+ * on wide screens. The class lives in `app/globals.css`.
  */
 export const CONTAINER = 'app-container';

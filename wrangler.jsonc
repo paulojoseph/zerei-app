@@ -9,11 +9,11 @@
     "binding": "ASSETS"
   },
   "services": [
-    // Auto-referência exigida pelo cache do OpenNext; o nome casa com "name".
+    // Self-reference required by the OpenNext cache; the name matches "name".
     { "binding": "WORKER_SELF_REFERENCE", "service": "zerei" }
   ],
   "images": {
-    // Otimizador de imagens do next/image rodando no Cloudflare Images.
+    // next/image optimizer running on Cloudflare Images.
     "binding": "IMAGES"
   }
 }

@@ -1,9 +1,9 @@
 /**
- * Zerei.app — exportação e importação do acervo pessoal.
+ * Zerei.app — export and import of the personal collection.
  *
- * Este módulo é puro (sem React, sem Zustand) de propósito: a store importa o
- * backup, então importar a store aqui criaria ciclo. Tudo que entra por
- * `parseBackupFile` é tratado como dado hostil — a função nunca lança.
+ * This module is pure (no React, no Zustand) on purpose: the store imports
+ * backup, so importing the store here would create a cycle. Everything that comes
+ * in through `parseBackupFile` is treated as hostile data; the function never throws.
  */
 
 import { CATEGORY_ORDER, inferCategory } from '@/lib/platforms';
@@ -12,7 +12,7 @@ import { BACKUP_FORMAT, BACKUP_VERSION } from '@/types/game';
 
 type ParseResult = { ok: true; payload: BackupPayload } | { ok: false; error: string };
 
-/** Colunas do CSV, nesta ordem exata — o cabeçalho é contrato com a planilha. */
+/** CSV columns, in this exact order. The header is a contract with the spreadsheet. */
 const CSV_COLUMNS = [
   'gameId',
   'title',
@@ -26,20 +26,20 @@ const CSV_COLUMNS = [
   'updatedAt',
 ] as const;
 
-/** RFC 4180: fim de linha é sempre CRLF. */
+/** RFC 4180: line endings are always CRLF. */
 const CRLF = '\r\n';
 
-/** Excel (pt-BR) só abre UTF-8 com acento correto quando o arquivo tem BOM. */
+/** Excel only opens UTF-8 with correct accents when the file has a BOM. */
 const BOM = '\uFEFF';
 
 const VALID_STATUS = new Set<string>(['beaten', 'playing', 'backlog', 'unplayed']);
 const VALID_CATEGORY = new Set<string>(CATEGORY_ORDER);
 
 /**
- * Chaves que, atribuídas num objeto literal, acionam o setter de `Object.prototype`
- * em vez de virarem uma propriedade normal: um backup com `gameId: "__proto__"`
- * some do mapa e ainda troca o protótipo do objeto. Como o `gameId` vem do arquivo
- * (dado hostil), qualquer registro com uma dessas chaves é descartado.
+ * Keys that, assigned on an object literal, trigger the `Object.prototype` setter
+ * instead of becoming a normal property: a backup with `gameId: "__proto__"`
+ * vanishes from the map and also swaps the object's prototype. Since `gameId` comes
+ * from the file (hostile data), any record with one of these keys is dropped.
  */
 const UNSAFE_KEYS = new Set<string>(['__proto__', 'constructor', 'prototype']);
 
@@ -48,7 +48,7 @@ function isUnsafeKey(key: string): boolean {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Helpers de coerção                                                         */
+/*  Coercion helpers                                                           */
 /* -------------------------------------------------------------------------- */
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -67,14 +67,14 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-/** Aceita só os quatro status conhecidos (tolerante a caixa e espaços). */
+/** Only accepts the four known statuses (forgiving on case and whitespace). */
 function toStatus(raw: unknown): GameStatus | undefined {
   if (typeof raw !== 'string') return undefined;
   const value = raw.trim().toLowerCase();
   return VALID_STATUS.has(value) ? (value as GameStatus) : undefined;
 }
 
-/** Ano em número inteiro positivo; qualquer outra coisa vira `undefined`. */
+/** Year as a positive integer; anything else becomes `undefined`. */
 function toYear(raw: unknown): number | undefined {
   let value: number;
   if (typeof raw === 'number') {
@@ -89,7 +89,7 @@ function toYear(raw: unknown): number | undefined {
   return year > 0 ? year : undefined;
 }
 
-/** Nota de 1 a 5; fora do intervalo (ou não numérica) vira `undefined`. */
+/** Score from 1 to 5; out of range (or not a number) becomes `undefined`. */
 function toRating(raw: unknown): number | undefined {
   let value: number;
   if (typeof raw === 'number') {
@@ -104,7 +104,7 @@ function toRating(raw: unknown): number | undefined {
   return rating >= 1 && rating <= 5 ? rating : undefined;
 }
 
-/** Data ISO normalizada; entrada inválida ou ausente vira "agora". */
+/** Normalized ISO date; invalid or missing input becomes "now". */
 function toIso(raw: unknown): string {
   if (typeof raw === 'string' && raw.trim()) {
     const date = new Date(raw.trim());
@@ -113,7 +113,7 @@ function toIso(raw: unknown): string {
   return nowIso();
 }
 
-/** Constrói um `UserGameProgress` válido ou devolve `undefined` (linha ignorada). */
+/** Builds a valid `UserGameProgress` or returns `undefined` (row skipped). */
 function toProgressEntry(raw: unknown, fallbackId?: string): UserGameProgress | undefined {
   if (!isRecord(raw)) return undefined;
 
@@ -137,7 +137,7 @@ function toProgressEntry(raw: unknown, fallbackId?: string): UserGameProgress | 
   return entry;
 }
 
-/** Normaliza um jogo do backup (IGDB/manual); sem id ou título, descarta. */
+/** Normalizes a backup game (IGDB/manual); drops it without id or title. */
 function toGame(raw: unknown): Game | undefined {
   if (!isRecord(raw)) return undefined;
 
@@ -206,22 +206,22 @@ function sanitizeCustomGames(raw: unknown): Game[] {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Exportação                                                                 */
+/*  Export                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/** `zerei-app-backup-2024-03-12.json` — data local, para bater com o calendário do usuário. */
+/** `zerei-app-backup-2024-03-12.json`, local date, to match the user's calendar. */
 export function backupFilename(ext: 'json' | 'csv'): string {
   const today = new Date();
   const stamp = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
   return `zerei-app-backup-${stamp}.${ext}`;
 }
 
-/** JSON identado — o backup é feito para ser lido e versionado por humanos. */
+/** Indented JSON: the backup is meant to be read and versioned by humans. */
 export function backupToJson(payload: BackupPayload): string {
   return JSON.stringify(payload, null, 2);
 }
 
-/** Escapa um campo conforme RFC 4180: aspas dobradas e campo citado quando necessário. */
+/** Escapes a field per RFC 4180: doubled quotes and a quoted field when needed. */
 function csvCell(value: string | number | null | undefined): string {
   if (value === undefined || value === null) return '';
   const text = String(value);
@@ -229,20 +229,20 @@ function csvCell(value: string | number | null | undefined): string {
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-/** Excel/LibreOffice tratam como fórmula toda célula iniciada por um destes. */
+/** Excel/LibreOffice treat any cell starting with one of these as a formula. */
 const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
 
 /**
- * Célula de TEXTO (title, platform, notes…). "Memórias afetivas" é texto livre e
- * pode ter vindo do backup de outra pessoa: sem tratamento, `=HYPERLINK(...)` ou
- * `=cmd|...` são executados ao abrir a planilha.
+ * TEXT cell (title, platform, notes…). "Memories" are free text and may have
+ * come from someone else's backup: untreated, `=HYPERLINK(...)` or
+ * `=cmd|...` run when the spreadsheet opens.
  *
- * NÃO REMOVER a aspa simples do começo: é ela que faz a planilha ler a célula
- * como texto. Ela não aparece na exibição e o parser de importação a devolve
- * junto do conteúdo, sem quebrar o registro.
+ * DO NOT REMOVE the leading single quote: it's what makes the spreadsheet read
+ * the cell as text. It isn't displayed, and the import parser hands it back
+ * along with the content without breaking the record.
  *
- * Só para colunas de texto — releaseYear/completedYear/rating são geradas pelo
- * app e precisam continuar numéricas na planilha.
+ * Text columns only. releaseYear/completedYear/rating are generated by the
+ * app and must stay numeric in the spreadsheet.
  */
 function csvTextCell(value: string | null | undefined): string {
   if (value === undefined || value === null) return '';
@@ -252,24 +252,24 @@ function csvTextCell(value: string | null | undefined): string {
 }
 
 /**
- * Inverso de `csvTextCell`: tira o apóstrofo de proteção na volta. Sem isto o
- * texto engorda um apóstrofo a cada ciclo exportar → importar (`'=`, `''=`, …).
- * Só remove quando o caractere seguinte é de fato um gatilho de fórmula, para
- * não comer uma aspa simples que o usuário mesmo escreveu.
+ * Inverse of `csvTextCell`: strips the guard apostrophe on the way back. Without
+ * this, the text gains an apostrophe on every export → import cycle (`'=`, `''=`, …).
+ * Only strips when the next character really is a formula trigger, so it doesn't
+ * eat a single quote the user typed.
  */
 function stripFormulaGuard(value: string): string {
   return value.startsWith("'") && FORMULA_TRIGGER.test(value.slice(1)) ? value.slice(1) : value;
 }
 
 /**
- * CSV pronto para planilha. Título/plataforma/geração/ano vêm do catálogo;
- * jogo que não está mais no catálogo mantém o `gameId` com as demais colunas vazias.
+ * Spreadsheet-ready CSV. Title/platform/generation/year come from the catalog;
+ * a game no longer in the catalog keeps its `gameId` with the other columns empty.
  */
 export function backupToCsv(payload: BackupPayload, games: Game[]): string {
   const byId = new Map(games.map((game) => [game.id, game]));
 
-  // Ordem alfabética por título deixa a planilha utilizável; sem título, ordena pelo id.
-  const collator = new Intl.Collator('pt-BR', { sensitivity: 'base' });
+  // Alphabetical order by title keeps the spreadsheet usable; without a title, sort by id.
+  const collator = new Intl.Collator('en', { sensitivity: 'base' });
   const progress: Record<string, UserGameProgress> = payload.progress ?? {};
   const rows = Object.entries(progress)
     .filter(([, entry]) => Boolean(entry))
@@ -278,7 +278,7 @@ export function backupToCsv(payload: BackupPayload, games: Game[]): string {
       return { gameId, entry, game: byId.get(gameId) };
     })
     .sort((a, b) => {
-      // Jogo que saiu do catálogo não tem título: vai para o fim, ordenado pelo id.
+      // A game that left the catalog has no title: goes to the end, sorted by id.
       const titleA = a.game?.title ?? '';
       const titleB = b.game?.title ?? '';
       if (titleA && titleB) return collator.compare(titleA, titleB);
@@ -308,7 +308,7 @@ export function backupToCsv(payload: BackupPayload, games: Game[]): string {
   return `${BOM}${lines.join(CRLF)}${CRLF}`;
 }
 
-/** Dispara o download no navegador. No servidor, não faz nada (sem quebrar o SSR). */
+/** Triggers the download in the browser. On the server it does nothing (doesn't break SSR). */
 export function downloadTextFile(filename: string, mime: string, content: string): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
@@ -323,19 +323,19 @@ export function downloadTextFile(filename: string, mime: string, content: string
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    // O Safari lê o blob depois do clique — revogar na próxima volta do event loop.
+    // Safari reads the blob after the click, so revoke on the next event loop turn.
     setTimeout(() => URL.revokeObjectURL(url), 0);
   } catch (error) {
-    console.error('[Zerei.app] não foi possível gerar o arquivo para download:', error);
+    console.error('[Zerei.app] could not create the download file:', error);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Importação                                                                 */
+/*  Import                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const EMPTY_FILE = 'Arquivo vazio.';
-const NO_RECORDS = 'Nenhum registro válido encontrado no arquivo.';
+const EMPTY_FILE = 'Empty file.';
+const NO_RECORDS = 'No valid records found in the file.';
 
 function buildPayload(
   progress: Record<string, UserGameProgress>,
@@ -361,7 +361,7 @@ function buildPayload(
   };
 }
 
-/** Descobre o formato pelo sufixo do nome; se não der, olha o primeiro caractere. */
+/** Detects the format by the file name suffix; failing that, looks at the first character. */
 function detectKind(filename: string, text: string): 'json' | 'csv' {
   const name = filename.trim().toLowerCase();
   if (name.endsWith('.json')) return 'json';
@@ -375,26 +375,26 @@ function parseJsonBackup(text: string): ParseResult {
   try {
     data = JSON.parse(stripBom(text));
   } catch (error) {
-    const detail = error instanceof Error ? error.message : 'não foi possível ler o conteúdo';
-    return { ok: false, error: `JSON inválido: ${detail}` };
+    const detail = error instanceof Error ? error.message : 'could not read the content';
+    return { ok: false, error: `Invalid JSON: ${detail}` };
   }
 
-  // (c) array cru de UserGameProgress
+  // (c) raw array of UserGameProgress
   if (Array.isArray(data)) {
     return buildPayload(sanitizeProgressMap(data), [], nowIso());
   }
 
   if (!isRecord(data)) {
-    return { ok: false, error: 'JSON inválido: o arquivo precisa conter um objeto ou uma lista.' };
+    return { ok: false, error: 'Invalid JSON: the file must contain an object or a list.' };
   }
 
-  // Aceita também o dump bruto do LocalStorage do Zustand (`{ state: { ... } }`).
+  // Also accepts the raw Zustand LocalStorage dump (`{ state: { ... } }`).
   const wrapped = data.state;
   const root: Record<string, unknown> =
     isRecord(wrapped) && wrapped.progress !== undefined ? wrapped : data;
 
-  // (a) BackupPayload completo, (b) `{ progress }` sem metadados,
-  // ou um mapa de progresso direto (objeto indexado por gameId).
+  // (a) full BackupPayload, (b) `{ progress }` without metadata,
+  // or a direct progress map (object keyed by gameId).
   const rawProgress = root.progress !== undefined ? root.progress : root;
   const progress = sanitizeProgressMap(rawProgress);
   const customGames = sanitizeCustomGames(root.customGames);
@@ -404,8 +404,8 @@ function parseJsonBackup(text: string): ParseResult {
 }
 
 /**
- * Parser CSV completo (RFC 4180): respeita aspas, aspas escapadas e quebras de
- * linha dentro do campo. Aceita CRLF, LF e CR soltos como fim de linha.
+ * Full CSV parser (RFC 4180): handles quotes, escaped quotes and line breaks
+ * inside a field. Accepts CRLF, LF and lone CR as line endings.
  */
 function parseCsvRows(text: string): string[][] {
   const rows: string[][] = [];
@@ -472,7 +472,7 @@ function parseCsvRows(text: string): string[][] {
     i += 1;
   }
 
-  // Última linha sem quebra final.
+  // Last line without a trailing newline.
   if (started || quoted || field !== '' || row.length) endRow();
 
   return rows;
@@ -494,14 +494,14 @@ function parseCsvBackup(text: string): ParseResult {
   const columns = new Map<string, number>();
   rows[0].forEach((cell, index) => {
     const key = headerKey(cell);
-    // Colunas desconhecidas simplesmente não entram no mapa; a primeira vence.
+    // Unknown columns just don't go into the map; the first one wins.
     if (key && !columns.has(key)) columns.set(key, index);
   });
 
   if (!columns.has('gameid')) {
     return {
       ok: false,
-      error: 'CSV sem a coluna "gameId". Use um arquivo exportado pelo Zerei.app.',
+      error: 'CSV is missing the "gameId" column. Use a file exported by Zerei.app.',
     };
   }
 
@@ -515,7 +515,7 @@ function parseCsvBackup(text: string): ParseResult {
   for (let i = 1; i < rows.length; i += 1) {
     const row = rows[i];
     const gameId = raw(row, 'gameid').trim();
-    // Mesma proteção do JSON: `__proto__` & cia. nunca viram chave do mapa.
+    // Same protection as JSON: `__proto__` and friends never become a map key.
     if (!gameId || isUnsafeKey(gameId)) continue;
 
     const status = toStatus(raw(row, 'status'));
@@ -535,13 +535,13 @@ function parseCsvBackup(text: string): ParseResult {
     progress[gameId] = entry;
   }
 
-  // O CSV descreve só o progresso: capas e metadados dos jogos ficam no JSON.
+  // CSV only describes progress: covers and game metadata live in the JSON.
   return buildPayload(progress, [], nowIso());
 }
 
 /**
- * Lê um arquivo de backup (JSON ou CSV) e devolve um `BackupPayload` normalizado,
- * pronto para `useGameStore.importBackup`. Nunca lança: erros voltam em `error`.
+ * Reads a backup file (JSON or CSV) and returns a normalized `BackupPayload`,
+ * ready for `useGameStore.importBackup`. Never throws: errors come back in `error`.
  */
 export function parseBackupFile(
   filename: string,
@@ -551,7 +551,7 @@ export function parseBackupFile(
     if (!text || !stripBom(text).trim()) return { ok: false, error: EMPTY_FILE };
     return detectKind(filename ?? '', text) === 'json' ? parseJsonBackup(text) : parseCsvBackup(text);
   } catch (error) {
-    const detail = error instanceof Error ? error.message : 'erro desconhecido';
-    return { ok: false, error: `Não foi possível ler o arquivo: ${detail}` };
+    const detail = error instanceof Error ? error.message : 'unknown error';
+    return { ok: false, error: `Could not read the file: ${detail}` };
   }
 }

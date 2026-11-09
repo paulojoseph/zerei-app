@@ -25,7 +25,7 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
-/** Elementos focáveis e realmente visíveis dentro do painel. */
+/** Focusable elements that are actually visible inside the panel. */
 function getFocusable(root: HTMLElement | null): HTMLElement[] {
   if (!root) return [];
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
@@ -37,20 +37,20 @@ function getFocusable(root: HTMLElement | null): HTMLElement[] {
 }
 
 /**
- * Detecta "já montou no cliente" sem setState em efeito: no servidor o snapshot é
- * `false`, no cliente é `true`. `createPortal` só pode rodar depois disso.
+ * Detects "already mounted on the client" without setState in an effect: on the server
+ * the snapshot is `false`, on the client it's `true`. `createPortal` can only run after that.
  */
 const subscribeToNothing = () => () => {};
 
 /**
- * Diálogo modal feito à mão (padrão Radix, sem a dependência):
- * portal no body, trava de rolagem, foco preso dentro e devolvido ao sair.
- * No celular vira folha inferior; a partir do `sm` vira caixa centralizada.
+ * Hand-made modal dialog (Radix pattern, without the dependency):
+ * portal on body, scroll lock, focus trapped inside and returned on exit.
+ * On phones it becomes a bottom sheet; from `sm` up it's a centered box.
  */
 export function Modal({ open, onClose, children, labelledBy, className }: ModalProps) {
   const mounted = useSyncExternalStore(subscribeToNothing, () => true, () => false);
   const panelRef = useRef<HTMLDivElement>(null);
-  /** Guarda se o gesto começou no backdrop — evita fechar ao arrastar de dentro pra fora. */
+  /** Remembers whether the gesture started on the backdrop, so dragging from inside out doesn't close it. */
   const pressStartedOnBackdrop = useRef(false);
   const onCloseRef = useRef(onClose);
 
@@ -58,7 +58,7 @@ export function Modal({ open, onClose, children, labelledBy, className }: ModalP
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  // Trava a rolagem do body e compensa a barra de rolagem (a página não "pula").
+  // Locks body scroll and compensates for the scrollbar (the page doesn't "jump").
   useEffect(() => {
     if (!open) return;
     const { body } = document;
@@ -78,7 +78,7 @@ export function Modal({ open, onClose, children, labelledBy, className }: ModalP
     };
   }, [open]);
 
-  // Foco: entra no painel ao abrir, volta pro gatilho ao fechar.
+  // Focus: goes into the panel on open, back to the trigger on close.
   useEffect(() => {
     if (!open) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -95,7 +95,7 @@ export function Modal({ open, onClose, children, labelledBy, className }: ModalP
     };
   }, [open]);
 
-  // Escape fecha; Tab/Shift+Tab circulam apenas dentro do painel.
+  // Escape closes; Tab/Shift+Tab cycle only inside the panel.
   useEffect(() => {
     if (!open) return;
 
@@ -167,7 +167,7 @@ export function Modal({ open, onClose, children, labelledBy, className }: ModalP
           className,
         )}
       >
-        {/* Alcinha da folha inferior — só faz sentido no celular. */}
+        {/* Bottom sheet grab handle, only meaningful on phones. */}
         <div aria-hidden="true" className="flex justify-center pt-3 sm:hidden">
           <span className="h-1.5 w-11 rounded-full bg-line" />
         </div>

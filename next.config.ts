@@ -3,12 +3,12 @@ import type { NextConfig } from 'next';
 const isDev = process.env.NODE_ENV === 'development';
 
 /**
- * CSP sem nonce, de propósito: nonce obriga renderização dinâmica em toda
- * página e desliga o HTML estático/ISR, que é a base da velocidade do app
- * (docs do Next 16, "Content Security Policy > Without Nonces"). Ainda assim
- * bloqueia script de terceiros, frames, plugins e envio de formulário para fora.
- * As capas remotas passam pelo /_next/image (mesma origem), exceto as da IGDB
- * e da Wikimedia, que o navegador busca direto (ver CoverImage).
+ * CSP without a nonce, on purpose: a nonce forces dynamic rendering on every
+ * page and turns off static HTML/ISR, which is what makes the app fast
+ * (Next 16 docs, "Content Security Policy > Without Nonces"). It still blocks
+ * third-party scripts, frames, plugins and form posts to other origins.
+ * Remote covers go through /_next/image (same origin), except IGDB and
+ * Wikimedia ones, which the browser fetches directly (see CoverImage).
  */
 const csp = [
   "default-src 'self'",
@@ -36,15 +36,15 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   async headers() {
-    // Em dev, HSTS e upgrade-insecure-requests atrapalham o acesso por IP na rede local.
+    // In dev, HSTS and upgrade-insecure-requests get in the way of LAN access by IP.
     if (isDev) return [];
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
   images: {
-    // Capas servidas por CDNs publicas de box art. O componente <CoverImage />
-    // sempre degrada para uma capa gerada localmente caso a origem falhe.
-    // As da Wikimedia nem passam pelo otimizador (ver CoverImage): a rajada de
-    // requisições do servidor toma 429 de lá.
+    // Covers served by public box art CDNs. The <CoverImage /> component
+    // always falls back to a locally drawn cover if the origin fails.
+    // Wikimedia ones skip the optimizer entirely (see CoverImage), because a
+    // burst of server requests gets 429s from there.
     remotePatterns: [
       { protocol: 'https', hostname: 'thumbnails.libretro.com' },
       { protocol: 'https', hostname: 'images.igdb.com' },

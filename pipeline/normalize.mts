@@ -1,6 +1,6 @@
-/** Normalização de títulos compartilhada pelo pipeline (casamento e IDs). */
+/** Title normalization shared by the pipeline (matching and IDs). */
 
-/** Chave de comparação: sem acento, caixa, artigo inicial e pontuação. */
+/** Comparison key: no accents, case, leading article or punctuation. */
 export function normKey(title: string): string {
   return title
     .normalize('NFD')
@@ -12,9 +12,9 @@ export function normKey(title: string): string {
 }
 
 /**
- * Variações de chave para casar o mesmo jogo escrito de jeitos diferentes:
- * - sufixos de revisão/versão do TOSEC ("Platoon Rev PRG1", "Solar Wars v.1 Silent");
- * - romanização japonesa ("Ninja Ryuuken Den" x "Ninja Ryukenden").
+ * Key variations to match the same game written in different ways:
+ * - TOSEC revision/version suffixes ("Platoon Rev PRG1", "Solar Wars v.1 Silent");
+ * - Japanese romanization ("Ninja Ryuuken Den" x "Ninja Ryukenden").
  */
 export function matchKeys(title: string): string[] {
   const base = title
@@ -25,8 +25,8 @@ export function matchKeys(title: string): string[] {
     const k = normKey(t);
     if (!k) continue;
     keys.add(k);
-    // Só as vogais longas do japonês. "ii"/"aa" ficam de fora de propósito:
-    // dobrar "ii" confunde algarismos romanos (Final Fantasy II x Final Fantasy).
+    // Only Japanese long vowels. "ii"/"aa" are left out on purpose:
+    // doubling "ii" confuses Roman numerals (Final Fantasy II x Final Fantasy).
     keys.add(k.replace(/ou/g, 'o').replace(/uu/g, 'u').replace(/oo/g, 'o'));
   }
   return [...keys];
@@ -34,7 +34,7 @@ export function matchKeys(title: string): string[] {
 
 const BASE32 = 'abcdefghijkmnpqrstuvwxyz23456789';
 
-/** ID novo, curto e sem significado: "g_" + 8 caracteres (ADR 0002). */
+/** New ID, short and meaningless: "g_" + 8 characters (ADR 0002). */
 export function mintId(taken: Set<string>, random: (n: number) => Uint8Array): string {
   for (;;) {
     const id = `g_${[...random(8)].map((b) => BASE32[b % BASE32.length]).join('')}`;

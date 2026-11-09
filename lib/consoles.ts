@@ -3,36 +3,36 @@ import catalogIndex from '@/data/catalog-index.json';
 import type { PlatformCategory } from '@/types/game';
 
 /**
- * Consoles do catálogo, na ordem cronológica de lançamento. `name` é a mesma
- * string gravada em `Game.platform` — é por ela que o filtro casa os jogos.
+ * Catalog consoles, in chronological release order. `name` is the same string
+ * stored in `Game.platform`, and it's what the filter matches games by.
  */
 export interface ConsoleMeta {
   id: string;
   name: string;
-  /** Rótulo curto dos botões de filtro. */
+  /** Short label for the filter buttons. */
   label: string;
   short: string;
   maker: string;
   category: PlatformCategory;
   year: number;
-  /** Pasta no acervo de box art do libretro (null = lista vem do Wikidata). */
+  /** Folder in the libretro box art collection (null = list comes from Wikidata). */
   libretro: string | null;
   wikidata: string[];
-  /** Plataformas da IGDB que formam este console (NES = NES + Famicom). */
+  /** IGDB platforms that make up this console (NES = NES + Famicom). */
   igdb: number[];
-  /** Filtro extra na consulta à IGDB (PC: só jogos com avaliação). */
+  /** Extra filter on the IGDB query (PC: only rated games). */
   igdbWhere?: string;
 }
 
 export const CONSOLES = consolesData as ConsoleMeta[];
 
-/** Quantos jogos cada console tem em `public/catalog/<id>.json`. */
+/** How many games each console has in `public/catalog/<id>.json`. */
 export const CATALOG_COUNTS: Record<string, number> = catalogIndex;
 
 export const CATALOG_TOTAL = Object.values(CATALOG_COUNTS).reduce((sum, n) => sum + n, 0);
 
-/** Ordem dos fabricantes na barra de filtros. */
-export const MAKER_ORDER = ['Nintendo', 'Sony', 'Sega', 'Microsoft', 'Atari', 'PC', 'Outros'];
+/** Maker order in the filter bar. */
+export const MAKER_ORDER = ['Nintendo', 'Sony', 'Sega', 'Microsoft', 'Atari', 'PC', 'Other'];
 
 const BY_NAME = new Map(CONSOLES.map((c) => [c.name, c]));
 
@@ -40,13 +40,13 @@ export function consoleByName(name: string): ConsoleMeta | undefined {
   return BY_NAME.get(name);
 }
 
-/** Fabricante de uma plataforma; o que não está na tabela cai em "Outros". */
+/** Maker of a platform; anything not in the table falls into "Other". */
 export function makerOf(platform: string): string {
-  return BY_NAME.get(platform)?.maker ?? 'Outros';
+  return BY_NAME.get(platform)?.maker ?? 'Other';
 }
 
-/** Filtro de fabricante viaja no mesmo campo do console: "maker:Sony". */
+/** The maker filter travels in the same field as the console: "maker:Sony". */
 export const MAKER_PREFIX = 'maker:';
 
-/** Filtro "Meus consoles" (os escolhidos no onboarding). */
+/** "My consoles" filter (the ones picked during onboarding). */
 export const MINE_FILTER = 'mine';

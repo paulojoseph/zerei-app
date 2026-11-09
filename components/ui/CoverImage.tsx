@@ -8,7 +8,7 @@ import type { Game } from '@/types/game';
 import { categoryMeta, platformShort } from '@/lib/platforms';
 import { cn } from '@/lib/utils';
 
-/** Espelha `images.remotePatterns` do next.config.ts. */
+/** Mirrors `images.remotePatterns` from next.config.ts. */
 const COVER_HOSTS = new Set([
   'thumbnails.libretro.com',
   'images.igdb.com',
@@ -21,41 +21,41 @@ const COVER_HOSTS = new Set([
 const DEFAULT_SIZES = '(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 180px';
 
 /**
- * Capas que o navegador busca direto, sem passar pelo otimizador do Next:
- * - IGDB: o CDN deles já entrega no tamanho do card (264 px), com cache de um
- *   ano; passar pelo nosso servidor só gastaria CPU e criaria cópia nossa da
- *   arte (ADR 0004: hotlink, sem armazenar);
- * - Wikimedia: responde 429 à rajada que o otimizador dispara do servidor.
+ * Covers the browser fetches directly, skipping the Next optimizer:
+ * - IGDB: their CDN already serves the card size (264px), cached for a
+ *   year; going through our server would only burn CPU and create our own copy
+ *   of the artwork (ADR 0004: hotlink, no storage);
+ * - Wikimedia: answers 429 to the burst the optimizer fires from the server.
  */
 function bypassOptimizer(url: string): boolean {
   return url.startsWith('https://images.igdb.com/') || url.startsWith('https://upload.wikimedia.org/');
 }
 
-/** Formato do wrapper — a capa gerada precisa ocupar exatamente o mesmo espaço. */
+/** Wrapper shape: the generated cover must take exactly the same space. */
 const FRAME = 'relative aspect-[3/4] w-full overflow-hidden bg-panel-2';
 
 /**
- * A Press Start 2P é monoespaçada com avanço de 1em: a 10px cabem ~13 caracteres
- * por linha na largura útil de um card de celular (~150px em 2 colunas). Acima
- * desses limites o título pixelado quebraria no meio da palavra, então ele cai
- * para a fonte de texto — que é proporcional e rende mais que o dobro por linha.
+ * Press Start 2P is monospaced with a 1em advance: at 10px about 13 characters
+ * fit per line in the usable width of a phone card (~150px in 2 columns). Past
+ * those limits the pixel title would break mid-word, so it falls back to the
+ * text font, which is proportional and fits more than twice as much per line.
  */
 const PIXEL_TITLE_MAX_CHARS = 22;
 const PIXEL_TITLE_MAX_WORD = 12;
 
 function fitsPixelFont(title: string): boolean {
   if (title.length > PIXEL_TITLE_MAX_CHARS) return false;
-  // Uma palavra longa sozinha já estoura a linha, mesmo em título curto.
+  // A single long word already overflows the line, even in a short title.
   return title.split(/\s+/).every((word) => word.length <= PIXEL_TITLE_MAX_WORD);
 }
 
 /**
- * O <Image> do Next explode em runtime se o host não estiver liberado no
- * next.config. Como a capa pode vir da IGDB ou de um backup importado, só
- * entregamos ao otimizador o que sabemos que passa; o resto vira capa gerada.
+ * Next's <Image> blows up at runtime if the host isn't allowed in
+ * next.config. Since the cover may come from IGDB or an imported backup, we
+ * only hand the optimizer what we know passes; the rest becomes a generated cover.
  */
 function isSupportedCover(url: string): boolean {
-  // Caminho local em /public (mas não URL protocol-relative "//host/x.png").
+  // Local path in /public (but not a protocol-relative URL "//host/x.png").
   if (url.startsWith('/')) return !url.startsWith('//');
   try {
     const parsed = new URL(url);
@@ -76,8 +76,8 @@ export function CoverImage({ game, sizes, priority, className }: CoverImageProps
   const src = game.coverUrl;
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
-  // Estado derivado de prop sem useEffect: guardamos a url usada e comparamos
-  // durante o render (padrão oficial do React para "resetar ao trocar de item").
+  // Prop-derived state without useEffect: we keep the url we used and compare
+  // during render (the official React pattern for "reset when the item changes").
   const [renderedSrc, setRenderedSrc] = useState(src);
 
   if (renderedSrc !== src) {
@@ -92,22 +92,22 @@ export function CoverImage({ game, sizes, priority, className }: CoverImageProps
 
   return (
     <div className={cn(FRAME, className)}>
-      {/* Esqueleto atrás da capa: some sozinho quando a imagem pinta por cima. */}
+      {/* Skeleton behind the cover: it disappears on its own once the image paints on top. */}
       {!loaded && <div aria-hidden className="animate-shimmer absolute inset-0" />}
       <Image
-        // A visibilidade NUNCA depende do evento `load`: imagem que já está no
-        // cache do navegador termina de carregar antes do React pendurar o
-        // `onLoad`, e o evento simplesmente não chega — a capa ficaria invisível
-        // para sempre em todo reload. O fade vem de uma animação de montagem, e
-        // `onLoad`/`ref` servem só para tirar o esqueleto de trás quando dá.
+        // Visibility NEVER depends on the `load` event: an image already in the
+        // browser cache finishes loading before React attaches `onLoad`, and the
+        // event simply never arrives, so the cover would stay invisible forever on
+        // every reload. The fade comes from a mount animation, and `onLoad`/`ref`
+        // only serve to remove the skeleton from behind when possible.
         ref={(node) => {
           if (node?.complete && node.naturalWidth > 0) setLoaded(true);
         }}
         src={src}
-        alt={`Capa de ${game.title}`}
+        alt={`Cover of ${game.title}`}
         fill
         sizes={sizes ?? DEFAULT_SIZES}
-        // `priority` foi aposentado no Next 16: eager + fetchPriority é o substituto.
+        // `priority` was retired in Next 16: eager + fetchPriority replaces it.
         loading={priority ? 'eager' : undefined}
         fetchPriority={priority ? 'high' : undefined}
         unoptimized={bypassOptimizer(src)}
@@ -120,8 +120,8 @@ export function CoverImage({ game, sizes, priority, className }: CoverImageProps
 }
 
 /**
- * Capa gerada localmente. Não é um estado de erro: é box art de verdade,
- * pintada com a cor da geração do console.
+ * Locally generated cover. It's not an error state: it's real box art,
+ * painted with the console generation color.
  */
 export function FallbackCover({ game, className }: { game: Game; className?: string }) {
   const meta = categoryMeta(game.category);
@@ -131,7 +131,7 @@ export function FallbackCover({ game, className }: { game: Game; className?: str
   const frameStyle: CSSProperties = {
     backgroundColor: '#101015',
     backgroundImage: [
-      // escurecimento de baixo para cima primeiro: mantém o título legível
+      // bottom-up darkening first: keeps the title readable
       'linear-gradient(180deg, rgba(5,5,7,0) 34%, rgba(5,5,7,0.92) 100%)',
       `radial-gradient(130% 80% at 50% -14%, color-mix(in oklab, ${accent} 48%, transparent), transparent 62%)`,
       `radial-gradient(85% 55% at 112% 106%, color-mix(in oklab, ${accent} 26%, transparent), transparent 66%)`,
@@ -141,11 +141,11 @@ export function FallbackCover({ game, className }: { game: Game; className?: str
   return (
     <div
       role="img"
-      aria-label={`Capa de ${game.title}`}
+      aria-label={`Cover of ${game.title}`}
       className={cn(FRAME, 'scanlines select-none', className)}
       style={frameStyle}
     >
-      {/* faixa da geração, como o topo de uma caixa de console */}
+      {/* generation strip, like the top of a console box */}
       <div aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: accent }} />
       <div
         aria-hidden

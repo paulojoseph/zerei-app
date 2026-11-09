@@ -3,18 +3,18 @@ import { normalize } from '@/lib/utils';
 import { consoleByName } from '@/lib/consoles';
 
 /* -------------------------------------------------------------------------- */
-/*  Gerações                                                                   */
+/*  Generations                                                                */
 /* -------------------------------------------------------------------------- */
 
 export interface CategoryMeta {
   id: PlatformCategory;
-  /** Rótulo curto usado nas abas. */
+  /** Short label used in the tabs. */
   tabLabel: string;
-  /** Rótulo completo usado em títulos e estatísticas. */
+  /** Full label used in titles and stats. */
   label: string;
-  /** Exemplos de consoles — vira subtítulo/tooltip. */
+  /** Example consoles, shown as subtitle/tooltip. */
   examples: string;
-  /** Hex do acento da geração (usado em badges, barras e bordas). */
+  /** Generation accent hex (used in badges, bars and borders). */
   color: string;
 }
 
@@ -30,36 +30,36 @@ export const CATEGORY_META: Record<PlatformCategory, CategoryMeta> = {
   '8-bit': {
     id: '8-bit',
     tabLabel: '8-Bit',
-    label: 'Era 8-Bit',
+    label: '8-Bit Era',
     examples: 'Phantom System/NES, Master System, Atari, MSX',
     color: '#f59e0b',
   },
   '16-bit': {
     id: '16-bit',
     tabLabel: '16-Bit',
-    label: 'Era 16-Bit',
+    label: '16-Bit Era',
     examples: 'Mega Drive, Super Nintendo, Amiga',
     color: '#22d3ee',
   },
   '32/64-bit': {
     id: '32/64-bit',
     tabLabel: '32/64-Bit & Arcades',
-    label: 'Era 32/64-Bit & Arcades',
-    examples: 'PlayStation, Saturn, Nintendo 64, Neo Geo, Fliperamas',
+    label: '32/64-Bit & Arcade Era',
+    examples: 'PlayStation, Saturn, Nintendo 64, Neo Geo, Arcades',
     color: '#a78bfa',
   },
   '128-bit': {
     id: '128-bit',
     tabLabel: '128-Bit & 2000s',
-    label: 'Era 128-Bit & Anos 2000',
-    examples: 'PlayStation 2, Xbox, GameCube, Dreamcast, GBA, PC Clássico',
+    label: '128-Bit & 2000s Era',
+    examples: 'PlayStation 2, Xbox, GameCube, Dreamcast, GBA, Classic PC',
     color: '#fb7185',
   },
   modern: {
     id: 'modern',
-    tabLabel: 'Modernos',
-    label: 'Era Moderna',
-    examples: 'PS3/PS4/PS5, Xbox One/Series, Switch, PC Moderno',
+    tabLabel: 'Modern',
+    label: 'Modern Era',
+    examples: 'PS3/PS4/PS5, Xbox One/Series, Switch, Modern PC',
     color: '#39ff9e',
   },
 };
@@ -74,12 +74,12 @@ export function categoryMeta(category: PlatformCategory): CategoryMeta {
 
 export interface StatusMeta {
   id: GameStatus;
-  /** Rótulo curto (chips de filtro e menus). */
+  /** Short label (filter chips and menus). */
   label: string;
-  /** Frase completa usada no modal. */
+  /** Full sentence used in the modal. */
   longLabel: string;
   color: string;
-  /** Classes utilitárias já resolvidas (Tailwind não aceita classe dinâmica). */
+  /** Utility classes spelled out (Tailwind doesn't allow dynamic classes). */
   chipClass: string;
   dotClass: string;
 }
@@ -89,54 +89,54 @@ export const STATUS_ORDER: GameStatus[] = ['beaten', 'playing', 'backlog', 'unpl
 export const STATUS_META: Record<GameStatus, StatusMeta> = {
   beaten: {
     id: 'beaten',
-    label: 'Zerei!',
-    longLabel: 'Zerei este jogo',
+    label: 'Beat it!',
+    longLabel: 'I beat this game',
     color: '#39ff9e',
     chipClass: 'border-neon/60 bg-neon/15 text-neon',
     dotClass: 'bg-neon',
   },
   playing: {
     id: 'playing',
-    label: 'Jogando',
-    longLabel: 'Estou jogando agora',
+    label: 'Playing',
+    longLabel: "I'm playing it now",
     color: '#22d3ee',
     chipClass: 'border-cyan/60 bg-cyan/15 text-cyan',
     dotClass: 'bg-cyan',
   },
   backlog: {
     id: 'backlog',
-    label: 'Quero jogar',
-    longLabel: 'Está na fila (backlog)',
+    label: 'Want to play',
+    longLabel: "It's in my backlog",
     color: '#fbbf24',
     chipClass: 'border-gold/60 bg-gold/15 text-gold',
     dotClass: 'bg-gold',
   },
   unplayed: {
     id: 'unplayed',
-    label: 'Não joguei',
-    longLabel: 'Ainda não joguei',
+    label: 'Not played',
+    longLabel: "I haven't played it yet",
     color: '#6f6f7d',
     chipClass: 'border-line bg-panel-3 text-ink-soft',
     dotClass: 'bg-ink-dim',
   },
 };
 
-/** Rótulos dos chips de filtro de status (inclui "Todos"). */
+/** Labels for the status filter chips (includes "All"). */
 export const STATUS_FILTER_LABEL: Record<StatusFilter, string> = {
-  all: 'Todos',
-  beaten: 'Zerei!',
-  playing: 'Jogando',
-  backlog: 'Fila',
-  unplayed: 'Não jogados',
+  all: 'All',
+  beaten: 'Beaten',
+  playing: 'Playing',
+  backlog: 'Backlog',
+  unplayed: 'Not played',
 };
 
 
 /* -------------------------------------------------------------------------- */
-/*  Plataformas                                                                */
+/*  Platforms                                                                  */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Abreviação exibida no badge do card. A chave é o nome canônico usado na seed.
+ * Abbreviation shown on the card badge. The key is the canonical name used in the seed.
  */
 export const PLATFORM_SHORT: Record<string, string> = {
   'Phantom System / NES': 'NES',
@@ -187,8 +187,10 @@ export function platformShort(platform: string): string {
 }
 
 /**
- * Palavras-chave por plataforma para a busca global aceitar apelidos:
- * "megadrive", "genesis", "snes", "playstation 1", "fliperama"...
+ * Keywords per platform so the global search accepts nicknames:
+ * "megadrive", "genesis", "snes", "playstation 1", "arcade"... Brazilian
+ * Portuguese nicknames ("nintendinho", "fliperama", "computador") stay on
+ * purpose, because that's how the core audience searches.
  */
 const PLATFORM_ALIASES: Record<string, string[]> = {
   'Phantom System / NES': ['nes', 'phantom', 'phantom system', 'nintendinho', 'famicom', '8 bits', 'turbo game', 'dynavision'],
@@ -213,7 +215,7 @@ const PLATFORM_ALIASES: Record<string, string[]> = {
   'Game Boy': ['game boy', 'gameboy', 'gb'],
   'Nintendo DS': ['nds', 'nintendo ds', 'ds'],
   'Nintendo Switch': ['switch', 'nintendo switch', 'nsw'],
-  Xbox: ['xbox', 'xbox classico', 'microsoft'],
+  Xbox: ['xbox', 'xbox classic', 'microsoft'],
   'Xbox 360': ['xbox 360', 'x360', '360', 'microsoft'],
   'Xbox One': ['xbox one', 'xone', 'microsoft'],
   'Xbox Series X|S': ['xbox series', 'series x', 'series s', 'xsx', 'microsoft'],
@@ -232,13 +234,13 @@ const PLATFORM_ALIASES: Record<string, string[]> = {
   'Nintendo Switch 2': ['switch 2', 'nintendo switch 2', 'ns2'],
 };
 
-/** Texto pesquisável de uma plataforma (nome + apelidos + sigla). */
+/** Searchable text for a platform (name + nicknames + abbreviation). */
 export function platformSearchTerms(platform: string): string {
   const aliases = PLATFORM_ALIASES[platform] ?? [];
   return normalize([platform, platformShort(platform), ...aliases].join(' '));
 }
 
-/** Descobre a geração a partir do nome da plataforma (usado no import IGDB). */
+/** Works out the generation from the platform name (used by the IGDB import). */
 export function inferCategory(platform: string): PlatformCategory {
   const p = normalize(platform);
   const has = (...needles: string[]) => needles.some((n) => p.includes(n));
@@ -253,7 +255,7 @@ export function inferCategory(platform: string): PlatformCategory {
     return '128-bit';
   if (has('playstation 3', 'playstation 4', 'playstation 5', 'ps3', 'ps4', 'ps5', 'xbox 360', 'xbox one', 'xbox series', 'switch', 'wii', 'steam deck'))
     return 'modern';
-  // "PlayStation" puro e "Xbox" puro caem aqui — desempate explícito.
+  // Plain "PlayStation" and plain "Xbox" land here, so break the tie explicitly.
   if (p === 'playstation') return '32/64-bit';
   if (p === 'xbox') return '128-bit';
   if (has('pc', 'windows', 'linux', 'mac')) return 'modern';

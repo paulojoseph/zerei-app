@@ -1,17 +1,17 @@
 /**
- * Zerei.app — modelo de dados central.
- * Tudo que o app persiste ou renderiza passa por estes tipos.
+ * Zerei.app — core data model.
+ * Everything the app persists or renders goes through these types.
  */
 
-/** Geração/era do console. Usado nas abas de segmentação visual. */
+/** Console generation/era. Used by the visual segmentation tabs. */
 export type PlatformCategory =
   | '8-bit' // Phantom System/NES, Master System, Atari, MSX
   | '16-bit' // Mega Drive, SNES, Amiga
-  | '32/64-bit' // PS1, Saturn, N64, Arcades/Neo Geo
-  | '128-bit' // PS2, Xbox, GBA, PC Clássico
-  | 'modern'; // PS3, PS4, PS5, Xbox One, PC Moderno
+  | '32/64-bit' // PS1, Saturn, N64, Arcade/Neo Geo
+  | '128-bit' // PS2, Xbox, GBA, Classic PC
+  | 'modern'; // PS3, PS4, PS5, Xbox One, Modern PC
 
-/** Situação de um jogo na vida do jogador. */
+/** Where a game stands in the player's life. */
 export type GameStatus = 'beaten' | 'playing' | 'backlog' | 'unplayed';
 
 export interface Game {
@@ -22,15 +22,15 @@ export interface Game {
   releaseYear: number;
   coverUrl: string;
   summary?: string;
-  /** Para filtros de nostalgia local (Tec Toy, fliperamas, locadoras). */
+  /** For Brazilian nostalgia filters (Tec Toy, arcades, rental stores). */
   isBrazilClassic?: boolean;
-  /** Preenchido quando o jogo veio da busca IGDB e não da base local. */
+  /** Set when the game came from IGDB search instead of the local database. */
   isCustom?: boolean;
-  /** Veio do catálogo completo (public/catalog), não da curadoria da seed. */
+  /** Came from the full catalog (public/catalog), not from the curated seed. */
   isCatalog?: boolean;
-  /** 0–999: visitas na IGDB + número de avaliações. Ordena o clássico antes do obscuro. */
+  /** 0–999: IGDB visits plus rating count. Puts the classic ahead of the obscure. */
   popularity?: number;
-  /** Gêneros (opcional; a IGDB devolve, a seed usa para busca textual). */
+  /** Genres (optional; IGDB returns them, the seed uses them for text search). */
   genres?: string[];
 }
 
@@ -38,27 +38,27 @@ export interface UserGameProgress {
   gameId: string;
   status: GameStatus;
   completedYear?: number;
-  /** 1 a 5 estrelas. */
+  /** 1 to 5 stars. */
   rating?: number;
   notes?: string;
-  /** Console do jogo (id de data/consoles.json): diz qual arquivo do catálogo carregar. */
+  /** The game's console (id from data/consoles.json): tells which catalog file to load. */
   consoleId?: string;
   /** ISO string. */
   updatedAt: string;
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Filtros                                                                    */
+/*  Filters                                                                    */
 /* -------------------------------------------------------------------------- */
 
 export type CategoryFilter = PlatformCategory | 'all';
-/** Nome do console (`Game.platform`) ou 'all'. */
+/** Console name (`Game.platform`) or 'all'. */
 export type PlatformFilter = string;
 export type StatusFilter = GameStatus | 'all';
 export type SortMode = 'recent' | 'title' | 'year-desc' | 'year-asc' | 'rating';
 
 /* -------------------------------------------------------------------------- */
-/*  Backup / restauração                                                       */
+/*  Backup / restore                                                           */
 /* -------------------------------------------------------------------------- */
 
 export const BACKUP_FORMAT = 'zerei.app/backup' as const;
@@ -68,9 +68,9 @@ export interface BackupPayload {
   format: typeof BACKUP_FORMAT;
   version: number;
   exportedAt: string;
-  /** Progresso do usuário, indexado por gameId. */
+  /** User progress, keyed by gameId. */
   progress: Record<string, UserGameProgress>;
-  /** Jogos adicionados manualmente / vindos da IGDB, para o backup ser completo. */
+  /** Games added by hand or from IGDB, so the backup is complete. */
   customGames: Game[];
   stats?: {
     beaten: number;
@@ -89,7 +89,7 @@ export interface ImportResult {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Estatísticas                                                               */
+/*  Stats                                                                      */
 /* -------------------------------------------------------------------------- */
 
 export interface CategoryStat {
@@ -134,13 +134,13 @@ export interface StatsSummary {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  IGDB (rota /api/igdb/search)                                               */
+/*  IGDB (/api/igdb/search route)                                              */
 /* -------------------------------------------------------------------------- */
 
 export interface IgdbSearchResponse {
-  /** `local` quando as credenciais não estão configuradas. */
+  /** `local` when credentials are not configured. */
   source: 'igdb' | 'local';
   results: Game[];
-  /** Mensagem amigável quando caímos no fallback local ou deu erro. */
+  /** Friendly message when we fell back to local results or something failed. */
   notice?: string;
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Zerei.app — gerador de ícones PNG do PWA (sem dependência externa).
+ * Zerei.app — PWA PNG icon generator (no external dependency).
  *
- * Desenha a arte em um buffer RGBA e codifica o PNG na mão (zlib do Node),
- * então `npm install` não precisa de canvas/sharp para o app ser instalável.
+ * Draws the artwork into an RGBA buffer and encodes the PNG by hand (Node's zlib),
+ * so `npm install` doesn't need canvas/sharp for the app to be installable.
  *
  *   node scripts/gen-icons.mjs
  */
@@ -13,7 +13,7 @@ import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 
-/* ----------------------------- encoder PNG ------------------------------- */
+/* ----------------------------- PNG encoder ------------------------------- */
 
 const CRC_TABLE = (() => {
   const table = new Int32Array(256);
@@ -49,7 +49,7 @@ function encodePng(rgba, size) {
   ihdr[9] = 6; // color type RGBA
   // 10..12 = compression/filter/interlace = 0
 
-  // scanlines com filtro 0 (None)
+  // scanlines with filter 0 (None)
   const raw = Buffer.alloc(size * (size * 4 + 1));
   for (let y = 0; y < size; y += 1) {
     const off = y * (size * 4 + 1);
@@ -65,7 +65,7 @@ function encodePng(rgba, size) {
   ]);
 }
 
-/* ------------------------------- desenho --------------------------------- */
+/* ------------------------------- drawing --------------------------------- */
 
 const NEON = [0x39, 0xff, 0x9e];
 const CYAN = [0x22, 0xd3, 0xee];
@@ -95,7 +95,7 @@ function fillAll(canvas, color) {
     for (let x = 0; x < canvas.size; x += 1) blend(canvas, x, y, color, 1);
 }
 
-/** Brilho radial suave (queda quadrática). */
+/** Soft radial glow (quadratic falloff). */
 function radialGlow(canvas, cx, cy, radius, color, intensity) {
   const r2 = radius * radius;
   for (let y = 0; y < canvas.size; y += 1) {
@@ -108,13 +108,13 @@ function radialGlow(canvas, cx, cy, radius, color, intensity) {
   }
 }
 
-/** Retângulo de cantos arredondados com borda anti-serrilhada. */
+/** Rounded rectangle with an anti-aliased edge. */
 function roundRect(canvas, x0, y0, w, h, radius, fill, stroke, strokeWidth) {
   const x1 = x0 + w;
   const y1 = y0 + h;
   for (let y = Math.floor(y0) - 2; y < Math.ceil(y1) + 2; y += 1) {
     for (let x = Math.floor(x0) - 2; x < Math.ceil(x1) + 2; x += 1) {
-      // distância assinada até a borda do retângulo arredondado
+      // signed distance to the rounded rectangle edge
       const dx = Math.max(x0 + radius - x, 0, x - (x1 - radius));
       const dy = Math.max(y0 + radius - y, 0, y - (y1 - radius));
       const dist = Math.hypot(dx, dy) - radius;
@@ -127,11 +127,11 @@ function roundRect(canvas, x0, y0, w, h, radius, fill, stroke, strokeWidth) {
 }
 
 /**
- * Máscara 0..1 do "check" em pixel art.
- * Desenha os dois segmentos do check numa grade quadrada: cada célula acende
- * quando o centro dela está a menos de `halfWidth` de um dos segmentos. Isso dá
- * a escadinha de pixel art com espessura previsível (stamping direto engorda
- * demais nas diagonais).
+ * 0..1 mask of the pixel art "check".
+ * Draws the two check segments on a square grid: each cell lights up when its
+ * center is less than `halfWidth` from one of the segments. That gives the pixel
+ * art staircase a predictable thickness (direct stamping gets too thick on the
+ * diagonals).
  */
 function checkMask(size, art) {
   const GRID = 30;
@@ -139,7 +139,7 @@ function checkMask(size, art) {
   const offset = (size - art) / 2;
   const mask = new Float32Array(size * size);
 
-  // vértices em coordenadas normalizadas da arte
+  // vertices in normalized artwork coordinates
   const pts = [
     [0.08, 0.50],
     [0.38, 0.80],
@@ -177,7 +177,7 @@ function checkMask(size, art) {
   return mask;
 }
 
-/** Box blur separável — usado para o halo neon. */
+/** Separable box blur, used for the neon halo. */
 function blur(mask, size, radius, passes = 3) {
   let src = mask;
   let dst = new Float32Array(size * size);
@@ -217,8 +217,8 @@ function blur(mask, size, radius, passes = 3) {
 }
 
 /**
- * @param {number} size  lado do PNG
- * @param {boolean} maskable  true = arte reduzida na zona segura, fundo sangrando
+ * @param {number} size  PNG side length
+ * @param {boolean} maskable  true = artwork shrunk into the safe zone, bleeding background
  */
 function drawIcon(size, maskable) {
   const canvas = createCanvas(size);
@@ -226,7 +226,7 @@ function drawIcon(size, maskable) {
   radialGlow(canvas, size * 0.5, size * 0.12, size * 0.85, NEON, 0.22);
   radialGlow(canvas, size * 0.95, size * 0.95, size * 0.7, CYAN, 0.14);
 
-  const safe = maskable ? 0.62 : 0.84; // proporção da arte dentro do ícone
+  const safe = maskable ? 0.62 : 0.84; // share of the artwork inside the icon
   const plate = size * safe;
   const px = (size - plate) / 2;
   roundRect(canvas, px, px, plate, plate, plate * 0.22, PANEL, NEON, Math.max(2, size * 0.012));
@@ -238,7 +238,7 @@ function drawIcon(size, maskable) {
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
       const i = y * size + x;
-      // o halo é só brilho: expoente > 1 evita que ele engorde o traço
+      // the halo is just glow: an exponent > 1 keeps it from thickening the stroke
       if (halo[i] > 0.01) blend(canvas, x, y, NEON, Math.pow(halo[i], 2) * 0.45);
       if (mask[i] > 0) blend(canvas, x, y, [0xd6, 0xff, 0xe9], 1);
     }
@@ -246,7 +246,7 @@ function drawIcon(size, maskable) {
   return encodePng(canvas.data, size);
 }
 
-/* --------------------------------- saída --------------------------------- */
+/* --------------------------------- output -------------------------------- */
 
 const outDir = path.join(ROOT, 'public/icons');
 await mkdir(outDir, { recursive: true });
@@ -265,4 +265,4 @@ for (const [rel, size, maskable] of targets) {
   await writeFile(dest, buf);
   console.log(`${rel.padEnd(34)} ${size}x${size}  ${(buf.length / 1024).toFixed(1)} kB`);
 }
-console.log('\nÍcones gerados.');
+console.log('\nIcons generated.');

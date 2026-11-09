@@ -11,29 +11,29 @@ import type {
 import { CATEGORY_META, CATEGORY_ORDER } from '@/lib/platforms';
 
 /**
- * Módulo puro de estatísticas: nada de React, store, `Date.now()` ou I/O.
- * Mesmo par (games, progress) sempre devolve o mesmo `StatsSummary` — é o que
- * permite chamar isto no render sem risco de divergência de hidratação.
+ * Pure stats module: no React, store, `Date.now()` or I/O.
+ * The same (games, progress) pair always returns the same `StatsSummary`, which
+ * is what makes it safe to call during render without hydration mismatches.
  */
 
-/** Desempate estável por título, com regras de acentuação do pt-BR. */
+/** Stable tie-break by title, accent-aware. */
 function byTitle(a: Game, b: Game): number {
-  return a.title.localeCompare(b.title, 'pt-BR');
+  return a.title.localeCompare(b.title, 'en');
 }
 
-/** Datas ISO comparam bem lexicograficamente; o `?? ''` só protege dados legados. */
+/** ISO dates compare fine lexicographically; `?? ''` only guards legacy data. */
 function updatedAtOf(progress: UserGameProgress): string {
   return progress.updatedAt ?? '';
 }
 
-/** Mais recente primeiro; empate cai no título para a ordem nunca oscilar. */
+/** Most recent first; ties fall back to the title so the order never flips. */
 function byRecent(a: TimelineEntry, b: TimelineEntry): number {
   const compared = updatedAtOf(b.progress).localeCompare(updatedAtOf(a.progress));
   if (compared !== 0) return compared;
   return byTitle(a.game, b.game);
 }
 
-/** Maior valor de uma lista (0 quando vazia) — normaliza a altura das barras na UI. */
+/** Largest value in a list (0 when empty), used to scale bar heights in the UI. */
 export function maxOf(values: number[]): number {
   let max = 0;
   for (const value of values) {
@@ -63,7 +63,7 @@ export function computeStats(
   let withNotes = 0;
   let brazilBeaten = 0;
 
-  // Acumuladores indexados: evitam varrer o catálogo de novo por categoria/plataforma.
+  // Indexed accumulators, so we don't scan the catalog again per category/platform.
   const categoryTally = new Map<PlatformCategory, CategoryTally>(
     CATEGORY_ORDER.map((category): [PlatformCategory, CategoryTally] => [
       category,
@@ -75,15 +75,15 @@ export function computeStats(
   const beatenEntries: TimelineEntry[] = [];
   const ratedEntries: TimelineEntry[] = [];
 
-  // Uma única passada pelo catálogo. Partir dos jogos (e não do `progress`)
-  // descarta naturalmente progresso órfão de jogo que saiu da base.
+  // A single pass over the catalog. Starting from the games (not from `progress`)
+  // naturally drops orphan progress for games that left the database.
   for (const game of games) {
     const category = categoryTally.get(game.category);
     if (category) category.total += 1;
 
     const entry = progress[game.id];
     if (!entry) {
-      // Sem registro nenhum: conta como não jogado, igual ao status explícito.
+      // No record at all: counts as not played, same as the explicit status.
       unplayed += 1;
       continue;
     }
@@ -103,8 +103,8 @@ export function computeStats(
 
         const platform = platformTally.get(game.platform);
         if (platform) platform.beaten += 1;
-        // A geração do badge vem do primeiro zerado daquela plataforma —
-        // na prática todos compartilham a mesma categoria.
+        // The badge generation comes from the first beaten game on that platform;
+        // in practice they all share the same category.
         else platformTally.set(game.platform, { platform: game.platform, category: game.category, beaten: 1 });
 
         if (entry.completedYear !== undefined) {
@@ -139,10 +139,10 @@ export function computeStats(
   });
 
   const byPlatform: PlatformStat[] = [...platformTally.values()].sort(
-    (a, b) => b.beaten - a.beaten || a.platform.localeCompare(b.platform, 'pt-BR'),
+    (a, b) => b.beaten - a.beaten || a.platform.localeCompare(b.platform, 'en'),
   );
 
-  // Linha do tempo da vida: ano crescente para o gráfico ler da esquerda para a direita.
+  // Gaming life timeline: ascending year so the chart reads left to right.
   const byYear: YearStat[] = [...yearTally.entries()]
     .map(([year, count]) => ({ year, count }))
     .sort((a, b) => a.year - b.year);
@@ -160,7 +160,7 @@ export function computeStats(
     unplayed,
     catalogSize: games.length,
     rated,
-    // Média com uma casa decimal (0 quando ninguém foi avaliado).
+    // Average with one decimal place (0 when nothing was rated).
     averageRating: rated > 0 ? Math.round((ratingSum / rated) * 10) / 10 : 0,
     withNotes,
     brazilBeaten,

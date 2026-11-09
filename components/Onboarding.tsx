@@ -10,8 +10,8 @@ import { cn, pluralize } from '@/lib/utils';
 import { useGameStore } from '@/stores/useGameStore';
 
 /**
- * Ordem da persona de lançamento (nostálgico brasileiro, 25–45 anos): o que
- * estava na sala e na locadora vem primeiro; o resto segue por ano.
+ * Order for the launch persona (Brazilian nostalgia fan, 25 to 45 years old): what
+ * sat in the living room and at the rental store comes first; the rest follows by year.
  */
 const FEATURED = [
   'master-system',
@@ -44,15 +44,15 @@ function orderedConsoles(): ConsoleMeta[] {
 const ORDERED = orderedConsoles();
 
 /**
- * "Quais consoles você teve?" — três toques e a pessoa já está marcando jogos
- * do console da infância. Aparece uma vez; dá para pular.
+ * "Which consoles did you own?" Three taps and the person is already marking games
+ * from their childhood console. Shows once; it can be skipped.
  */
 export function Onboarding() {
   const setMyConsoles = useGameStore((s) => s.setMyConsoles);
   const finishOnboarding = useGameStore((s) => s.finishOnboarding);
   const setPlatform = useGameStore((s) => s.setPlatform);
   const [picked, setPicked] = useState<string[]>([]);
-  // 16 consoles da persona primeiro; o resto (modernos, portáteis) sob demanda.
+  // The persona's 16 consoles first; the rest (modern, handhelds) on demand.
   const [showAll, setShowAll] = useState(false);
   const shown = showAll ? ORDERED : ORDERED.slice(0, FEATURED.length);
 
@@ -77,11 +77,11 @@ export function Onboarding() {
         </span>
         <div className="min-w-0">
           <h2 id="onboarding-title" className="text-base font-semibold text-ink sm:text-lg">
-            Quais consoles você teve?
+            Which consoles did you own?
           </h2>
           <p className="mt-1 text-sm text-ink-soft">
-            Escolha os da sua história. A gente mostra os jogos deles primeiro para você marcar os
-            que zerou em segundos.
+            Pick the ones from your story. We show their games first so you can mark the
+            ones you beat in seconds.
           </p>
         </div>
       </div>
@@ -114,7 +114,7 @@ export function Onboarding() {
                   <span className="block truncate text-sm font-medium text-ink">{c.label}</span>
                   <span className="block text-[11px] text-ink-dim">
                     <span aria-hidden="true" className="mr-1 inline-block size-1.5 rounded-full align-middle" style={{ backgroundColor: color }} />
-                    {c.year} · {pluralize(CATALOG_COUNTS[c.id] ?? 0, 'jogo')}
+                    {c.year} · {pluralize(CATALOG_COUNTS[c.id] ?? 0, 'game')}
                   </span>
                 </span>
               </button>
@@ -129,23 +129,23 @@ export function Onboarding() {
           onClick={() => setShowAll(true)}
           className="mt-2 min-h-11 w-full rounded-xl border border-dashed border-line text-sm text-ink-soft transition-colors duration-200 hover:border-ink-dim/60 hover:text-ink"
         >
-          Ver todos os consoles ({ORDERED.length})
+          See all consoles ({ORDERED.length})
         </button>
       )}
 
-      {/* Preso no rodapé: com a lista aberta, o botão não some de vista no celular. */}
+      {/* Pinned to the footer: with the list open, the button stays in view on phones. */}
       <div className="sticky bottom-0 -mx-4 mt-4 flex flex-wrap items-center gap-3 border-t border-line-soft bg-panel/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur sm:-mx-6 sm:px-6">
         <Button variant="solid" disabled={picked.length === 0} onClick={start}>
           {picked.length === 0
-            ? 'Escolha pelo menos um'
-            : `Começar a marcar (${pluralize(picked.length, 'console')})`}
+            ? 'Pick at least one'
+            : `Start marking (${pluralize(picked.length, 'console')})`}
         </Button>
         <button
           type="button"
           onClick={finishOnboarding}
           className="min-h-11 px-2 text-sm text-ink-dim underline-offset-4 hover:text-ink hover:underline"
         >
-          Agora não
+          Not now
         </button>
       </div>
     </section>

@@ -1,4 +1,4 @@
-/** Mediana, em ms, de `runs` execuções de `fn` (com aquecimento). */
+/** Median, in ms, of `runs` executions of `fn` (with warm-up). */
 export function medianMs(fn: () => void, runs = 15): number {
   for (let i = 0; i < 3; i += 1) fn();
   const times: number[] = [];

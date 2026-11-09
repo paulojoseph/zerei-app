@@ -34,22 +34,22 @@ export interface Toast {
 interface PersistedState {
   progress: Record<string, UserGameProgress>;
   customGames: Game[];
-  /** Consoles que o usuário teve (ids de data/consoles.json), escolhidos no onboarding. */
+  /** Consoles the user owned (ids from data/consoles.json), picked during onboarding. */
   myConsoles: string[];
-  /** Onboarding concluído ou pulado: não aparece de novo. */
+  /** Onboarding finished or skipped: it won't show again. */
   onboardingDone: boolean;
 }
 
 interface GameStore extends PersistedState {
-  /* ---- estado de sessão (não persistido) ---- */
+  /* ---- session state (not persisted) ---- */
   search: string;
   platform: PlatformFilter;
   status: StatusFilter;
   brazilOnly: boolean;
   sort: SortMode;
   /**
-   * Catálogo visível: os mais populares (top.json) + os consoles já baixados.
-   * Nada é baixado antes de ser preciso (ver `ensureConsoles`).
+   * Visible catalog: the most popular (top.json) + consoles already downloaded.
+   * Nothing is downloaded before it's needed (see `ensureConsoles`).
    */
   catalog: Game[];
   catalogTop: Game[];
@@ -60,7 +60,7 @@ interface GameStore extends PersistedState {
   hydrated: boolean;
   toast: Toast | null;
 
-  /* ---- filtros ---- */
+  /* ---- filters ---- */
   setSearch: (value: string) => void;
   setPlatform: (value: PlatformFilter) => void;
   setStatusFilter: (value: StatusFilter) => void;
@@ -77,12 +77,12 @@ interface GameStore extends PersistedState {
   pushToast: (message: string, tone?: ToastTone) => void;
   dismissToast: () => void;
 
-  /** Seleção múltipla (ids de jogos), para marcar vários de uma vez. */
+  /** Multi-select (game ids), to mark several at once. */
   selection: string[];
 
-  /* ---- progresso ---- */
+  /* ---- progress ---- */
   setGameStatus: (gameId: string, status: GameStatus) => void;
-  /** Mesmo status para vários jogos, numa atualização só. Devolve quantos. */
+  /** Same status for several games, in a single update. Returns how many. */
   setManyStatus: (gameIds: string[], status: GameStatus) => number;
   toggleBeaten: (gameId: string) => void;
   updateProgress: (
@@ -91,16 +91,16 @@ interface GameStore extends PersistedState {
   ) => void;
   clearProgress: (gameId: string) => void;
 
-  /* ---- onboarding e seleção ---- */
+  /* ---- onboarding and selection ---- */
   setMyConsoles: (ids: string[]) => void;
   finishOnboarding: () => void;
   reopenOnboarding: () => void;
   toggleSelected: (gameId: string) => void;
   clearSelection: () => void;
 
-  /* ---- catálogo ---- */
+  /* ---- catalog ---- */
   loadCatalog: () => void;
-  /** Baixa (uma vez) o catálogo destes consoles. 'all' = todos. */
+  /** Downloads (once) the catalog of these consoles. 'all' = every console. */
   ensureConsoles: (ids: string[] | 'all') => void;
   addCustomGames: (games: Game[]) => number;
   removeCustomGame: (gameId: string) => void;
@@ -123,14 +123,14 @@ const FILTER_DEFAULTS = {
 };
 
 /**
- * Aplica um status a vários jogos de uma vez (uma única atualização da store,
- * um único re-render). Devolve o mesmo objeto se nada mudou.
+ * Applies a status to several games at once (a single store update, a single
+ * re-render). Returns the same object if nothing changed.
  *
- * "Não joguei" é só mais um status, não um comando de apagar: desmarcar um
- * jogo não pode levar junto a nota, a memória afetiva e o ano em que ele foi
- * zerado. O único caminho destrutivo é `clearProgress`, que na interface tem
- * botão próprio ("Limpar registro"). Quando não há nada para preservar, aí sim
- * a chave sai e o mapa não engorda à toa.
+ * "Not played" is just another status, not a delete command: unmarking a game
+ * must not take its score, its memories and the year it was beaten along with
+ * it. The only destructive path is `clearProgress`, which has its own button
+ * in the UI ("Clear record"). When there's nothing to keep, then the key
+ * goes away so the map doesn't grow for nothing.
  */
 function withStatus(
   progress: Record<string, UserGameProgress>,
@@ -156,7 +156,7 @@ function withStatus(
   return next ?? progress;
 }
 
-/** Mescla um progresso existente com o patch, sempre carimbando `updatedAt`. */
+/** Merges existing progress with the patch, always stamping `updatedAt`. */
 function mergeProgress(
   current: UserGameProgress | undefined,
   gameId: string,
@@ -168,7 +168,7 @@ function mergeProgress(
     completedYear: patch.completedYear !== undefined ? patch.completedYear : current?.completedYear,
     rating: patch.rating !== undefined ? patch.rating : current?.rating,
     notes: patch.notes !== undefined ? patch.notes : current?.notes,
-    // Guardar o console permite baixar só o arquivo dele ao reabrir o app.
+    // Storing the console lets us download only its file when the app reopens.
     consoleId: current?.consoleId ?? consoleIdOf(gameId),
     updatedAt: now(),
   };
@@ -180,14 +180,14 @@ function mergeProgress(
 }
 
 /**
- * Chaves que não viram registro comum quando usadas como índice de um objeto
- * literal: `out['__proto__'] = x` aciona o setter herdado e mexe no protótipo
- * em vez de guardar o valor. Como o gameId vem de um arquivo importado (que
- * pode ter sido adulterado), essas chaves são descartadas na entrada.
+ * Keys that don't become a normal record when used as an index on an object
+ * literal: `out['__proto__'] = x` triggers the inherited setter and touches the
+ * prototype instead of storing the value. Since gameId comes from an imported
+ * file (which may have been tampered with), these keys are dropped on input.
  */
 const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
-/** Aceita apenas registros com formato de `UserGameProgress`. */
+/** Only accepts records shaped like `UserGameProgress`. */
 function sanitizeProgress(raw: unknown): Record<string, UserGameProgress> {
   const out: Record<string, UserGameProgress> = {};
   if (!raw || typeof raw !== 'object') return out;
@@ -218,15 +218,15 @@ function sanitizeProgress(raw: unknown): Record<string, UserGameProgress> {
   return out;
 }
 
-/* ---- carregamento do catálogo (fora do estado: não precisa re-renderizar) ---- */
+/* ---- catalog loading (outside state: no re-render needed) ---- */
 
 const TOP = '__top__';
-/** O que já foi pedido (ou chegou): cada arquivo é baixado uma vez só. */
+/** What was already requested (or arrived): each file is downloaded only once. */
 const catalogRequested = new Set<string>();
 let inFlight = 0;
 let failures = 0;
 
-/** Populares de consoles ainda não baixados + os consoles baixados (sem repetir). */
+/** Popular games from consoles not downloaded yet + downloaded consoles (no repeats). */
 function mergeCatalog(top: Game[], consoles: Record<string, Game[]>): Game[] {
   const loaded = Object.values(consoles);
   const topRest = top.filter((game) => !consoles[consoleIdOf(game.id) ?? '']);
@@ -251,8 +251,8 @@ function trackLoad(promise: Promise<unknown>) {
 }
 
 /*
- * Cada lote novo refaz índice e ordenação de dezenas de milhares de jogos: os
- * consoles que chegam juntos entram de uma vez só.
+ * Each new batch rebuilds index and sorting for tens of thousands of games, so
+ * consoles that arrive together go in all at once.
  */
 let pendingConsoles: Record<string, Game[]> = {};
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -274,7 +274,7 @@ function flushConsoles() {
   });
 }
 
-/** Consoles onde o usuário tem jogos marcados (precisam estar baixados). */
+/** Consoles where the user has marked games (they need to be downloaded). */
 export function progressConsoleIds(progress: Record<string, UserGameProgress>): string[] {
   const ids = new Set<string>();
   for (const [gameId, entry] of Object.entries(progress)) {
@@ -302,7 +302,7 @@ export const useGameStore = create<GameStore>()(
       hydrated: false,
       toast: null,
 
-      /* filtros */
+      /* filters */
       setSearch: (value) => set({ search: value }),
       setPlatform: (value) => set({ platform: value }),
       setStatusFilter: (value) => set({ status: value }),
@@ -322,7 +322,7 @@ export const useGameStore = create<GameStore>()(
       },
       dismissToast: () => set({ toast: null }),
 
-      /* progresso */
+      /* progress */
       setGameStatus: (gameId, status) =>
         set((s) => {
           const progress = withStatus(s.progress, [gameId], status);
@@ -356,7 +356,7 @@ export const useGameStore = create<GameStore>()(
           return { progress: rest };
         }),
 
-      /* onboarding e seleção */
+      /* onboarding and selection */
       setMyConsoles: (ids) => set({ myConsoles: [...new Set(ids)] }),
       finishOnboarding: () => set({ onboardingDone: true }),
       reopenOnboarding: () => set({ onboardingDone: false }),
@@ -368,7 +368,7 @@ export const useGameStore = create<GameStore>()(
         })),
       clearSelection: () => set({ selection: [] }),
 
-      /* catálogo */
+      /* catalog */
       loadCatalog: () => {
         if (catalogRequested.has(TOP)) return;
         catalogRequested.add(TOP);
@@ -388,7 +388,7 @@ export const useGameStore = create<GameStore>()(
             fetchConsoleGames(id).then(
               (games) => queueConsole(id, games),
               (error: unknown) => {
-                catalogRequested.delete(id); // permite tentar de novo
+                catalogRequested.delete(id); // allows trying again
                 throw error;
               },
             ),
@@ -428,7 +428,7 @@ export const useGameStore = create<GameStore>()(
       },
 
       importBackup: (payload, mode) => {
-        // Backups antigos podem trazer IDs que viraram alias: reaponta antes de mesclar.
+        // Old backups may carry IDs that became aliases: repoint before merging.
         const incoming = remapProgress(sanitizeProgress(payload?.progress));
         const incomingCount = Object.keys(incoming).length;
         const incomingGames = Array.isArray(payload?.customGames) ? payload.customGames : [];
@@ -439,7 +439,7 @@ export const useGameStore = create<GameStore>()(
             imported: 0,
             skipped: 0,
             customGames: 0,
-            message: 'Nenhum registro válido encontrado no arquivo.',
+            message: 'No valid records found in the file.',
           };
         }
 
@@ -450,12 +450,12 @@ export const useGameStore = create<GameStore>()(
         if (mode === 'replace') {
           merged = incoming;
         } else {
-          // `incoming` já saiu do `sanitizeProgress` sem chaves perigosas, então
-          // escrever em `merged` (objeto literal) não alcança o protótipo.
+          // `incoming` already went through `sanitizeProgress` without dangerous keys, so
+          // writing to `merged` (an object literal) can't reach the prototype.
           merged = { ...state.progress };
           for (const [id, entry] of Object.entries(incoming)) {
             const current = merged[id];
-            // Em caso de conflito, vence o registro mais recente.
+            // On conflict, the most recent record wins.
             if (current && current.updatedAt > entry.updatedAt) {
               skipped += 1;
               continue;
@@ -465,15 +465,15 @@ export const useGameStore = create<GameStore>()(
         }
 
         const knownIds = new Set(SEED_GAMES.map((g) => g.id));
-        // "Substituir tudo" fala do PROGRESSO. Os jogos vindos da busca online são
-        // CATÁLOGO: um CSV nunca consegue carregá-los (não leva capa nem metadados),
-        // então zerá-los aqui deixaria o progresso recém-importado apontando para
-        // jogos que sumiram da tela — registros órfãos. Só trocamos o catálogo
-        // quando o arquivo importado realmente traz jogos.
+        // "Replace everything" is about PROGRESS. Games from online search are
+        // CATALOG: a CSV can never carry them (no cover, no metadata), so wiping
+        // them here would leave the freshly imported progress pointing at games that
+        // vanished from the screen, which means orphan records. We only swap the catalog
+        // when the imported file actually brings games.
         const replaceCatalog = mode === 'replace' && incomingGames.length > 0;
         const base = replaceCatalog ? [] : state.customGames;
-        // O `Map` indexa por chave própria, então um id como "__proto__" aqui é
-        // só uma string — não há como sujar o protótipo.
+        // The `Map` keys by its own key, so an id like "__proto__" here is just a
+        // string. There's no way to pollute the prototype.
         const customMap = new Map(base.map((g) => [g.id, g]));
         let newGames = 0;
         for (const game of incomingGames) {
@@ -492,8 +492,8 @@ export const useGameStore = create<GameStore>()(
           customGames: newGames,
           message:
             mode === 'replace'
-              ? `Backup restaurado: ${incomingCount} registro(s).`
-              : `${incomingCount - skipped} registro(s) importado(s)${skipped ? `, ${skipped} ignorado(s) por serem mais antigos` : ''}.`,
+              ? `Backup restored: ${incomingCount} record(s).`
+              : `${incomingCount - skipped} record(s) imported${skipped ? `, ${skipped} skipped for being older` : ''}.`,
         };
       },
 
@@ -501,8 +501,8 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'zerei-app-storage',
       version: 1,
-      // Toda leitura do LocalStorage passa pelos aliases de ID (ADR 0002): se o
-      // catálogo fundiu ou renomeou um jogo, o progresso salvo segue o jogo.
+      // Every LocalStorage read goes through the ID aliases (ADR 0002): if the
+      // catalog merged or renamed a game, saved progress follows the game.
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<PersistedState>;
         return {
@@ -510,7 +510,7 @@ export const useGameStore = create<GameStore>()(
           ...saved,
           progress: remapProgress(saved.progress ?? current.progress),
           myConsoles: Array.isArray(saved.myConsoles) ? saved.myConsoles.filter((id) => typeof id === 'string') : [],
-          // Quem já tem jogos marcados (de antes do onboarding existir) não precisa dele.
+          // Anyone who already has marked games (from before onboarding existed) doesn't need it.
           onboardingDone:
             saved.onboardingDone === true || Object.keys(saved.progress ?? {}).length > 0,
         };
@@ -523,11 +523,11 @@ export const useGameStore = create<GameStore>()(
         onboardingDone: state.onboardingDone,
       }),
       onRehydrateStorage: () => (state, error) => {
-        if (error) console.error('[Zerei.app] falha ao restaurar dados locais:', error);
-        // O LocalStorage responde de forma síncrona, então este callback roda ainda
-        // dentro do `create()` — a referência `useGameStore` ainda está em TDZ aqui.
-        // Sinalizar pela própria ação da store evita isso; o microtask cobre o
-        // caminho de erro, em que `state` vem indefinido.
+        if (error) console.error('[Zerei.app] failed to restore local data:', error);
+        // LocalStorage answers synchronously, so this callback still runs inside
+        // `create()`, where the `useGameStore` reference is still in the TDZ.
+        // Signaling through the store's own action avoids that; the microtask covers
+        // the error path, where `state` comes in undefined.
         if (state) state.setHydrated();
         else queueMicrotask(() => useGameStore.setState({ hydrated: true }));
       },
@@ -535,22 +535,22 @@ export const useGameStore = create<GameStore>()(
   ),
 );
 
-// Aba privada, cookies bloqueados ou iframe sem same-origin fazem o acesso ao
-// LocalStorage lançar: o `persist` desiste antes de hidratar e o callback acima
-// nunca roda. Sem isto o app ficaria preso no esqueleto para sempre — o catálogo
-// é estático e funciona bem, só não persiste.
+// A private tab, blocked cookies or an iframe without same-origin make
+// LocalStorage access throw: `persist` gives up before hydrating and the callback
+// above never runs. Without this the app would be stuck on the skeleton forever.
+// The catalog is static and works fine, it just doesn't persist.
 if (typeof window !== 'undefined' && !useGameStore.persist.getOptions().storage) {
   useGameStore.getState().setHydrated();
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Seletores prontos — evitam boilerplate e re-renders desnecessários         */
+/*  Ready-made selectors, avoiding boilerplate and needless re-renders         */
 /* -------------------------------------------------------------------------- */
 
-/** `true` depois que o LocalStorage foi lido (evita mismatch de hidratação). */
+/** `true` once LocalStorage was read (avoids hydration mismatch). */
 export const useHydrated = () => useGameStore((s) => s.hydrated);
 
-/** Tudo que aparece na tela: seed + catálogo completo + jogos vindos da IGDB. */
+/** Everything on screen: seed + full catalog + games from IGDB. */
 export function useAllGames(): Game[] {
   const customGames = useGameStore((s) => s.customGames);
   const catalog = useGameStore((s) => s.catalog);
@@ -569,10 +569,10 @@ export const useGameProgress = (gameId: string | null) =>
   useGameStore((s) => (gameId ? s.progress[gameId] : undefined));
 
 /**
- * Conta zerados percorrendo o CATÁLOGO, não o mapa de progresso: um backup
- * antigo (ou um jogo removido da base) deixa registros órfãos que não aparecem
- * em lugar nenhum da tela. Contar por aqui mantém o número do cabeçalho igual
- * ao dos chips de filtro e ao do painel de estatísticas.
+ * Counts beaten games by walking the CATALOG, not the progress map: an old
+ * backup (or a game removed from the database) leaves orphan records that
+ * don't show anywhere on screen. Counting this way keeps the header number
+ * equal to the filter chips and the stats panel.
  */
 export const useBeatenCount = () => {
   const games = useAllGames();
@@ -588,7 +588,7 @@ export interface FilterState {
   sort: SortMode;
 }
 
-/** Objeto de filtros com comparação rasa — seguro no Zustand v5. */
+/** Filter object with shallow comparison, safe in Zustand v5. */
 export const useFilters = (): FilterState =>
   useGameStore(
     useShallow((s) => ({
@@ -600,7 +600,7 @@ export const useFilters = (): FilterState =>
     })),
   );
 
-/** `true` quando algum filtro está diferente do padrão. */
+/** `true` when any filter differs from the default. */
 export const useHasActiveFilters = () =>
   useGameStore(
     (s) =>

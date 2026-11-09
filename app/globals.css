@@ -6,10 +6,10 @@
 
 /* ==========================================================================
    Zerei.app — Design System
-   Dark-first. Fundo #09090b, painéis slate/zinc, acentos verde neon + ciano.
+   Dark-first. #09090b background, slate/zinc panels, neon green + cyan accents.
    ========================================================================== */
 @theme {
-  /* superfícies */
+  /* surfaces */
   --color-bg: #09090b;
   --color-bg-deep: #050507;
   --color-panel: #101015;
@@ -18,17 +18,17 @@
   --color-line: #27272f;
   --color-line-soft: #1e1e26;
 
-  /* texto */
+  /* text */
   --color-ink: #ecedf1;
   --color-ink-soft: #a1a1ae;
-  /* Clareado de #6f6f7d para passar no AA de texto normal: o antigo dava só
-     3,38:1 sobre --color-panel-3 (#1d1d26), a superfície mais clara onde ele
-     aparece. #858593 dá 4,60:1 sobre panel-3 e 5,47:1 sobre --color-bg, e
-     segue 10,7 pontos de L* abaixo de ink-soft — os três degraus continuam
-     visíveis. */
+  /* Lightened from #6f6f7d to pass AA for normal text: the old one gave only
+     3.38:1 on --color-panel-3 (#1d1d26), the lightest surface where it
+     shows up. #858593 gives 4.60:1 on panel-3 and 5.47:1 on --color-bg, and
+     stays 10.7 L* points below ink-soft, so the three steps remain
+     distinct. */
   --color-ink-dim: #858593;
 
-  /* acentos */
+  /* accents */
   --color-neon: #39ff9e;
   --color-neon-dim: #1fb673;
   --color-cyan: #22d3ee;
@@ -36,11 +36,11 @@
   --color-gold: #fbbf24;
   --color-danger: #f87171;
 
-  /* As cores de geração NÃO ficam aqui: vivem em `CATEGORY_META[x].color`
-     (lib/platforms.ts) e são aplicadas via `style` inline, porque o Tailwind
-     não gera classe a partir de valor dinâmico. Fonte única, sem cópia. */
+  /* Generation colors do NOT live here: they live in `CATEGORY_META[x].color`
+     (lib/platforms.ts) and are applied through inline `style`, because Tailwind
+     doesn't generate classes from dynamic values. Single source, no copy. */
 
-  /* tipografia */
+  /* typography */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-pixel), ui-monospace, "Courier New", monospace;
 
@@ -65,7 +65,7 @@
     background-color: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    /* leve grade retrô ao fundo */
+    /* subtle retro grid in the background */
     background-image:
       radial-gradient(1000px 620px at 50% -14%, rgba(57, 255, 158, 0.09), transparent 62%),
       radial-gradient(760px 460px at 100% 0%, rgba(34, 211, 238, 0.07), transparent 60%),
@@ -80,7 +80,7 @@
     color: #04150c;
   }
 
-  /* inputs numéricos sem esquisitice de spinner */
+  /* numeric inputs without spinner weirdness */
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -90,7 +90,7 @@
     -moz-appearance: textfield;
   }
 
-  /* foco visível e consistente em todo o app */
+  /* visible, consistent focus across the app */
   :focus-visible {
     outline: 2px solid var(--color-neon);
     outline-offset: 2px;
@@ -100,22 +100,22 @@
 
 @layer base {
   :root {
-    /* Altura real do cabeçalho, publicada pelo <Header /> via ResizeObserver.
-       A barra de filtros gruda logo abaixo usando este valor. */
+    /* Real header height, published by <Header /> through ResizeObserver.
+       The filter bar sticks right below it using this value. */
     --header-h: 105px;
   }
 }
 
 @layer utilities {
-  /* Faixa horizontal única do app: header, filtros e conteúdo têm que bater.
-     O padding respeita o recorte lateral (notch em paisagem) sem perder os
-     degraus responsivos. */
+  /* The app's single horizontal band: header, filters and content must line up.
+     The padding respects the side cutout (notch in landscape) without losing
+     the responsive steps. */
   .app-container {
-    /* `--app-pad` é o degrau de padding sem a área segura. Quem precisa sangrar
-       até a borda (faixas com rolagem horizontal) usa margem negativa deste
-       valor: como o padding real é sempre >= --app-pad, o sangramento nunca
-       ultrapassa a viewport — foi assim que nascia 4px de rolagem lateral no
-       celular, com a faixa de gerações sangrando 1rem contra 0.75rem de padding. */
+    /* `--app-pad` is the padding step without the safe area. Anything that needs to
+       bleed to the edge (horizontally scrolling strips) uses a negative margin of
+       this value: since the real padding is always >= --app-pad, the bleed never
+       overflows the viewport. That's how 4px of side scroll used to appear on
+       phones, with the generations strip bleeding 1rem against 0.75rem of padding. */
     --app-pad: 0.75rem;
     margin-inline: auto;
     width: 100%;
@@ -134,7 +134,7 @@
     }
   }
 
-  /* scrollbar discreta */
+  /* subtle scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--color-line) transparent;
@@ -158,7 +158,7 @@
     display: none;
   }
 
-  /* brilho neon reutilizável */
+  /* reusable neon glow */
   .glow-neon {
     box-shadow:
       0 0 0 1px color-mix(in oklab, var(--color-neon) 45%, transparent),
@@ -173,7 +173,7 @@
     text-shadow: 0 0 18px color-mix(in oklab, var(--color-neon) 55%, transparent);
   }
 
-  /* linhas de varredura tipo CRT (usado em capas e no header) */
+  /* CRT-style scanlines (used on covers and the header) */
   .scanlines::after {
     content: "";
     position: absolute;
@@ -191,7 +191,7 @@
 
 }
 
-/* animações */
+/* animations */
 @keyframes zerei-pop {
   0% { transform: scale(0.6); opacity: 0; }
   60% { transform: scale(1.12); opacity: 1; }

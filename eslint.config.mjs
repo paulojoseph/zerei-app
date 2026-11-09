@@ -1,11 +1,11 @@
-// eslint-config-next 16 já exporta flat config: nada de FlatCompat aqui.
+// eslint-config-next 16 already exports a flat config, so no FlatCompat here.
 import coreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypeScript from 'eslint-config-next/typescript';
 
 /** @type {import('eslint').Linter.Config[]} */
 const eslintConfig = [
   {
-    // Saídas geradas (build do Next, Worker do OpenNext, caches, relatórios).
+    // Generated output (Next build, OpenNext Worker, caches, reports).
     ignores: [
       '.next/**',
       '.open-next/**',

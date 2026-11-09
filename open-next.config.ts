@@ -1,5 +1,5 @@
 import { defineCloudflareConfig } from '@opennextjs/cloudflare';
 
-// Cache incremental (ISR) em R2 entra quando a conta Cloudflare existir:
+// Incremental cache (ISR) on R2 comes in once the Cloudflare account exists:
 // import r2IncrementalCache from '@opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache';
 export default defineCloudflareConfig({});

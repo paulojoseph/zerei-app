@@ -1,18 +1,18 @@
 /**
  * GET /api/igdb/search?q=mario&limit=20
  *
- * Busca de jogos com degradação graciosa: se a IGDB estiver ligada, os
- * resultados vêm de lá; caso contrário (ou se a IGDB falhar) devolvemos a base
- * local (`SEED_GAMES`) com um aviso em `notice` — a rota nunca quebra a UI.
+ * Game search with graceful degradation: if IGDB is enabled, results come
+ * from there; otherwise (or if IGDB fails) we return the local database
+ * (`SEED_GAMES`) with a message in `notice`. The route never breaks the UI.
  *
- * COMO HABILITAR A BUSCA ONLINE
- * 1. Crie um aplicativo em https://dev.twitch.tv/console/apps (a IGDB usa o
- *    OAuth da Twitch). Em "OAuth Redirect URLs" pode usar http://localhost:3000.
- * 2. Copie o Client ID e gere um Client Secret.
- * 3. Na raiz do projeto: `cp .env.example .env.local` e preencha
- *    TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET.
- * 4. Reinicie o `npm run dev`. Sem esse passo o app segue funcionando 100%
- *    offline com a base local.
+ * HOW TO ENABLE ONLINE SEARCH
+ * 1. Create an application at https://dev.twitch.tv/console/apps (IGDB uses
+ *    Twitch OAuth). Under "OAuth Redirect URLs" you can use http://localhost:3000.
+ * 2. Copy the Client ID and generate a Client Secret.
+ * 3. At the project root: `cp .env.example .env.local` and fill in
+ *    TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET.
+ * 4. Restart `npm run dev`. Without this step the app keeps working 100%
+ *    offline with the local database.
  */
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -21,7 +21,7 @@ import { isIgdbConfigured, searchIgdb } from '@/lib/igdb';
 import { clamp } from '@/lib/utils';
 import type { Game, IgdbSearchResponse } from '@/types/game';
 
-// Depende de variáveis de ambiente e de rede: nada de pré-render nem de cache.
+// Depends on environment variables and the network: no prerender, no cache.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -30,29 +30,29 @@ const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 
 const NOT_CONFIGURED_NOTICE =
-  'Busca online desativada: configure TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET no .env.local. Mostrando resultados da base local.';
+  'Online search is off: set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET in .env.local. Showing local results.';
 const IGDB_DOWN_NOTICE =
-  'Não conseguimos falar com a IGDB agora. Mostrando resultados da base local — tente de novo em instantes.';
-const SHORT_QUERY_NOTICE = 'Informe ao menos 2 caracteres para buscar.';
-const RATE_LIMITED_NOTICE = 'Muitas buscas seguidas. Espere alguns segundos e tente de novo.';
+  "We couldn't reach IGDB right now. Showing local results, try again in a moment.";
+const SHORT_QUERY_NOTICE = 'Type at least 2 characters to search.';
+const RATE_LIMITED_NOTICE = 'Too many searches in a row. Wait a few seconds and try again.';
 
 /* -------------------------------------------------------------------------- */
-/*  Limitador de taxa                                                          */
+/*  Rate limiter                                                               */
 /* -------------------------------------------------------------------------- */
 
 /*
- * Com credenciais configuradas esta rota vira um proxy CREDENCIADO e aberto:
- * qualquer um na internet poderia queimar a cota da IGDB do dono do app.
+ * With credentials configured, this route becomes an open, AUTHENTICATED proxy:
+ * anyone on the internet could burn the app owner's IGDB quota.
  *
- * O limitador abaixo é POR INSTÂNCIA: o `Map` vive na memória deste processo,
- * então não vale para várias réplicas nem sobrevive a um restart. É proposital
- * — o Zerei.app é um app pessoal, e o objetivo aqui é só conter rajadas sem
- * arrastar Redis (ou qualquer outra dependência) para dentro do projeto.
+ * The limiter below is PER INSTANCE: the `Map` lives in this process's memory,
+ * so it doesn't apply across replicas and doesn't survive a restart. That's on
+ * purpose. Zerei.app is a personal app, and the goal here is just to contain
+ * bursts without dragging Redis (or any other dependency) into the project.
  */
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
 
-/** IP → epoch (ms) das requisições ainda dentro da janela. */
+/** IP → epoch (ms) of requests still inside the window. */
 const rateLimitHits = new Map<string, number[]>();
 
 function readClientKey(request: NextRequest): string {
@@ -60,9 +60,9 @@ function readClientKey(request: NextRequest): string {
 }
 
 /**
- * Janela deslizante por IP. Devolve `0` quando a requisição passa, ou quantos
- * segundos faltam para liberar quando o limite estourou. Também descarta as
- * entradas vencidas para o `Map` não crescer sem limite.
+ * Sliding window per IP. Returns `0` when the request goes through, or how many
+ * seconds are left until it's allowed when the limit is hit. It also drops
+ * expired entries so the `Map` doesn't grow without bound.
  */
 function rateLimitRetryAfter(key: string): number {
   const now = Date.now();
@@ -77,7 +77,7 @@ function rateLimitRetryAfter(key: string): number {
   const hits = rateLimitHits.get(key) ?? [];
   if (hits.length >= RATE_LIMIT_MAX_REQUESTS) {
     const oldest = hits[0] ?? now;
-    // Arredonda para cima: `Retry-After: 0` convidaria a tentar de novo já.
+    // Round up: `Retry-After: 0` would invite an immediate retry.
     return Math.max(1, Math.ceil((oldest + RATE_LIMIT_WINDOW_MS - now) / 1000));
   }
 
@@ -99,7 +99,7 @@ function reply(
   });
 }
 
-/** Fallback: os primeiros `limit` jogos da base local que casam com a busca. */
+/** Fallback: the first `limit` local games that match the query. */
 function searchLocal(query: string, limit: number): Game[] {
   const results: Game[] = [];
   for (const game of SEED_GAMES) {
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<IgdbSearch
   }
 
   if (!isIgdbConfigured()) {
-    // Sem credenciais a rota só lê a base local: não gasta cota, não limitamos.
+    // Without credentials the route only reads the local database: no quota spent, no limit.
     return reply({
       source: 'local',
       results: searchLocal(query, limit),
@@ -144,8 +144,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<IgdbSearch
     const results = await searchIgdb(query, limit);
     return reply({ source: 'igdb', results });
   } catch (error) {
-    // A mensagem já vem higienizada do lib/igdb (sem client secret).
-    console.error('[igdb] busca falhou:', error instanceof Error ? error.message : error);
+    // The message already comes sanitized from lib/igdb (no client secret).
+    console.error('[igdb] search failed:', error instanceof Error ? error.message : error);
     return reply({
       source: 'local',
       results: searchLocal(query, limit),

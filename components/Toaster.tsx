@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useGameStore, type ToastTone } from '@/stores/useGameStore';
 
-/** Tempo de vida do aviso na tela. */
+/** How long the notice stays on screen. */
 const TOAST_DURATION = 4000;
 
 interface ToneStyle {
@@ -34,13 +34,13 @@ const TONE_STYLE: Record<ToastTone, ToneStyle> = {
   },
 };
 
-/** Aviso flutuante único, alimentado por `pushToast` da store. */
+/** Single floating notice, fed by the store's `pushToast`. */
 export function Toaster() {
   const toast = useGameStore((s) => s.toast);
   const dismissToast = useGameStore((s) => s.dismissToast);
   const toastId = toast?.id;
 
-  // Cada aviso novo reinicia a contagem (a dependência é o id, não o objeto).
+  // Each new notice restarts the countdown (the dependency is the id, not the object).
   useEffect(() => {
     if (!toastId) return;
     const timer = setTimeout(() => dismissToast(), TOAST_DURATION);
@@ -68,7 +68,7 @@ export function Toaster() {
           <button
             type="button"
             onClick={dismissToast}
-            aria-label="Fechar aviso"
+            aria-label="Close notice"
             className="-mr-1.5 -mt-1 shrink-0 rounded-lg p-1.5 text-ink-dim transition-colors duration-200 hover:bg-panel-3 hover:text-ink"
           >
             <X aria-hidden="true" className="size-4" />

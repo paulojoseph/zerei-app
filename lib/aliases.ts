@@ -2,13 +2,13 @@ import aliasData from '@/data/id-aliases.json';
 import type { UserGameProgress } from '@/types/game';
 
 /**
- * IDs antigos → IDs atuais (fusões de duplicatas, correções de catálogo). O
- * build do catálogo se recusa a publicar se um ID sumir sem entrada aqui, e o
- * app reaponta o progresso salvo por este mapa — ninguém perde um "zerei".
+ * Old IDs → current IDs (duplicate merges, catalog fixes). The catalog build
+ * refuses to publish if an ID disappears without an entry here, and the app
+ * repoints saved progress through this map, so nobody loses a "beaten".
  */
 const ALIASES: Record<string, string> = aliasData;
 
-/** Segue a cadeia de aliases (a → b → c), com limite contra ciclos. */
+/** Follows the alias chain (a → b → c), with a cap against cycles. */
 export function resolveGameId(id: string): string {
   let current = id;
   for (let hops = 0; hops < 10; hops += 1) {
@@ -20,8 +20,8 @@ export function resolveGameId(id: string): string {
 }
 
 /**
- * Reaponta as chaves do progresso. Se o antigo e o novo ID tiverem registro
- * (duas edições fundidas numa), vence o mais recente.
+ * Repoints progress keys. If both the old and the new ID have a record (two
+ * editions merged into one), the most recent wins.
  */
 export function remapProgress(progress: Record<string, UserGameProgress>): Record<string, UserGameProgress> {
   let changed = false;

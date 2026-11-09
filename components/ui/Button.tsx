@@ -4,9 +4,9 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 /**
- * Botão base do Zerei.app (padrão shadcn + cva).
- * Sem 'use client' de propósito: aqui só existe estilo — quem tem handler é
- * que declara o client component.
+ * Zerei.app base button (shadcn pattern + cva).
+ * No 'use client' on purpose: there's only styling here. Whoever has a handler
+ * declares the client component.
  */
 export const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 select-none disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] shrink-0',
