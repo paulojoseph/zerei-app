@@ -6,11 +6,11 @@
     "category": "8-bit",
     "releaseYear": 1986,
     "coverUrl": "/covers/alex-kidd-in-miracle-world-sms.jpg",
-    "summary": "O mascote da Sega antes do Sonic, que já vinha gravado na memória do Master System da Tec Toy. Pedra, papel e tesoura para decidir a luta contra os chefes.",
+    "summary": "Sega's mascot before Sonic, built right into the memory of the Tec Toy Master System. Rock, paper, scissors to settle the boss fights.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma",
-      "Aventura"
+      "Platformer",
+      "Adventure"
     ]
   },
   {
@@ -20,11 +20,11 @@
     "category": "8-bit",
     "releaseYear": 1991,
     "coverUrl": "/covers/monica-no-castelo-do-dragao-sms.jpg",
-    "summary": "A Tec Toy trocou o Wonder Boy pela turma do Limoeiro e criou a aventura mais brasileira do Master System. O Sansão no lugar da espada.",
+    "summary": "Tec Toy swapped Wonder Boy for Monica's Gang, Brazil's best-known comic strip kids, and made the most Brazilian adventure on the Master System. Her stuffed bunny Samson instead of a sword.",
     "isBrazilClassic": true,
     "genres": [
-      "Aventura",
-      "Plataforma"
+      "Adventure",
+      "Platformer"
     ]
   },
   {
@@ -34,11 +34,11 @@
     "category": "8-bit",
     "releaseYear": 1987,
     "coverUrl": "/covers/phantasy-star-sms.png",
-    "summary": "RPG espacial com masmorras em primeira pessoa que parecia bruxaria em 1987. Muita gente descobriu o gênero por causa do catálogo da Tec Toy.",
+    "summary": "A space RPG with first-person dungeons that looked like witchcraft in 1987. Plenty of people discovered the genre through the Tec Toy catalog.",
     "isBrazilClassic": true,
     "genres": [
       "RPG",
-      "Aventura"
+      "Adventure"
     ]
   },
   {
@@ -48,10 +48,10 @@
     "category": "8-bit",
     "releaseYear": 1991,
     "coverUrl": "/covers/sonic-the-hedgehog-sms.jpg",
-    "summary": "A versão 8-bit que veio embutida em tanto console vendido aqui. Green Hill mais lenta, mas com todo o carinho da primeira vez.",
+    "summary": "The 8-bit version that came built into so many consoles sold in Brazil. A slower Green Hill, but with all the charm of the first time.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -61,10 +61,10 @@
     "category": "8-bit",
     "releaseYear": 1987,
     "coverUrl": "/covers/wonder-boy-sms.png",
-    "summary": "Correr sem parar, comer fruta para a energia não zerar e arremessar a machadinha. Simples, viciante e presente em toda casa com Master System.",
+    "summary": "Run nonstop, eat fruit so your energy doesn't run out and throw the hatchet. Simple, addictive and in every home with a Master System.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -74,10 +74,10 @@
     "category": "8-bit",
     "releaseYear": 1985,
     "coverUrl": "/covers/super-mario-bros-nes.png",
-    "summary": "O jogo que ensinou o mundo inteiro a pular. Por aqui rodava no Phantom System, no Dynavision e no Turbo Game, sempre no cartucho de mil jogos em um.",
+    "summary": "The game that taught the whole world to jump. In Brazil it ran on the Phantom System, the Dynavision and the Turbo Game, always on that thousand-in-one cartridge.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -87,11 +87,11 @@
     "category": "8-bit",
     "releaseYear": 1988,
     "coverUrl": "/covers/contra-nes.jpg",
-    "summary": "Trinta vidas no código secreto, dois jogadores no sofá e nenhum sobrevivente. O tiro cooperativo definitivo do nintendinho.",
+    "summary": "Thirty lives from the secret code, two players on the couch and no survivors. The ultimate co-op shooter on the NES.",
     "isBrazilClassic": true,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -101,11 +101,11 @@
     "category": "8-bit",
     "releaseYear": 1988,
     "coverUrl": "/covers/mega-man-2-nes.jpg",
-    "summary": "Oito chefes, uma trilha sonora eterna e a dança de descobrir qual arma derruba quem.",
+    "summary": "Eight bosses, a timeless soundtrack and the dance of figuring out which weapon takes down whom.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma",
-      "Ação"
+      "Platformer",
+      "Action"
     ]
   },
   {
@@ -115,11 +115,11 @@
     "category": "8-bit",
     "releaseYear": 1986,
     "coverUrl": "/covers/castlevania-nes.png",
-    "summary": "Chicote na mão, escada traiçoeira e o relógio correndo até o Drácula. Difícil do jeito que os anos 80 gostavam.",
+    "summary": "Whip in hand, treacherous stairs and the clock running all the way to Dracula. Hard the way the 80s liked it.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma",
-      "Ação"
+      "Platformer",
+      "Action"
     ]
   },
   {
@@ -129,11 +129,11 @@
     "category": "8-bit",
     "releaseYear": 1986,
     "coverUrl": "/covers/the-legend-of-zelda-nes.png",
-    "summary": "O cartucho dourado que inventou a aventura de explorar sem mapa. Segredo bom se anotava em folha de caderno.",
+    "summary": "The golden cartridge that invented exploring without a map. Good secrets got written down on a notebook page.",
     "isBrazilClassic": true,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -143,11 +143,11 @@
     "category": "8-bit",
     "releaseYear": 1982,
     "coverUrl": "/covers/pitfall-a2600.jpg",
-    "summary": "Cipó, jacaré e escorpião em vinte minutos de corrida contra o relógio. O ícone do Atari nas salas brasileiras.",
+    "summary": "Vines, alligators and scorpions in twenty minutes racing the clock. The Atari icon in Brazilian living rooms.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma",
-      "Aventura"
+      "Platformer",
+      "Adventure"
     ]
   },
   {
@@ -157,11 +157,11 @@
     "category": "8-bit",
     "releaseYear": 1982,
     "coverUrl": "/covers/river-raid-a2600.jpg",
-    "summary": "Voar rio acima abastecendo no tanque certo, sem nunca poder voltar. Recorde alto era assunto sério no recreio.",
+    "summary": "Flying upriver, refueling at the right tank, never able to turn back. A high score was serious business at recess.",
     "isBrazilClassic": true,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -171,10 +171,10 @@
     "category": "8-bit",
     "releaseYear": 1983,
     "coverUrl": "/covers/enduro-a2600.png",
-    "summary": "Ultrapassar carros do amanhecer à nevasca, um dia inteiro sem tirar o dedo do botão do joystick.",
+    "summary": "Passing cars from dawn to snowstorm, a whole day without taking your finger off the joystick button.",
     "isBrazilClassic": true,
     "genres": [
-      "Corrida"
+      "Racing"
     ]
   },
   {
@@ -184,11 +184,11 @@
     "category": "8-bit",
     "releaseYear": 1987,
     "coverUrl": "/covers/metal-gear-msx.jpg",
-    "summary": "A estreia de Solid Snake, onde se esconder valia mais que atirar. Rodava nos MSX da Gradiente e da Sharp que chegaram antes do videogame em muita casa.",
+    "summary": "Solid Snake's debut, where hiding was worth more than shooting. It ran on the Gradiente and Sharp MSX computers that reached many Brazilian homes before any console did.",
     "isBrazilClassic": true,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -198,10 +198,10 @@
     "category": "16-bit",
     "releaseYear": 1992,
     "coverUrl": "/covers/sonic-the-hedgehog-2-md.jpg",
-    "summary": "Tails no cangote, spin dash no chão e a Chemical Plant tirando o fôlego. O cartucho que já vinha junto com o Mega Drive da Tec Toy.",
+    "summary": "Tails on your back, spin dash on the ground and Chemical Plant taking your breath away. The cartridge bundled with the Tec Toy Mega Drive.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -211,11 +211,11 @@
     "category": "16-bit",
     "releaseYear": 1992,
     "coverUrl": "/covers/streets-of-rage-2-md.jpg",
-    "summary": "Axel, Blaze e uma trilha do Yuzo Koshiro que ainda toca na cabeça. Beat 'em up de dois jogadores até o cano de ferro quebrar.",
+    "summary": "Axel, Blaze and a Yuzo Koshiro soundtrack that still plays in your head. Two-player beat 'em up until the lead pipe breaks.",
     "isBrazilClassic": true,
     "genres": [
       "Beat 'em up",
-      "Ação"
+      "Action"
     ]
   },
   {
@@ -225,11 +225,11 @@
     "category": "16-bit",
     "releaseYear": 1989,
     "coverUrl": "/covers/golden-axe-md.png",
-    "summary": "Bárbaro, anão e amazona cavalgando dragão azul. A poção da magia sempre guardada para a hora do desespero.",
+    "summary": "A barbarian, a dwarf and an amazon riding a blue dragon. The magic potion always saved for the moment of despair.",
     "isBrazilClassic": true,
     "genres": [
       "Beat 'em up",
-      "Ação"
+      "Action"
     ]
   },
   {
@@ -239,11 +239,11 @@
     "category": "16-bit",
     "releaseYear": 1992,
     "coverUrl": "/covers/shining-force-md.jpg",
-    "summary": "RPG tático em que cada passo no tabuleiro vira decisão de vida ou morte. A porta de entrada de muita gente no gênero.",
+    "summary": "A tactical RPG where every step on the board is a life-or-death decision. The way into the genre for a lot of people.",
     "isBrazilClassic": true,
     "genres": [
       "RPG",
-      "Estratégia"
+      "Strategy"
     ]
   },
   {
@@ -253,7 +253,7 @@
     "category": "16-bit",
     "releaseYear": 1993,
     "coverUrl": "/covers/phantasy-star-iv-md.jpg",
-    "summary": "O fecho da saga de Algol, com quadrinhos na tela e combos de equipe. Cartucho caro, sonho de prateleira de locadora.",
+    "summary": "The end of the Algol saga, with comic panels on screen and team combos. An expensive cartridge, the dream of every rental store shelf.",
     "isBrazilClassic": true,
     "genres": [
       "RPG"
@@ -266,10 +266,10 @@
     "category": "16-bit",
     "releaseYear": 1990,
     "coverUrl": "/covers/castle-of-illusion-md.jpg",
-    "summary": "O Mickey saltando de bumbum contra a bruxa Mizrabel, em cenários que pareciam desenho animado rodando na TV da sala.",
+    "summary": "Mickey butt-bouncing against the witch Mizrabel, in stages that looked like a cartoon playing on the living room TV.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -279,10 +279,10 @@
     "category": "16-bit",
     "releaseYear": 1994,
     "coverUrl": "/covers/mortal-kombat-ii-md.png",
-    "summary": "Sangue liberado sem precisar de código e fatality copiado no papel de revista. Rendeu discussão em toda locadora do bairro.",
+    "summary": "Blood on without needing a code, and fatalities copied from a magazine page. It sparked arguments in every neighborhood rental store.",
     "isBrazilClassic": true,
     "genres": [
-      "Luta"
+      "Fighting"
     ]
   },
   {
@@ -292,10 +292,10 @@
     "category": "16-bit",
     "releaseYear": 1990,
     "coverUrl": "/covers/super-mario-world-snes.png",
-    "summary": "Yoshi, capa amarela e noventa e seis saídas para achar. O motivo de alugar o Super Nintendo no fim de semana inteiro.",
+    "summary": "Yoshi, the yellow cape and ninety-six exits to find. The reason to rent a Super Nintendo for the whole weekend.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -305,10 +305,10 @@
     "category": "16-bit",
     "releaseYear": 1994,
     "coverUrl": "/covers/donkey-kong-country-snes.png",
-    "summary": "Gráficos pré-renderizados que pareciam mágica em 1994, Diddy no barril e a fase aquática com a trilha mais bonita do 16-bit.",
+    "summary": "Pre-rendered graphics that looked like magic in 1994, Diddy in the barrel and the water level with the prettiest music of the 16-bit era.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -318,10 +318,10 @@
     "category": "16-bit",
     "releaseYear": 1992,
     "coverUrl": "/covers/top-gear-snes.jpg",
-    "summary": "Nitro contado no dedo, tela dividida e aquela música de abertura que ninguém esquece. O rei absoluto das locadoras brasileiras.",
+    "summary": "Nitro counted on your fingers, split screen and that opening tune nobody forgets. The undisputed king of Brazilian rental stores.",
     "isBrazilClassic": true,
     "genres": [
-      "Corrida"
+      "Racing"
     ]
   },
   {
@@ -331,11 +331,11 @@
     "category": "16-bit",
     "releaseYear": 1995,
     "coverUrl": "/covers/chrono-trigger-snes.jpg",
-    "summary": "Viagem no tempo, batalhas sem tela de transição e um grupo que a gente aprende a amar. RPG que envelheceu melhor que quase tudo.",
+    "summary": "Time travel, battles without a transition screen and a party you learn to love. An RPG that aged better than almost anything.",
     "isBrazilClassic": false,
     "genres": [
       "RPG",
-      "Aventura"
+      "Adventure"
     ]
   },
   {
@@ -345,11 +345,11 @@
     "category": "16-bit",
     "releaseYear": 1991,
     "coverUrl": "/covers/the-legend-of-zelda-a-link-to-the-past-snes.jpg",
-    "summary": "Hyrule e o Mundo das Trevas em espelho, com masmorras que ensinam sem dizer uma palavra.",
+    "summary": "Hyrule and the Dark World as mirror images, with dungeons that teach without saying a word.",
     "isBrazilClassic": true,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -359,11 +359,11 @@
     "category": "16-bit",
     "releaseYear": 1994,
     "coverUrl": "/covers/super-metroid-snes.jpg",
-    "summary": "Samus sozinha em Zebes: o mapa se abre conforme você acha a próxima habilidade. Aula de level design em silêncio.",
+    "summary": "Samus alone on Zebes: the map opens up as you find the next ability. A silent lesson in level design.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -373,11 +373,11 @@
     "category": "16-bit",
     "releaseYear": 1993,
     "coverUrl": "/covers/mega-man-x-snes.png",
-    "summary": "O Mega Man cresceu: dash na parede, armadura escondida e chefes Mavericks. A fase de abertura explica tudo sem uma linha de texto.",
+    "summary": "Mega Man grew up: wall dash, hidden armor and Maverick bosses. The opening stage explains everything without a line of text.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma",
-      "Ação"
+      "Platformer",
+      "Action"
     ]
   },
   {
@@ -387,10 +387,10 @@
     "category": "16-bit",
     "releaseYear": 1993,
     "coverUrl": "/covers/super-bomberman-snes.png",
-    "summary": "Quatro controles, uma arena apertada e a amizade posta à prova a cada bomba. Multiplayer oficial de festa de aniversário.",
+    "summary": "Four controllers, a cramped arena and friendship put to the test with every bomb. The official multiplayer of birthday parties.",
     "isBrazilClassic": true,
     "genres": [
-      "Ação",
+      "Action",
       "Puzzle"
     ]
   },
@@ -401,11 +401,11 @@
     "category": "16-bit",
     "releaseYear": 1991,
     "coverUrl": "/covers/another-world-ami.png",
-    "summary": "Ficção científica em polígonos silenciosos, sem tutorial e sem piedade. Parecia mais filme do que jogo.",
+    "summary": "Science fiction in silent polygons, with no tutorial and no mercy. It felt more like a movie than a game.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -415,10 +415,10 @@
     "category": "32/64-bit",
     "releaseYear": 1991,
     "coverUrl": "/covers/street-fighter-ii-arc.jpg",
-    "summary": "A moeda de 25 centavos em cima do gabinete marcando a vez de jogar. Hadouken virou palavra do vocabulário nacional.",
+    "summary": "A coin left on top of the cabinet to call next. In Brazil, \"hadouken\" became part of everyday vocabulary.",
     "isBrazilClassic": true,
     "genres": [
-      "Luta"
+      "Fighting"
     ]
   },
   {
@@ -428,10 +428,10 @@
     "category": "32/64-bit",
     "releaseYear": 1989,
     "coverUrl": "/covers/hard-drivin-arc.jpg",
-    "summary": "Volante que reagia na mão, loop mortal e o replay da capotagem passando para todo mundo ver. Era a ficha mais cara do fliperama e valia cada centavo.",
+    "summary": "A steering wheel that pushed back, a loop-the-loop and the crash replay playing for everyone to see. It was the most expensive token in the arcade and worth every cent.",
     "isBrazilClassic": true,
     "genres": [
-      "Corrida"
+      "Racing"
     ]
   },
   {
@@ -441,11 +441,11 @@
     "category": "32/64-bit",
     "releaseYear": 1989,
     "coverUrl": "/covers/final-fight-arc.png",
-    "summary": "Haggar, Cody e Guy limpando Metro City no braço. Todo barril quebrado escondia um frango assado.",
+    "summary": "Haggar, Cody and Guy cleaning up Metro City with their fists. Every broken barrel hid a roast chicken.",
     "isBrazilClassic": true,
     "genres": [
       "Beat 'em up",
-      "Ação"
+      "Action"
     ]
   },
   {
@@ -455,10 +455,10 @@
     "category": "32/64-bit",
     "releaseYear": 1998,
     "coverUrl": "/covers/marvel-vs-capcom-arc.png",
-    "summary": "Ryu contra Wolverine, ajudante entrando na tela e combo aéreo sem fim. Era o gabinete mais barulhento da galeria.",
+    "summary": "Ryu against Wolverine, assists jumping on screen and endless air combos. It was the loudest cabinet in the arcade.",
     "isBrazilClassic": true,
     "genres": [
-      "Luta"
+      "Fighting"
     ]
   },
   {
@@ -468,11 +468,11 @@
     "category": "32/64-bit",
     "releaseYear": 1996,
     "coverUrl": "/covers/metal-slug-neo.png",
-    "summary": "Animação desenhada quadro a quadro, o tanquinho e os reféns barbudos. A prova de que o Neo Geo do fliperama jogava em outro nível.",
+    "summary": "Hand-drawn frame-by-frame animation, the little tank and the bearded hostages. Proof that the arcade Neo Geo played in another league.",
     "isBrazilClassic": true,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -482,10 +482,10 @@
     "category": "32/64-bit",
     "releaseYear": 1997,
     "coverUrl": "/covers/the-king-of-fighters-97-neo.jpg",
-    "summary": "Times de três, Iori contra Kyo e a fila inteira esperando para desafiar quem estava ganhando. O KOF definitivo do fliperama brasileiro.",
+    "summary": "Teams of three, Iori against Kyo and the whole line waiting to challenge whoever was winning. The definitive KOF of Brazilian arcades.",
     "isBrazilClassic": true,
     "genres": [
-      "Luta"
+      "Fighting"
     ]
   },
   {
@@ -495,10 +495,10 @@
     "category": "32/64-bit",
     "releaseYear": 1994,
     "coverUrl": "/covers/super-sidekicks-2-neo.jpg",
-    "summary": "Futebol de Neo Geo com narração empolgada e gol de bicicleta. O Brasil já estava escolhido antes mesmo de a ficha cair.",
+    "summary": "Neo Geo soccer with excited commentary and bicycle kick goals. Brazil was already picked before the token even dropped.",
     "isBrazilClassic": true,
     "genres": [
-      "Esporte"
+      "Sports"
     ]
   },
   {
@@ -508,10 +508,10 @@
     "category": "32/64-bit",
     "releaseYear": 1996,
     "coverUrl": "/covers/crash-bandicoot-ps1.png",
-    "summary": "Correr fugindo da pedra gigante, quebrar caixa e ouvir aquele grito característico. O mascote não oficial do PlayStation.",
+    "summary": "Running from the giant boulder, smashing crates and hearing that signature yell. The unofficial PlayStation mascot.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -521,11 +521,11 @@
     "category": "32/64-bit",
     "releaseYear": 1998,
     "coverUrl": "/covers/resident-evil-2-ps1.png",
-    "summary": "Raccoon City tomada, dois cenários que se cruzam e passos pesados no corredor. Terror de dormir com a luz do quarto acesa.",
+    "summary": "Raccoon City overrun, two scenarios that cross paths and heavy footsteps in the hallway. Horror that made you sleep with the bedroom light on.",
     "isBrazilClassic": true,
     "genres": [
-      "Terror",
-      "Ação"
+      "Horror",
+      "Action"
     ]
   },
   {
@@ -535,7 +535,7 @@
     "category": "32/64-bit",
     "releaseYear": 1997,
     "coverUrl": "/covers/final-fantasy-vii-ps1.jpg",
-    "summary": "Midgar, as Materias e um vilão de cabelo prateado. Três CDs que redefiniram o tamanho que um RPG podia ter.",
+    "summary": "Midgar, Materia and a silver-haired villain. Three CDs that redefined how big an RPG could be.",
     "isBrazilClassic": false,
     "genres": [
       "RPG"
@@ -548,11 +548,11 @@
     "category": "32/64-bit",
     "releaseYear": 1998,
     "coverUrl": "/covers/metal-gear-solid-ps1.png",
-    "summary": "Codec tocando, radar piscando e um chefe que lia o seu cartão de memória. Cinema interativo muito antes da moda.",
+    "summary": "The Codec ringing, the radar blinking and a boss who read your memory card. Interactive cinema long before it was trendy.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -562,11 +562,11 @@
     "category": "32/64-bit",
     "releaseYear": 1999,
     "coverUrl": "/covers/silent-hill-ps1.png",
-    "summary": "A névoa que escondia o limite do console virou o terror mais psicológico do PS1. O chiado do rádio já dava calafrio.",
+    "summary": "The fog that hid the console's limits became the most psychological horror on the PS1. The radio static alone gave you chills.",
     "isBrazilClassic": false,
     "genres": [
-      "Terror",
-      "Aventura"
+      "Horror",
+      "Adventure"
     ]
   },
   {
@@ -576,10 +576,10 @@
     "category": "32/64-bit",
     "releaseYear": 1997,
     "coverUrl": "/covers/gran-turismo-ps1.jpg",
-    "summary": "Tirar a carteira virtual, encher a garagem e assistir ao replay inteiro só pelo prazer. O simulador que virou febre por aqui.",
+    "summary": "Earning your virtual license, filling the garage and watching the whole replay just for the pleasure of it. The sim that became a craze in Brazil.",
     "isBrazilClassic": true,
     "genres": [
-      "Corrida"
+      "Racing"
     ]
   },
   {
@@ -589,10 +589,10 @@
     "category": "32/64-bit",
     "releaseYear": 1998,
     "coverUrl": "/covers/tekken-3-ps1.jpg",
-    "summary": "Eddy Gordo girando capoeira com o botão de chute apertado sem parar: o brasileiro mais popular dos videogames nos anos 90.",
+    "summary": "Eddy Gordo spinning capoeira with the kick button mashed nonstop: the most popular Brazilian in 90s video games.",
     "isBrazilClassic": true,
     "genres": [
-      "Luta"
+      "Fighting"
     ]
   },
   {
@@ -602,11 +602,11 @@
     "category": "32/64-bit",
     "releaseYear": 1997,
     "coverUrl": "/covers/castlevania-symphony-of-the-night-ps1.jpg",
-    "summary": "Alucard, o castelo invertido e uma trilha gótica de arrepiar. Aqui nasceu o gênero que hoje chamam de metroidvania.",
+    "summary": "Alucard, the inverted castle and a chilling gothic soundtrack. The genre now called metroidvania was born here.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -616,11 +616,11 @@
     "category": "32/64-bit",
     "releaseYear": 1996,
     "coverUrl": "/covers/super-mario-64-n64.png",
-    "summary": "O primeiro salto triplo em três dimensões. Continua sendo a aula definitiva de como mover um personagem no espaço.",
+    "summary": "The first triple jump in three dimensions. Still the definitive lesson in moving a character through space.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma",
-      "Aventura"
+      "Platformer",
+      "Adventure"
     ]
   },
   {
@@ -630,11 +630,11 @@
     "category": "32/64-bit",
     "releaseYear": 1998,
     "coverUrl": "/covers/the-legend-of-zelda-ocarina-of-time-n64.jpg",
-    "summary": "O campo de Hyrule aberto, Epona no galope e a ocarina mandando no tempo. Virou régua para toda aventura que veio depois.",
+    "summary": "Hyrule Field wide open, Epona at a gallop and the ocarina bending time. It became the yardstick for every adventure that came after.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -644,11 +644,11 @@
     "category": "32/64-bit",
     "releaseYear": 1997,
     "coverUrl": "/covers/goldeneye-007-n64.jpg",
-    "summary": "Quatro amigos, tela dividida e a regra sagrada de não espiar o canto do outro. Modo Licença para Matar era quase obrigatório.",
+    "summary": "Four friends, split screen and the sacred rule of not peeking at someone else's corner. License to Kill mode was practically mandatory.",
     "isBrazilClassic": true,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -658,10 +658,10 @@
     "category": "32/64-bit",
     "releaseYear": 1997,
     "coverUrl": "/covers/ronaldinho-soccer-64-n64.png",
-    "summary": "O cartucho pirata que trocou os times japoneses pelo futebol brasileiro e apareceu em toda banca de camelô. Adaptação feita no muque, e a gente amava.",
+    "summary": "The bootleg cartridge that swapped the Japanese teams for Brazilian soccer and showed up at every street vendor stall. A rough hack job, and we loved it.",
     "isBrazilClassic": true,
     "genres": [
-      "Esporte"
+      "Sports"
     ]
   },
   {
@@ -671,11 +671,11 @@
     "category": "32/64-bit",
     "releaseYear": 1996,
     "coverUrl": "/covers/nights-into-dreams-sat.jpg",
-    "summary": "Voar em looping por cenários de sonho usando o controle analógico da Sega. O Saturn também tinha as suas joias.",
+    "summary": "Looping through dreamlike stages with Sega's analog controller. The Saturn had its gems too.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -685,11 +685,11 @@
     "category": "128-bit",
     "releaseYear": 2002,
     "coverUrl": "/covers/grand-theft-auto-vice-city-ps2.jpg",
-    "summary": "Neon dos anos 80, camisa havaiana e rádio ligada na estação de flashback. Só dirigir sem rumo já era diversão suficiente.",
+    "summary": "80s neon, Hawaiian shirts and the radio tuned to the flashback station. Just driving around aimlessly was fun enough.",
     "isBrazilClassic": true,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -699,11 +699,11 @@
     "category": "128-bit",
     "releaseYear": 2004,
     "coverUrl": "/covers/grand-theft-auto-san-andreas-ps2.jpg",
-    "summary": "Três cidades, bicicleta, academia e código de trapaça decorado de cabeça. Ficou anos morando na bandeja do PS2 destravado.",
+    "summary": "Three cities, bikes, the gym and cheat codes memorized by heart. It lived for years in the tray of many modded PS2s.",
     "isBrazilClassic": true,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -713,11 +713,11 @@
     "category": "128-bit",
     "releaseYear": 2005,
     "coverUrl": "/covers/god-of-war-ps2.jpg",
-    "summary": "Kratos e as lâminas do caos contra o Olimpo inteiro, com o botão certo aparecendo na hora certa. O PS2 espremido até a última gota.",
+    "summary": "Kratos and the Blades of Chaos against all of Olympus, with the right button showing up at the right time. The PS2 squeezed to the last drop.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -727,11 +727,11 @@
     "category": "128-bit",
     "releaseYear": 2005,
     "coverUrl": "/covers/shadow-of-the-colossus-ps2.jpg",
-    "summary": "Dezesseis colossos, um cavalo e um mundo vazio de propósito. Cada escalada termina com um gosto amargo na boca.",
+    "summary": "Sixteen colossi, one horse and a world empty on purpose. Every climb ends with a bitter taste.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -741,10 +741,10 @@
     "category": "128-bit",
     "releaseYear": 2001,
     "coverUrl": "/covers/devil-may-cry-ps2.jpg",
-    "summary": "Dante estiloso, nota do combo piscando na tela e a certeza de que ação também podia ser elegante.",
+    "summary": "A stylish Dante, the combo grade flashing on screen and the certainty that action could be elegant too.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação"
+      "Action"
     ]
   },
   {
@@ -754,10 +754,10 @@
     "category": "128-bit",
     "releaseYear": 2005,
     "coverUrl": "/covers/winning-eleven-9-ps2.jpg",
-    "summary": "O futebol que mandava na locadora e no campeonato de rua: passe seco, nome de jogador trocado e comemoração no dedo do controle.",
+    "summary": "The soccer game that ruled the rental store and the street tournament: crisp passes, swapped player names and celebrations on the controller.",
     "isBrazilClassic": true,
     "genres": [
-      "Esporte"
+      "Sports"
     ]
   },
   {
@@ -767,10 +767,10 @@
     "category": "128-bit",
     "releaseYear": 2005,
     "coverUrl": "",
-    "summary": "O patch brasileiro que colocou o Brasileirão inteiro dentro do Winning Eleven, com narração e escudo do time do coração. Vendido em qualquer banca.",
+    "summary": "The Brazilian fan patch that put the entire Brazilian league inside Winning Eleven, with local commentary and your team's crest. Sold at any newsstand.",
     "isBrazilClassic": true,
     "genres": [
-      "Esporte"
+      "Sports"
     ]
   },
   {
@@ -780,11 +780,11 @@
     "category": "128-bit",
     "releaseYear": 2001,
     "coverUrl": "/covers/halo-combat-evolved-xbox.jpg",
-    "summary": "Um anel gigante, duas armas por vez e a mira que finalmente funcionava no controle. Foi o motivo de existir do primeiro Xbox.",
+    "summary": "A giant ring, two weapons at a time and aiming that finally worked on a controller. It was the reason the first Xbox existed.",
     "isBrazilClassic": false,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -794,10 +794,10 @@
     "category": "128-bit",
     "releaseYear": 1999,
     "coverUrl": "/covers/shenmue-dc.png",
-    "summary": "Rotina, clima de inverno e uma investigação sem pressa em Yokosuka. Ambicioso demais para a época, e por isso inesquecível.",
+    "summary": "Daily routine, winter weather and an unhurried investigation in Yokosuka. Too ambitious for its time, and unforgettable because of it.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura"
+      "Adventure"
     ]
   },
   {
@@ -807,11 +807,11 @@
     "category": "128-bit",
     "releaseYear": 1998,
     "coverUrl": "/covers/sonic-adventure-dc.png",
-    "summary": "O Sonic em três dimensões correndo por Station Square, com Chao para criar entre as fases. O Dreamcast estreando com fôlego de sobra.",
+    "summary": "Sonic in three dimensions racing through Station Square, with Chao to raise between stages. The Dreamcast debuting with energy to spare.",
     "isBrazilClassic": false,
     "genres": [
-      "Plataforma",
-      "Aventura"
+      "Platformer",
+      "Adventure"
     ]
   },
   {
@@ -821,11 +821,11 @@
     "category": "128-bit",
     "releaseYear": 2005,
     "coverUrl": "/covers/resident-evil-4-ngc.jpg",
-    "summary": "Câmera no ombro, aldeia hostil e o barulho da serra elétrica se aproximando. Reinventou a ação em terceira pessoa de uma vez.",
+    "summary": "Over-the-shoulder camera, a hostile village and the sound of a chainsaw getting closer. It reinvented third-person action in one go.",
     "isBrazilClassic": false,
     "genres": [
-      "Terror",
-      "Ação"
+      "Horror",
+      "Action"
     ]
   },
   {
@@ -835,11 +835,11 @@
     "category": "128-bit",
     "releaseYear": 2003,
     "coverUrl": "/covers/castlevania-aria-of-sorrow-gba.jpg",
-    "summary": "Coletar a alma de cada inimigo e montar o seu próprio estilo de luta, tudo cabendo na telinha do Game Boy Advance.",
+    "summary": "Collecting each enemy's soul and building your own fighting style, all on the tiny Game Boy Advance screen.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -849,11 +849,11 @@
     "category": "128-bit",
     "releaseYear": 1993,
     "coverUrl": "/covers/doom-dos.jpg",
-    "summary": "O 486 do laboratório da escola rodava, o disquete passava de mão em mão e o corredor virava campo de batalha. O tiro em primeira pessoa já nasceu adulto.",
+    "summary": "The 486 in the school computer lab could run it, the floppy went from hand to hand and the hallway became a battlefield. First-person shooting was born grown up.",
     "isBrazilClassic": true,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -863,11 +863,11 @@
     "category": "128-bit",
     "releaseYear": 1989,
     "coverUrl": "/covers/prince-of-persia-dos.jpg",
-    "summary": "Uma hora no relógio, saltos milimétricos e espinhos sem perdão. A animação rotoscopada parecia impossível para a época.",
+    "summary": "One hour on the clock, pixel-perfect jumps and unforgiving spikes. The rotoscoped animation seemed impossible for its time.",
     "isBrazilClassic": true,
     "genres": [
-      "Plataforma",
-      "Aventura"
+      "Platformer",
+      "Adventure"
     ]
   },
   {
@@ -877,11 +877,11 @@
     "category": "modern",
     "releaseYear": 2007,
     "coverUrl": "/covers/halo-3-x360.jpg",
-    "summary": "O fecho da trilogia com campanha para jogar em dupla e um multiplayer que segurou o Xbox 360 ligado por anos.",
+    "summary": "The end of the trilogy, with a campaign to play as a duo and a multiplayer that kept the Xbox 360 on for years.",
     "isBrazilClassic": false,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -891,11 +891,11 @@
     "category": "modern",
     "releaseYear": 2011,
     "coverUrl": "/covers/dark-souls-ps3.jpg",
-    "summary": "Lordran encaixada como um relógio, fogueira como respiro e a lição dura de aprender morrendo.",
+    "summary": "Lordran fitted together like clockwork, bonfires as a breather and the hard lesson of learning by dying.",
     "isBrazilClassic": false,
     "genres": [
       "RPG",
-      "Ação"
+      "Action"
     ]
   },
   {
@@ -905,11 +905,11 @@
     "category": "modern",
     "releaseYear": 2013,
     "coverUrl": "/covers/the-last-of-us-ps3.jpg",
-    "summary": "Joel, Ellie e uma travessia que dói de verdade. O PS3 se despedindo com a história mais comentada da geração.",
+    "summary": "Joel, Ellie and a journey that really hurts. The PS3 signing off with the most talked-about story of its generation.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -919,11 +919,11 @@
     "category": "modern",
     "releaseYear": 2015,
     "coverUrl": "/covers/bloodborne-ps4.jpg",
-    "summary": "Yharnam gótica, agressividade recompensada e um pesadelo que muda de forma a cada descoberta.",
+    "summary": "Gothic Yharnam, aggression rewarded and a nightmare that changes shape with every discovery.",
     "isBrazilClassic": false,
     "genres": [
       "RPG",
-      "Ação"
+      "Action"
     ]
   },
   {
@@ -933,11 +933,11 @@
     "category": "modern",
     "releaseYear": 2018,
     "coverUrl": "/covers/god-of-war-2018-ps4.jpg",
-    "summary": "Kratos pai, o machado Leviatã voltando à mão e uma câmera sem um único corte atravessando os nove reinos.",
+    "summary": "Kratos as a father, the Leviathan Axe flying back to his hand and a camera without a single cut across the nine realms.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -947,11 +947,11 @@
     "category": "modern",
     "releaseYear": 2018,
     "coverUrl": "/covers/marvels-spider-man-ps4.jpg",
-    "summary": "Balançar por Nova York no ritmo certo já é diversão completa antes mesmo de a missão começar.",
+    "summary": "Swinging through New York with the right rhythm is a complete thrill before the mission even starts.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -961,11 +961,11 @@
     "category": "modern",
     "releaseYear": 2018,
     "coverUrl": "/covers/red-dead-redemption-2-ps4.jpg",
-    "summary": "O Velho Oeste chegando ao fim, com um acampamento que parece feito de gente de verdade. Cavalgar devagar faz parte da graça.",
+    "summary": "The Wild West coming to an end, with a camp that feels made of real people. Riding slowly is part of the charm.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -975,11 +975,11 @@
     "category": "modern",
     "releaseYear": 2019,
     "coverUrl": "/covers/sekiro-shadows-die-twice-ps4.jpg",
-    "summary": "Duelo de katana no compasso do defletir. Ou você aprende a postura do inimigo, ou não passa da ponte.",
+    "summary": "Katana duels to the beat of the deflect. Either you learn the enemy's posture, or you don't get past the bridge.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -989,11 +989,11 @@
     "category": "modern",
     "releaseYear": 2020,
     "coverUrl": "/covers/ghost-of-tsushima-ps4.jpg",
-    "summary": "O vento como bússola, campos de flores até o horizonte e duelos decididos em um golpe só.",
+    "summary": "The wind as your compass, flower fields to the horizon and duels settled in a single strike.",
     "isBrazilClassic": false,
     "genres": [
-      "Ação",
-      "Aventura"
+      "Action",
+      "Adventure"
     ]
   },
   {
@@ -1003,11 +1003,11 @@
     "category": "modern",
     "releaseYear": 2022,
     "coverUrl": "/covers/elden-ring-ps5.jpg",
-    "summary": "Um mundo aberto que não segura a sua mão: atrás de cada horizonte tem uma masmorra e um chefe esperando.",
+    "summary": "An open world that doesn't hold your hand: behind every horizon there's a dungeon and a boss waiting.",
     "isBrazilClassic": false,
     "genres": [
       "RPG",
-      "Ação"
+      "Action"
     ]
   },
   {
@@ -1017,11 +1017,11 @@
     "category": "modern",
     "releaseYear": 2017,
     "coverUrl": "/covers/the-legend-of-zelda-breath-of-the-wild-nsw.jpg",
-    "summary": "Escalar qualquer parede, planar até onde a vista alcança e resolver do seu jeito. Liberdade transformada em mecânica.",
+    "summary": "Climb any wall, glide as far as the eye can see and solve things your way. Freedom turned into a mechanic.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -1031,10 +1031,10 @@
     "category": "modern",
     "releaseYear": 2018,
     "coverUrl": "/covers/celeste-nsw.png",
-    "summary": "Escalar a montanha é sobre ansiedade e insistência. Dash preciso, checkpoint generoso e uma história que acolhe.",
+    "summary": "Climbing the mountain is about anxiety and persistence. Precise dashes, generous checkpoints and a story that embraces you.",
     "isBrazilClassic": false,
     "genres": [
-      "Plataforma"
+      "Platformer"
     ]
   },
   {
@@ -1044,11 +1044,11 @@
     "category": "modern",
     "releaseYear": 2017,
     "coverUrl": "/covers/hollow-knight-pc.jpg",
-    "summary": "Hallownest desenhada à mão, silêncio no lugar de tutorial e uma tristeza bonita no fundo de cada sala.",
+    "summary": "Hand-drawn Hallownest, silence instead of a tutorial and a beautiful sadness at the back of every room.",
     "isBrazilClassic": false,
     "genres": [
-      "Aventura",
-      "Ação"
+      "Adventure",
+      "Action"
     ]
   },
   {
@@ -1058,11 +1058,11 @@
     "category": "modern",
     "releaseYear": 2000,
     "coverUrl": "/covers/counter-strike-pc.jpg",
-    "summary": "A rotina da lan house: pagar a hora, escolher terrorista ou contra, e o grito de rush B ecoando na de_dust2.",
+    "summary": "The LAN house routine: pay for the hour, pick terrorist or counter, and the \"rush B\" shout echoing through de_dust2.",
     "isBrazilClassic": true,
     "genres": [
-      "Tiro",
-      "Ação"
+      "Shooter",
+      "Action"
     ]
   },
   {
@@ -1072,10 +1072,10 @@
     "category": "modern",
     "releaseYear": 1999,
     "coverUrl": "/covers/age-of-empires-ii-pc.png",
-    "summary": "Aldeão cortando lenha, aríete batendo na muralha e partida em rede varando a madrugada na lan house da esquina.",
+    "summary": "Villagers chopping wood, a battering ram pounding the wall and network matches running all night at the corner LAN house.",
     "isBrazilClassic": true,
     "genres": [
-      "Estratégia"
+      "Strategy"
     ]
   }
 ]
